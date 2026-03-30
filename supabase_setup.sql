@@ -60,19 +60,43 @@ alter table notes      enable row level security;
 
 -- classes
 create policy "users own classes" on classes
-  for all using (auth.uid() = user_id) with check (auth.uid() = user_id);
+  for all using (
+    auth.uid() = user_id
+    OR (auth.uid() IS NULL AND user_id IS NULL)
+  ) with check (
+    auth.uid() = user_id
+    OR (auth.uid() IS NULL AND user_id IS NULL)
+  );
 
 -- attendance
 create policy "users own attendance" on attendance
-  for all using (auth.uid() = user_id) with check (auth.uid() = user_id);
+  for all using (
+    auth.uid() = user_id
+    OR (auth.uid() IS NULL AND user_id IS NULL)
+  ) with check (
+    auth.uid() = user_id
+    OR (auth.uid() IS NULL AND user_id IS NULL)
+  );
 
 -- assignments
 create policy "users own assignments" on assignments
-  for all using (auth.uid() = user_id) with check (auth.uid() = user_id);
+  for all using (
+    auth.uid() = user_id
+    OR (auth.uid() IS NULL AND user_id IS NULL)
+  ) with check (
+    auth.uid() = user_id
+    OR (auth.uid() IS NULL AND user_id IS NULL)
+  );
 
 -- notes
 create policy "users own notes" on notes
-  for all using (auth.uid() = user_id) with check (auth.uid() = user_id);
+  for all using (
+    auth.uid() = user_id
+    OR (auth.uid() IS NULL AND user_id IS NULL)
+  ) with check (
+    auth.uid() = user_id
+    OR (auth.uid() IS NULL AND user_id IS NULL)
+  );
 
 -- ============================================================
 -- インデックス（パフォーマンス）
