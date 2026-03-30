@@ -8,6 +8,7 @@ export interface Class {
   user_id: string;
   name: string;
   teacher: string | null;
+  room: string | null;
   day_of_week: DayOfWeek;
   period: Period;
   evaluation_type: EvaluationType;

@@ -1,6 +1,7 @@
-import React from 'react';
-import { View, Text, StyleSheet, SafeAreaView, ActivityIndicator } from 'react-native';
-import { useNavigation } from '@react-navigation/native';
+import React, { useCallback } from 'react';
+import { View, Text, StyleSheet, ActivityIndicator } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
+import { useNavigation, useFocusEffect } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { TimetableGrid } from '../components/TimetableGrid';
 import { useClasses } from '../hooks/useClasses';
@@ -10,7 +11,12 @@ type Nav = NativeStackNavigationProp<TimetableStackParamList, 'TimetableMain'>;
 
 export function TimetableScreen() {
   const navigation = useNavigation<Nav>();
-  const { classes, loading } = useClasses();
+  const { classes, loading, refetch } = useClasses();
+
+  // ClassFormScreen から戻った時に即座に再取得して反映する
+  useFocusEffect(useCallback(() => {
+    refetch();
+  }, [refetch]));
 
   const handleCellPress = (day: DayOfWeek, period: Period, existing?: Class) => {
     navigation.navigate('ClassForm', { classData: existing, day, period });

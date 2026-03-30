@@ -1,8 +1,9 @@
 import React, { useState } from 'react';
 import {
   View, Text, TextInput, TouchableOpacity, StyleSheet,
-  SafeAreaView, Alert, ScrollView, KeyboardAvoidingView, Platform,
+  Alert, ScrollView, KeyboardAvoidingView, Platform,
 } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
 import { useClasses } from '../hooks/useClasses';
 import { TimetableStackParamList, EvaluationType } from '../types';
@@ -26,6 +27,7 @@ export function ClassFormScreen() {
 
   const [name, setName] = useState(classData?.name ?? '');
   const [teacher, setTeacher] = useState(classData?.teacher ?? '');
+  const [room, setRoom] = useState(classData?.room ?? '');
   const [evalType, setEvalType] = useState<EvaluationType>(classData?.evaluation_type ?? 'balanced');
   const [memo, setMemo] = useState(classData?.memo ?? '');
   const [saving, setSaving] = useState(false);
@@ -38,6 +40,7 @@ export function ClassFormScreen() {
     const payload = {
       name: name.trim(),
       teacher: teacher.trim() || null,
+      room: room.trim() || null,
       day_of_week: classData?.day_of_week ?? day ?? 0,
       period: classData?.period ?? period ?? 1,
       evaluation_type: evalType,
@@ -89,6 +92,15 @@ export function ClassFormScreen() {
             value={teacher}
             onChangeText={setTeacher}
             placeholder="例：山田 太郎"
+            placeholderTextColor="#94a3b8"
+          />
+
+          <Text style={styles.label}>教室（任意）</Text>
+          <TextInput
+            style={styles.input}
+            value={room}
+            onChangeText={setRoom}
+            placeholder="例：A棟 201号室"
             placeholderTextColor="#94a3b8"
           />
 
