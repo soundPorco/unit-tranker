@@ -4,10 +4,12 @@ import { Class, DayOfWeek, Period } from '../types';
 
 const DAYS = ['月', '火', '水', '木', '金', '土'];
 const PERIODS = [1, 2, 3, 4, 5, 6] as Period[];
-const COLORS = ['#6366f1', '#3b82f6', '#22c55e', '#f59e0b', '#ef4444', '#8b5cf6'];
 
-const PERIOD_COL_W = 24; // 限数列の固定幅
-const GRID_PADDING = 16; // TimetableScreen の grid padding (左右各8)
+// iOS Calendar ライクな落ち着いたアクセントカラー
+const DAY_COLORS = ['#007AFF', '#34C759', '#FF9500', '#FF3B30', '#AF52DE', '#5AC8FA'];
+
+const PERIOD_COL_W = 28;
+const HEADER_ROW_H = 34;
 
 interface Props {
   classes: Class[];
@@ -16,96 +18,150 @@ interface Props {
 
 export function TimetableGrid({ classes, onCellPress }: Props) {
   const { width } = useWindowDimensions();
-  // 画面幅からパディングと限数列を引いた残りを6列で均等分割
-  const cellWidth = (width - GRID_PADDING * 2 - PERIOD_COL_W) / DAYS.length;
-  const cellHeight = Math.max(56, Math.round(cellWidth * 0.85));
+  const cellWidth = (width - PERIOD_COL_W) / DAYS.length;
 
   const getClass = (day: DayOfWeek, period: Period) =>
     classes.find(c => c.day_of_week === day && c.period === period);
 
   return (
-    <View>
+    <View style={styles.container}>
       {/* ヘッダー行 */}
-      <View style={styles.row}>
-        <View style={[styles.periodCell, { width: PERIOD_COL_W, height: 32 }]} />
+      <View style={[styles.row, { height: HEADER_ROW_H }]}>
+        <View style={[styles.periodHeader, { width: PERIOD_COL_W }]} />
         {DAYS.map((d, i) => (
-          <View
-            key={d}
-            style={[styles.headerCell, { width: cellWidth, backgroundColor: COLORS[i] + '20' }]}
-          >
-            <Text style={[styles.headerText, { color: COLORS[i] }]}>{d}</Text>
+          <View key={d} style={[styles.dayHeader, { width: cellWidth }]}>
+            <Text style={[styles.dayText, { color: DAY_COLORS[i] }]}>{d}</Text>
           </View>
         ))}
       </View>
 
-      {PERIODS.map(period => (
-        <View key={period} style={styles.row}>
-          <View style={[styles.periodCell, { width: PERIOD_COL_W, height: cellHeight }]}>
-            <Text style={styles.periodText}>{period}</Text>
+      {/* グリッド本体：flex:1 で残りの高さを6等分 */}
+      <View style={styles.periodsContainer}>
+        {PERIODS.map(period => (
+          <View key={period} style={styles.periodRow}>
+            {/* 限数ラベル */}
+            <View style={[styles.periodCell, { width: PERIOD_COL_W }]}>
+              <Text style={styles.periodText}>{period}</Text>
+            </View>
+
+            {/* 各曜日セル */}
+            {DAYS.map((_, dayIdx) => {
+              const day = dayIdx as DayOfWeek;
+              const cls = getClass(day, period);
+              return (
+                <TouchableOpacity
+                  key={dayIdx}
+                  activeOpacity={0.65}
+                  style={[
+                    styles.cell,
+                    { width: cellWidth },
+                    cls
+                      ? { backgroundColor: '#FFFFFF' }
+                      : { backgroundColor: '#F2F2F7' },
+                  ]}
+                  onPress={() => onCellPress(day, period, cls)}
+                >
+                  {cls ? (
+                    <View style={[styles.classInner, { borderLeftColor: DAY_COLORS[dayIdx] }]}>
+                      <Text style={styles.className} numberOfLines={3}>
+                        {cls.name}
+                      </Text>
+                      {cls.room ? (
+                        <Text style={styles.roomText} numberOfLines={1}>{cls.room}</Text>
+                      ) : null}
+                    </View>
+                  ) : (
+                    <View style={styles.emptyContainer}>
+                      <Text style={styles.emptyPlus}>＋</Text>
+                    </View>
+                  )}
+                </TouchableOpacity>
+              );
+            })}
           </View>
-          {DAYS.map((_, dayIdx) => {
-            const day = dayIdx as DayOfWeek;
-            const cls = getClass(day, period);
-            return (
-              <TouchableOpacity
-                key={dayIdx}
-                style={[
-                  styles.cell,
-                  { width: cellWidth, height: cellHeight },
-                  cls && { backgroundColor: COLORS[dayIdx] + '15' },
-                ]}
-                onPress={() => onCellPress(day, period, cls)}
-              >
-                {cls ? (
-                  <>
-                    <Text
-                      style={[styles.className, { color: COLORS[dayIdx] }]}
-                      numberOfLines={2}
-                    >
-                      {cls.name}
-                    </Text>
-                    {cls.room && (
-                      <Text style={styles.room} numberOfLines={1}>{cls.room}</Text>
-                    )}
-                  </>
-                ) : (
-                  <Text style={styles.empty}>+</Text>
-                )}
-              </TouchableOpacity>
-            );
-          })}
-        </View>
-      ))}
+        ))}
+      </View>
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  row: { flexDirection: 'row' },
-  headerCell: {
-    height: 32,
+  container: {
+    flex: 1,
+  },
+  row: {
+    flexDirection: 'row',
+    borderBottomWidth: 0.5,
+    borderBottomColor: '#C6C6C8',
+  },
+  periodHeader: {
+    backgroundColor: '#F2F2F7',
+  },
+  dayHeader: {
     alignItems: 'center',
     justifyContent: 'center',
-    borderWidth: 0.5,
-    borderColor: '#e2e8f0',
+    backgroundColor: '#F2F2F7',
+    borderLeftWidth: 0.5,
+    borderLeftColor: '#C6C6C8',
   },
-  headerText: { fontSize: 12, fontWeight: '700' },
+  dayText: {
+    fontSize: 13,
+    fontWeight: '600',
+    letterSpacing: 0.3,
+  },
+  periodsContainer: {
+    flex: 1,
+  },
+  periodRow: {
+    flex: 1,
+    flexDirection: 'row',
+    borderBottomWidth: 0.5,
+    borderBottomColor: '#C6C6C8',
+  },
   periodCell: {
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: '#f8fafc',
-    borderWidth: 0.5,
-    borderColor: '#e2e8f0',
+    backgroundColor: '#F2F2F7',
+    borderRightWidth: 0.5,
+    borderRightColor: '#C6C6C8',
   },
-  periodText: { fontSize: 10, color: '#64748b', fontWeight: '600' },
+  periodText: {
+    fontSize: 11,
+    color: '#8E8E93',
+    fontWeight: '500',
+  },
   cell: {
-    borderWidth: 0.5,
-    borderColor: '#e2e8f0',
-    padding: 3,
+    flex: 1,
+    borderLeftWidth: 0.5,
+    borderLeftColor: '#E5E5EA',
+    padding: 4,
+    overflow: 'hidden',
+  },
+  classInner: {
+    flex: 1,
+    borderLeftWidth: 3,
+    borderLeftColor: '#007AFF',
+    paddingLeft: 5,
+    justifyContent: 'center',
+  },
+  className: {
+    fontSize: 10,
+    fontWeight: '600',
+    color: '#1C1C1E',
+    lineHeight: 13,
+  },
+  roomText: {
+    fontSize: 9,
+    color: '#8E8E93',
+    marginTop: 2,
+  },
+  emptyContainer: {
+    flex: 1,
     alignItems: 'center',
     justifyContent: 'center',
   },
-  className: { fontSize: 10, fontWeight: '600', textAlign: 'center' },
-  room: { fontSize: 9, color: '#94a3b8', textAlign: 'center', marginTop: 1 },
-  empty: { fontSize: 18, color: '#cbd5e1' },
+  emptyPlus: {
+    color: '#D1D1D6',
+    fontSize: 16,
+  },
 });

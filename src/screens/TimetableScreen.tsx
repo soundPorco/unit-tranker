@@ -13,7 +13,6 @@ export function TimetableScreen() {
   const navigation = useNavigation<Nav>();
   const { classes, loading, refetch } = useClasses();
 
-  // ClassFormScreen から戻った時に即座に再取得して反映する
   useFocusEffect(useCallback(() => {
     refetch();
   }, [refetch]));
@@ -24,36 +23,42 @@ export function TimetableScreen() {
 
   if (loading) {
     return (
-      <SafeAreaView style={styles.center}>
-        <ActivityIndicator color="#6366f1" />
+      <SafeAreaView style={styles.container}>
+        <ActivityIndicator color="#007AFF" style={{ flex: 1 }} />
       </SafeAreaView>
     );
   }
 
   return (
-    <SafeAreaView style={styles.container}>
+    <SafeAreaView style={styles.container} edges={['top']}>
       <View style={styles.header}>
         <Text style={styles.title}>時間割</Text>
       </View>
-      <View style={styles.grid}>
+      <View style={styles.gridContainer}>
         <TimetableGrid classes={classes} onCellPress={handleCellPress} />
       </View>
-      <Text style={styles.hint}>コマをタップして講義を登録</Text>
     </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#f8fafc' },
-  center: { flex: 1, alignItems: 'center', justifyContent: 'center' },
+  container: {
+    flex: 1,
+    backgroundColor: '#F2F2F7',
+  },
   header: {
     paddingHorizontal: 16,
-    paddingVertical: 12,
-    borderBottomWidth: 1,
-    borderBottomColor: '#e2e8f0',
-    backgroundColor: '#fff',
+    paddingTop: 4,
+    paddingBottom: 10,
+    backgroundColor: '#F2F2F7',
   },
-  title: { fontSize: 20, fontWeight: '700', color: '#1e293b' },
-  grid: { flex: 1, padding: 8 },
-  hint: { textAlign: 'center', color: '#94a3b8', fontSize: 12, paddingBottom: 12 },
+  title: {
+    fontSize: 28,
+    fontWeight: '700',
+    color: '#1C1C1E',
+    letterSpacing: 0.3,
+  },
+  gridContainer: {
+    flex: 1,
+  },
 });
