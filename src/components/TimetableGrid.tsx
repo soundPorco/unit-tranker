@@ -3,7 +3,6 @@ import { View, Text, TouchableOpacity, StyleSheet, useWindowDimensions } from 'r
 import { Class, DayOfWeek, Period, TimetableSettings } from '../types';
 
 const ALL_DAYS = ['月', '火', '水', '木', '金', '土', '日'];
-const ALL_DAY_COLORS = ['#007AFF', '#34C759', '#FF9500', '#FF3B30', '#AF52DE', '#5AC8FA', '#FF6B6B'];
 
 const DAY_INDICES: Record<TimetableSettings['daysMode'], number[]> = {
   weekdays:     [0, 1, 2, 3, 4],
@@ -11,9 +10,10 @@ const DAY_INDICES: Record<TimetableSettings['daysMode'], number[]> = {
   all:          [0, 1, 2, 3, 4, 5, 6],
 };
 
-const PERIOD_COL_W = 44; // 限数 + 時間表示に必要な幅
-const SEMESTER_ROW_H = 26;
-const HEADER_ROW_H = 32;
+const PERIOD_COL_W = 46;
+const HEADER_ROW_H = 30;
+const CELL_GAP     = 3;  // セル間の隙間
+const GRID_PAD     = 6;  // グリッド全体のパディング
 
 interface Props {
   classes: Class[];
@@ -24,7 +24,9 @@ interface Props {
 export function TimetableGrid({ classes, settings, onCellPress }: Props) {
   const { width } = useWindowDimensions();
   const dayIndices = DAY_INDICES[settings.daysMode];
-  const cellWidth = (width - PERIOD_COL_W) / dayIndices.length;
+  // セル幅：画面幅 - グリッドパディング×2 - 限数列 - セル間ギャップ合計
+  const totalGap = CELL_GAP * dayIndices.length;
+  const cellWidth = (width - GRID_PAD * 2 - PERIOD_COL_W - totalGap) / dayIndices.length;
   const periods = Array.from({ length: settings.periodCount }, (_, i) => (i + 1) as Period);
 
   const getClass = (day: DayOfWeek, period: Period) =>
@@ -32,19 +34,20 @@ export function TimetableGrid({ classes, settings, onCellPress }: Props) {
 
   return (
     <View style={styles.container}>
-      {/* 学期バナー */}
-      <View style={[styles.semesterBanner, { height: SEMESTER_ROW_H }]}>
-        <Text style={styles.semesterText}>{settings.semester}</Text>
-      </View>
-
       {/* 曜日ヘッダー行 */}
       <View style={[styles.headerRow, { height: HEADER_ROW_H }]}>
-        <View style={[styles.periodHeaderCell, { width: PERIOD_COL_W }]} />
-        {dayIndices.map(di => (
-          <View key={di} style={[styles.dayHeaderCell, { width: cellWidth }]}>
-            <Text style={[styles.dayText, { color: ALL_DAY_COLORS[di] }]}>
-              {ALL_DAYS[di]}
-            </Text>
+        {/* 限数列のスペーサー */}
+        <View style={{ width: PERIOD_COL_W + CELL_GAP }} />
+        {dayIndices.map((di, idx) => (
+          <View
+            key={di}
+            style={[
+              styles.dayHeaderCell,
+              { width: cellWidth },
+              idx < dayIndices.length - 1 && { marginRight: CELL_GAP },
+            ]}
+          >
+            <Text style={styles.dayText}>{ALL_DAYS[di]}</Text>
           </View>
         ))}
       </View>
@@ -52,23 +55,25 @@ export function TimetableGrid({ classes, settings, onCellPress }: Props) {
       {/* 時限行（残り全高を均等分割） */}
       <View style={styles.periodsContainer}>
         {periods.map(period => {
-          const pIdx = period - 1;
+          const pIdx     = period - 1;
           const timeInfo = settings.periodTimes[pIdx];
+
           return (
             <View key={period} style={styles.periodRow}>
               {/* 限数 + 時間ラベル */}
-              <View style={[styles.periodCell, { width: PERIOD_COL_W }]}>
+              <View style={[styles.periodCell, { width: PERIOD_COL_W, marginRight: CELL_GAP }]}>
                 <Text style={styles.periodNumber}>{period}</Text>
                 {timeInfo && (
-                  <>
-                    <Text style={styles.periodTimeText}>{timeInfo.start}</Text>
-                    <Text style={styles.periodTimeText}>{timeInfo.end}</Text>
-                  </>
+                  <View style={styles.timeBlock}>
+                    <Text style={styles.timeText}>{timeInfo.start}</Text>
+                    <Text style={styles.timeSep}>|</Text>
+                    <Text style={styles.timeText}>{timeInfo.end}</Text>
+                  </View>
                 )}
               </View>
 
               {/* 各曜日セル */}
-              {dayIndices.map(di => {
+              {dayIndices.map((di, idx) => {
                 const day = di as DayOfWeek;
                 const cls = getClass(day, period);
                 return (
@@ -78,12 +83,13 @@ export function TimetableGrid({ classes, settings, onCellPress }: Props) {
                     style={[
                       styles.cell,
                       { width: cellWidth },
+                      idx < dayIndices.length - 1 && { marginRight: CELL_GAP },
                       cls ? styles.cellFilled : styles.cellEmpty,
                     ]}
                     onPress={() => onCellPress(day, period, cls)}
                   >
                     {cls ? (
-                      <View style={[styles.classInner, { borderLeftColor: ALL_DAY_COLORS[di] }]}>
+                      <View style={styles.classInner}>
                         <Text style={styles.className} numberOfLines={3}>
                           {cls.name}
                         </Text>
@@ -110,94 +116,89 @@ export function TimetableGrid({ classes, settings, onCellPress }: Props) {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-  },
-
-  semesterBanner: {
     backgroundColor: '#F2F2F7',
-    alignItems: 'center',
-    justifyContent: 'center',
-    borderBottomWidth: 0.5,
-    borderBottomColor: '#C6C6C8',
-  },
-  semesterText: {
-    fontSize: 12,
-    fontWeight: '600',
-    color: '#8E8E93',
-    letterSpacing: 0.5,
+    paddingHorizontal: GRID_PAD,
+    paddingBottom: GRID_PAD,
   },
 
+  // ヘッダー行
   headerRow: {
     flexDirection: 'row',
-    borderBottomWidth: 0.5,
-    borderBottomColor: '#C6C6C8',
-  },
-  periodHeaderCell: {
-    backgroundColor: '#F2F2F7',
-    borderRightWidth: 0.5,
-    borderRightColor: '#C6C6C8',
+    alignItems: 'center',
+    marginBottom: CELL_GAP,
   },
   dayHeaderCell: {
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: '#F2F2F7',
-    borderLeftWidth: 0.5,
-    borderLeftColor: '#C6C6C8',
   },
   dayText: {
-    fontSize: 13,
+    fontSize: 12,
     fontWeight: '600',
+    color: '#1C1C1E',
     letterSpacing: 0.2,
   },
 
+  // 時限コンテナ
   periodsContainer: {
     flex: 1,
+    gap: CELL_GAP,
   },
   periodRow: {
     flex: 1,
     flexDirection: 'row',
-    borderBottomWidth: 0.5,
-    borderBottomColor: '#C6C6C8',
   },
 
+  // 限数列
   periodCell: {
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: '#F2F2F7',
-    borderRightWidth: 0.5,
-    borderRightColor: '#C6C6C8',
-    paddingVertical: 2,
-    gap: 1,
+    gap: 2,
   },
   periodNumber: {
-    fontSize: 12,
-    fontWeight: '600',
+    fontSize: 11,
+    fontWeight: '700',
     color: '#3C3C43',
   },
-  periodTimeText: {
-    fontSize: 8,
+  timeBlock: {
+    alignItems: 'center',
+    gap: 0,
+  },
+  timeText: {
+    fontSize: 7.5,
     color: '#8E8E93',
-    letterSpacing: -0.2,
+    letterSpacing: -0.3,
+    lineHeight: 10,
+  },
+  timeSep: {
+    fontSize: 7,
+    color: '#C7C7CC',
+    lineHeight: 9,
   },
 
+  // セル共通
   cell: {
     flex: 1,
-    borderLeftWidth: 0.5,
-    borderLeftColor: '#E5E5EA',
-    padding: 3,
+    borderRadius: 8,
+    padding: 4,
     overflow: 'hidden',
   },
   cellFilled: {
     backgroundColor: '#FFFFFF',
+    shadowColor: '#000',
+    shadowOpacity: 0.05,
+    shadowRadius: 2,
+    shadowOffset: { width: 0, height: 1 },
+    elevation: 1,
   },
   cellEmpty: {
-    backgroundColor: '#F2F2F7',
+    backgroundColor: '#E5E5EA',
   },
 
+  // 科目カード内容
   classInner: {
     flex: 1,
-    borderLeftWidth: 3,
-    paddingLeft: 4,
     justifyContent: 'center',
+    paddingLeft: 2,
   },
   className: {
     fontSize: 10,
@@ -217,7 +218,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   emptyPlus: {
-    color: '#D1D1D6',
-    fontSize: 16,
+    color: '#C7C7CC',
+    fontSize: 14,
   },
 });

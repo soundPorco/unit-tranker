@@ -36,16 +36,19 @@ export function TimetableScreen() {
 
   return (
     <SafeAreaView style={styles.container} edges={['top']}>
-      {/* ヘッダー */}
+      {/* ヘッダー：学期テキスト中央 + 右に歯車 */}
       <View style={styles.header}>
-        <Text style={styles.title}>時間割</Text>
-        <TouchableOpacity
-          onPress={() => setShowSettings(true)}
-          style={styles.gearBtn}
-          hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
-        >
-          <Ionicons name="settings-outline" size={22} color="#007AFF" />
-        </TouchableOpacity>
+        <View style={styles.headerSide} />
+        <Text style={styles.semesterTitle}>{settings.semester}</Text>
+        <View style={styles.headerSide}>
+          <TouchableOpacity
+            onPress={() => setShowSettings(true)}
+            style={styles.gearBtn}
+            hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+          >
+            <Ionicons name="settings-outline" size={20} color="#8E8E93" />
+          </TouchableOpacity>
+        </View>
       </View>
 
       {/* グリッド */}
@@ -78,14 +81,20 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'space-between',
     paddingHorizontal: 16,
-    paddingTop: 4,
+    paddingTop: 6,
     paddingBottom: 10,
   },
-  title: {
-    fontSize: 28,
+  headerSide: {
+    width: 36,
+    alignItems: 'flex-end',
+  },
+  semesterTitle: {
+    fontSize: 17,
     fontWeight: '700',
     color: '#1C1C1E',
     letterSpacing: 0.3,
+    textAlign: 'center',
+    flex: 1,
   },
   gearBtn: {
     padding: 4,
