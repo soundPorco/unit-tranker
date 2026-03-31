@@ -2,6 +2,8 @@ export type DayOfWeek = 0 | 1 | 2 | 3 | 4 | 5 | 6; // 月〜日
 export type Period = 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8;
 export type AttendanceStatus = 'present' | 'absent' | 'late';
 export type EvaluationType = 'attendance' | 'assignment' | 'exam' | 'balanced';
+export type ClassType = 'required' | 'elective_required' | 'elective';
+export type ExamType = 'written' | 'report' | 'oral' | 'none';
 export type DaysMode = 'weekdays' | 'weekdays_sat' | 'all';
 
 export interface PeriodTime {
@@ -24,7 +26,11 @@ export interface Class {
   room: string | null;
   day_of_week: DayOfWeek;
   period: Period;
+  credits: number | null;        // 単位数
+  class_type: ClassType | null;  // 必修/選択必修/選択
   evaluation_type: EvaluationType;
+  exam_date: string | null;      // 試験日 ISO date
+  exam_type: ExamType | null;    // 試験形式
   memo: string | null;
   created_at: string;
 }

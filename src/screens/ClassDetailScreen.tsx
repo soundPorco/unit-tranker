@@ -10,7 +10,20 @@ import { useAttendance } from '../hooks/useAttendance';
 import { useAssignments } from '../hooks/useAssignments';
 import { supabase } from '../lib/supabase';
 import { AttendanceButton } from '../components/AttendanceButton';
-import { GradeStackParamList, AttendanceStatus, Note } from '../types';
+import { GradeStackParamList, AttendanceStatus, Note, Class, ClassType, ExamType } from '../types';
+
+const CLASS_TYPE_LABEL: Record<ClassType, string> = {
+  required:          '必修',
+  elective_required: '選択必修',
+  elective:          '選択',
+};
+
+const EXAM_TYPE_LABEL: Record<ExamType, string> = {
+  written: '筆記',
+  report:  'レポート',
+  oral:    '口頭',
+  none:    'なし',
+};
 
 type Route = RouteProp<GradeStackParamList, 'ClassDetail'>;
 type Tab = 'attendance' | 'assignment' | 'note';
@@ -60,6 +73,7 @@ export function ClassDetailScreen() {
   const { records, loading: attLoading, upsertAttendance, stats: attStats } = useAttendance(classId);
   const { assignments, loading: asgLoading, addAssignment, toggleSubmitted, deleteAssignment, stats: asgStats } = useAssignments(classId);
 
+  const [classInfo, setClassInfo] = useState<Class | null>(null);
   const [note, setNote] = useState('');
   const [noteSaving, setNoteSaving] = useState(false);
 
@@ -72,6 +86,9 @@ export function ClassDetailScreen() {
   const [attStatus, setAttStatus] = useState<AttendanceStatus>('present');
 
   useEffect(() => {
+    supabase.from('classes').select('*').eq('id', classId).single().then(({ data }) => {
+      if (data) setClassInfo(data as Class);
+    });
     supabase.from('notes').select('*').eq('class_id', classId).single().then(({ data }) => {
       if (data) setNote((data as Note).content ?? '');
     });
@@ -148,6 +165,48 @@ export function ClassDetailScreen() {
           </View>
         </View>
       </View>
+
+      {/* 科目情報カード */}
+      {classInfo && (
+        <View style={s.infoCard}>
+          {classInfo.credits != null && (
+            <View style={s.infoItem}>
+              <Ionicons name="school-outline" size={13} color="#8E8E93" />
+              <Text style={s.infoText}>{classInfo.credits}単位</Text>
+            </View>
+          )}
+          {classInfo.class_type && (
+            <View style={s.infoItem}>
+              <Ionicons name="bookmark-outline" size={13} color="#8E8E93" />
+              <Text style={s.infoText}>{CLASS_TYPE_LABEL[classInfo.class_type]}</Text>
+            </View>
+          )}
+          {classInfo.exam_date && (
+            <View style={s.infoItem}>
+              <Ionicons name="calendar-outline" size={13} color="#FF3B30" />
+              <Text style={[s.infoText, { color: '#FF3B30' }]}>試験 {classInfo.exam_date}</Text>
+            </View>
+          )}
+          {classInfo.exam_type && classInfo.exam_type !== 'none' && (
+            <View style={s.infoItem}>
+              <Ionicons name="document-outline" size={13} color="#8E8E93" />
+              <Text style={s.infoText}>{EXAM_TYPE_LABEL[classInfo.exam_type]}</Text>
+            </View>
+          )}
+          {classInfo.teacher && (
+            <View style={s.infoItem}>
+              <Ionicons name="person-outline" size={13} color="#8E8E93" />
+              <Text style={s.infoText}>{classInfo.teacher}</Text>
+            </View>
+          )}
+          {classInfo.room && (
+            <View style={s.infoItem}>
+              <Ionicons name="location-outline" size={13} color="#8E8E93" />
+              <Text style={s.infoText}>{classInfo.room}</Text>
+            </View>
+          )}
+        </View>
+      )}
 
       {/* セグメントタブ */}
       <View style={s.tabBar}>
@@ -503,4 +562,26 @@ const s = StyleSheet.create({
     marginTop: 6,
   },
   sheetConfirmText: { color: '#FFFFFF', fontSize: 16, fontWeight: '600' },
+
+  // 科目情報カード
+  infoCard: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 8,
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    backgroundColor: '#FFFFFF',
+    borderBottomWidth: 0.5,
+    borderBottomColor: '#E5E5EA',
+  },
+  infoItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    backgroundColor: '#F2F2F7',
+    borderRadius: 8,
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+  },
+  infoText: { fontSize: 12, color: '#3C3C43', fontWeight: '500' },
 });
