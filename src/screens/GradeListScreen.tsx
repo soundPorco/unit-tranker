@@ -1,118 +1,197 @@
-import React from 'react';
+import React, { useCallback } from 'react';
 import {
-  View, Text, FlatList, TouchableOpacity, StyleSheet,
-  SafeAreaView, ActivityIndicator,
+  View, Text, FlatList, TouchableOpacity, StyleSheet, ActivityIndicator,
 } from 'react-native';
-import { useNavigation } from '@react-navigation/native';
+import { SafeAreaView } from 'react-native-safe-area-context';
+import { useNavigation, useFocusEffect } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
+import { Ionicons } from '@expo/vector-icons';
 import { useClasses } from '../hooks/useClasses';
+import { useAllClassStats } from '../hooks/useAllClassStats';
 import { GradeStackParamList } from '../types';
 
 type Nav = NativeStackNavigationProp<GradeStackParamList, 'GradeList'>;
 
-const DAYS = ['月', '火', '水', '木', '金', '土'];
-const EVAL_LABELS: Record<string, string> = {
-  balanced: '総合', attendance: '出席重視', assignment: '課題重視', exam: 'テスト重視',
-};
+const DAYS = ['月', '火', '水', '木', '金', '土', '日'];
+const DAY_COLORS = ['#007AFF', '#34C759', '#FF9500', '#FF3B30', '#AF52DE', '#5AC8FA', '#FF6B6B'];
+
+// 各カードが独立して出席率・提出率を表示するための小コンポーネント
+function ProgressBar({ value, color }: { value: number; color: string }) {
+  return (
+    <View style={pb.track}>
+      <View style={[pb.fill, { width: `${value}%` as any, backgroundColor: color }]} />
+    </View>
+  );
+}
+const pb = StyleSheet.create({
+  track: { flex: 1, height: 4, backgroundColor: '#E5E5EA', borderRadius: 2, overflow: 'hidden' },
+  fill:  { height: 4, borderRadius: 2 },
+});
 
 export function GradeListScreen() {
   const navigation = useNavigation<Nav>();
-  const { classes, loading } = useClasses();
+  const { classes, loading, refetch } = useClasses();
+  const { stats, refetch: refetchStats } = useAllClassStats(classes.map(c => c.id));
+
+  useFocusEffect(useCallback(() => {
+    refetch();
+    refetchStats();
+  }, [refetch, refetchStats]));
 
   if (loading) {
-    return <SafeAreaView style={styles.center}><ActivityIndicator color="#6366f1" /></SafeAreaView>;
-  }
-
-  if (classes.length === 0) {
     return (
       <SafeAreaView style={styles.container}>
-        <View style={styles.header}>
-          <Text style={styles.title}>成績管理</Text>
-        </View>
-        <View style={styles.center}>
-          <Text style={styles.empty}>まず時間割から講義を登録しましょう</Text>
-        </View>
+        <ActivityIndicator color="#007AFF" style={{ flex: 1 }} />
       </SafeAreaView>
     );
   }
 
   return (
-    <SafeAreaView style={styles.container}>
+    <SafeAreaView style={styles.container} edges={['top']}>
+      {/* ヘッダー */}
       <View style={styles.header}>
-        <Text style={styles.title}>成績管理</Text>
-        <Text style={styles.subtitle}>{classes.length}講義</Text>
+        <Text style={styles.title}>成績</Text>
+        <Text style={styles.subtitle}>{classes.length} 科目</Text>
       </View>
-      <FlatList
-        data={classes}
-        keyExtractor={item => item.id}
-        contentContainerStyle={styles.list}
-        renderItem={({ item }) => (
-          <TouchableOpacity
-            style={styles.card}
-            onPress={() => navigation.navigate('ClassDetail', { classId: item.id, className: item.name })}
-          >
-            <View style={styles.cardLeft}>
-              <View style={styles.dayBadge}>
-                <Text style={styles.dayText}>{DAYS[item.day_of_week]}</Text>
-                <Text style={styles.periodText}>{item.period}限</Text>
-              </View>
-            </View>
-            <View style={styles.cardBody}>
-              <Text style={styles.className}>{item.name}</Text>
-              {item.teacher && <Text style={styles.teacher}>{item.teacher}</Text>}
-              <Text style={styles.evalType}>{EVAL_LABELS[item.evaluation_type]}</Text>
-            </View>
-            <Text style={styles.arrow}>›</Text>
-          </TouchableOpacity>
-        )}
-      />
+
+      {classes.length === 0 ? (
+        <View style={styles.emptyContainer}>
+          <Ionicons name="book-outline" size={48} color="#C7C7CC" />
+          <Text style={styles.emptyTitle}>科目が登録されていません</Text>
+          <Text style={styles.emptyDesc}>時間割から科目を追加しましょう</Text>
+        </View>
+      ) : (
+        <FlatList
+          data={classes}
+          keyExtractor={item => item.id}
+          contentContainerStyle={styles.list}
+          showsVerticalScrollIndicator={false}
+          renderItem={({ item }) => {
+            const color = DAY_COLORS[item.day_of_week] ?? '#007AFF';
+            return (
+              <TouchableOpacity
+                style={styles.card}
+                activeOpacity={0.7}
+                onPress={() => navigation.navigate('ClassDetail', {
+                  classId: item.id,
+                  className: item.name,
+                })}
+              >
+                {/* 左カラーストライプ */}
+                <View style={[styles.stripe, { backgroundColor: color }]} />
+
+                <View style={styles.cardContent}>
+                  {/* 上段：科目名 + 曜日バッジ */}
+                  <View style={styles.cardTop}>
+                    <Text style={styles.className} numberOfLines={1}>{item.name}</Text>
+                    <View style={[styles.dayPill, { backgroundColor: color + '18' }]}>
+                      <Text style={[styles.dayPillText, { color }]}>
+                        {DAYS[item.day_of_week]}曜{item.period}限
+                      </Text>
+                    </View>
+                  </View>
+
+                  {/* 教員名 */}
+                  {item.teacher ? (
+                    <Text style={styles.teacher}>{item.teacher}</Text>
+                  ) : null}
+
+                  {/* プログレスバー行 */}
+                  {(() => {
+                    const s = stats[item.id];
+                    const attRate = s?.attendanceRate ?? null;
+                    const asgRate = s?.submissionRate ?? null;
+                    return (
+                      <View style={styles.barsContainer}>
+                        <View style={styles.barRow}>
+                          <Text style={styles.barLabel}>出席</Text>
+                          <ProgressBar value={attRate ?? 0} color={color} />
+                          <Text style={styles.barValue}>
+                            {attRate !== null ? `${attRate}%` : '—'}
+                          </Text>
+                        </View>
+                        <View style={styles.barRow}>
+                          <Text style={styles.barLabel}>課題</Text>
+                          <ProgressBar value={asgRate ?? 0} color={color} />
+                          <Text style={styles.barValue}>
+                            {asgRate !== null ? `${asgRate}%` : '—'}
+                          </Text>
+                        </View>
+                      </View>
+                    );
+                  })()}
+                </View>
+
+                <Ionicons name="chevron-forward" size={16} color="#C7C7CC" style={styles.chevron} />
+              </TouchableOpacity>
+            );
+          }}
+        />
+      )}
     </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#f8fafc' },
-  center: { flex: 1, alignItems: 'center', justifyContent: 'center' },
+  container: { flex: 1, backgroundColor: '#F2F2F7' },
+
   header: {
+    paddingHorizontal: 16,
+    paddingTop: 4,
+    paddingBottom: 10,
     flexDirection: 'row',
     alignItems: 'baseline',
     gap: 8,
-    paddingHorizontal: 16,
-    paddingVertical: 12,
-    borderBottomWidth: 1,
-    borderBottomColor: '#e2e8f0',
-    backgroundColor: '#fff',
   },
-  title: { fontSize: 20, fontWeight: '700', color: '#1e293b' },
-  subtitle: { fontSize: 13, color: '#94a3b8' },
-  list: { padding: 12, gap: 8 },
-  empty: { color: '#94a3b8', fontSize: 15 },
-  card: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: '#fff',
-    borderRadius: 12,
-    padding: 14,
-    shadowColor: '#000',
-    shadowOpacity: 0.05,
-    shadowRadius: 4,
-    elevation: 2,
-    gap: 12,
-  },
-  cardLeft: {},
-  dayBadge: {
-    width: 44,
-    height: 44,
-    backgroundColor: '#6366f1',
-    borderRadius: 10,
+  title: { fontSize: 28, fontWeight: '700', color: '#1C1C1E', letterSpacing: 0.3 },
+  subtitle: { fontSize: 15, color: '#8E8E93', fontWeight: '400' },
+
+  emptyContainer: {
+    flex: 1,
     alignItems: 'center',
     justifyContent: 'center',
+    gap: 8,
+    paddingBottom: 60,
   },
-  dayText: { color: '#fff', fontSize: 14, fontWeight: '700' },
-  periodText: { color: '#c7d2fe', fontSize: 10 },
-  cardBody: { flex: 1 },
-  className: { fontSize: 15, fontWeight: '600', color: '#1e293b' },
-  teacher: { fontSize: 12, color: '#64748b', marginTop: 2 },
-  evalType: { fontSize: 11, color: '#94a3b8', marginTop: 2 },
-  arrow: { fontSize: 24, color: '#cbd5e1' },
+  emptyTitle: { fontSize: 17, fontWeight: '600', color: '#3C3C43', marginTop: 8 },
+  emptyDesc:  { fontSize: 14, color: '#8E8E93' },
+
+  list: { paddingHorizontal: 16, paddingBottom: 24, gap: 10 },
+
+  card: {
+    flexDirection: 'row',
+    backgroundColor: '#FFFFFF',
+    borderRadius: 14,
+    overflow: 'hidden',
+    shadowColor: '#000',
+    shadowOpacity: 0.06,
+    shadowRadius: 6,
+    shadowOffset: { width: 0, height: 2 },
+    elevation: 2,
+  },
+  stripe: { width: 4 },
+  cardContent: { flex: 1, padding: 14, gap: 4 },
+
+  cardTop: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    gap: 8,
+  },
+  className: { fontSize: 16, fontWeight: '600', color: '#1C1C1E', flex: 1 },
+  dayPill: {
+    borderRadius: 10,
+    paddingHorizontal: 8,
+    paddingVertical: 3,
+  },
+  dayPillText: { fontSize: 11, fontWeight: '600' },
+
+  teacher: { fontSize: 12, color: '#8E8E93' },
+
+  barsContainer: { gap: 5, marginTop: 6 },
+  barRow: { flexDirection: 'row', alignItems: 'center', gap: 6 },
+  barLabel: { fontSize: 11, color: '#8E8E93', width: 24 },
+  barValue: { fontSize: 11, color: '#8E8E93', width: 28, textAlign: 'right' },
+
+  chevron: { alignSelf: 'center', marginRight: 10 },
 });
