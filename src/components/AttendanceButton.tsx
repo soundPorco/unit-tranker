@@ -1,5 +1,6 @@
 import React from 'react';
 import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
 import { AttendanceStatus } from '../types';
 
 interface Props {
@@ -7,28 +8,40 @@ interface Props {
   onSelect: (status: AttendanceStatus) => void;
 }
 
-const BUTTONS: { status: AttendanceStatus; label: string; color: string }[] = [
-  { status: 'present', label: '出席', color: '#22c55e' },
-  { status: 'late',    label: '遅刻', color: '#f59e0b' },
-  { status: 'absent',  label: '欠席', color: '#ef4444' },
+const BUTTONS: {
+  status: AttendanceStatus;
+  label: string;
+  color: string;
+  icon: keyof typeof Ionicons.glyphMap;
+}[] = [
+  { status: 'present', label: '出席', color: '#34C759', icon: 'checkmark-circle' },
+  { status: 'late',    label: '遅刻', color: '#FF9500', icon: 'time'             },
+  { status: 'absent',  label: '欠席', color: '#FF3B30', icon: 'close-circle'     },
 ];
 
 export function AttendanceButton({ selected, onSelect }: Props) {
   return (
-    <View style={styles.row}>
-      {BUTTONS.map(({ status, label, color }) => {
+    <View style={s.row}>
+      {BUTTONS.map(({ status, label, color, icon }) => {
         const isSelected = selected === status;
         return (
           <TouchableOpacity
             key={status}
+            activeOpacity={0.7}
             style={[
-              styles.btn,
-              { borderColor: color },
-              isSelected && { backgroundColor: color },
+              s.btn,
+              isSelected
+                ? { backgroundColor: color, borderColor: color }
+                : { backgroundColor: '#F2F2F7', borderColor: '#F2F2F7' },
             ]}
             onPress={() => onSelect(status)}
           >
-            <Text style={[styles.label, { color: isSelected ? '#fff' : color }]}>
+            <Ionicons
+              name={icon}
+              size={18}
+              color={isSelected ? '#FFFFFF' : color}
+            />
+            <Text style={[s.label, { color: isSelected ? '#FFFFFF' : color }]}>
               {label}
             </Text>
           </TouchableOpacity>
@@ -38,17 +51,20 @@ export function AttendanceButton({ selected, onSelect }: Props) {
   );
 }
 
-const styles = StyleSheet.create({
+const s = StyleSheet.create({
   row: {
     flexDirection: 'row',
     gap: 8,
   },
   btn: {
     flex: 1,
-    borderWidth: 1.5,
-    borderRadius: 8,
-    paddingVertical: 8,
+    flexDirection: 'row',
     alignItems: 'center',
+    justifyContent: 'center',
+    gap: 5,
+    borderWidth: 1.5,
+    borderRadius: 10,
+    paddingVertical: 10,
   },
   label: {
     fontSize: 14,

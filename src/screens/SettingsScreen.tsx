@@ -1,18 +1,20 @@
 import React, { useState, useEffect } from 'react';
 import {
   View, Text, TextInput, TouchableOpacity, StyleSheet,
-  SafeAreaView, Alert, ActivityIndicator,
+  Alert, ActivityIndicator, ScrollView,
 } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
+import { Ionicons } from '@expo/vector-icons';
 import { supabase } from '../lib/supabase';
 import { Session } from '@supabase/supabase-js';
 
 export function SettingsScreen() {
-  const [session, setSession] = useState<Session | null>(null);
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const [loading, setLoading] = useState(true);
+  const [session, setSession]       = useState<Session | null>(null);
+  const [email, setEmail]           = useState('');
+  const [password, setPassword]     = useState('');
+  const [loading, setLoading]       = useState(true);
   const [submitting, setSubmitting] = useState(false);
-  const [isSignUp, setIsSignUp] = useState(false);
+  const [isSignUp, setIsSignUp]     = useState(false);
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
@@ -39,7 +41,7 @@ export function SettingsScreen() {
     setSubmitting(false);
   };
 
-  const handleSignOut = async () => {
+  const handleSignOut = () => {
     Alert.alert('ログアウト', 'ログアウトしますか？', [
       { text: 'キャンセル', style: 'cancel' },
       { text: 'ログアウト', style: 'destructive', onPress: () => supabase.auth.signOut() },
@@ -47,130 +49,201 @@ export function SettingsScreen() {
   };
 
   if (loading) {
-    return <SafeAreaView style={styles.center}><ActivityIndicator color="#6366f1" /></SafeAreaView>;
+    return (
+      <SafeAreaView style={s.container}>
+        <ActivityIndicator color="#007AFF" style={{ flex: 1 }} />
+      </SafeAreaView>
+    );
   }
 
   return (
-    <SafeAreaView style={styles.container}>
-      <View style={styles.header}>
-        <Text style={styles.title}>設定</Text>
+    <SafeAreaView style={s.container} edges={['top']}>
+      <View style={s.header}>
+        <Text style={s.title}>設定</Text>
       </View>
 
-      <View style={styles.content}>
+      <ScrollView contentContainerStyle={s.scroll} showsVerticalScrollIndicator={false}>
         {session ? (
-          <View style={styles.card}>
-            <Text style={styles.sectionTitle}>ログイン中</Text>
-            <Text style={styles.email}>{session.user.email}</Text>
-            <TouchableOpacity style={styles.signOutBtn} onPress={handleSignOut}>
-              <Text style={styles.signOutText}>ログアウト</Text>
-            </TouchableOpacity>
-          </View>
+          <>
+            {/* アカウント情報 */}
+            <Text style={s.sectionLabel}>アカウント</Text>
+            <View style={s.card}>
+              <View style={s.accountRow}>
+                <View style={s.avatarCircle}>
+                  <Ionicons name="person" size={22} color="#FFFFFF" />
+                </View>
+                <View style={s.accountInfo}>
+                  <Text style={s.accountEmail}>{session.user.email}</Text>
+                  <Text style={s.accountSub}>ログイン中</Text>
+                </View>
+              </View>
+            </View>
+
+            {/* アクション */}
+            <Text style={s.sectionLabel}>アカウント操作</Text>
+            <View style={s.card}>
+              <TouchableOpacity style={s.dangerRow} onPress={handleSignOut}>
+                <Ionicons name="log-out-outline" size={18} color="#FF3B30" />
+                <Text style={s.dangerText}>ログアウト</Text>
+              </TouchableOpacity>
+            </View>
+          </>
         ) : (
-          <View style={styles.card}>
-            <Text style={styles.sectionTitle}>
+          <>
+            {/* 未ログイン状態の説明 */}
+            <View style={s.infoCard}>
+              <Ionicons name="cloud-outline" size={32} color="#007AFF" />
+              <Text style={s.infoTitle}>クラウドにデータを保存</Text>
+              <Text style={s.infoDesc}>
+                ログインすると複数端末でデータを同期できます。{'\n'}未ログインでもアプリを利用できます。
+              </Text>
+            </View>
+
+            {/* フォーム */}
+            <Text style={s.sectionLabel}>
               {isSignUp ? 'アカウント作成' : 'ログイン'}
             </Text>
-            <Text style={styles.description}>
-              ログインするとデータがクラウドに保存されます
-            </Text>
-
-            <Text style={styles.label}>メールアドレス</Text>
-            <TextInput
-              style={styles.input}
-              value={email}
-              onChangeText={setEmail}
-              placeholder="example@email.com"
-              placeholderTextColor="#94a3b8"
-              keyboardType="email-address"
-              autoCapitalize="none"
-            />
-
-            <Text style={styles.label}>パスワード</Text>
-            <TextInput
-              style={styles.input}
-              value={password}
-              onChangeText={setPassword}
-              placeholder="6文字以上"
-              placeholderTextColor="#94a3b8"
-              secureTextEntry
-            />
+            <View style={s.card}>
+              <View style={s.formRow}>
+                <Text style={s.formLabel}>メールアドレス</Text>
+                <TextInput
+                  style={s.formInput}
+                  value={email}
+                  onChangeText={setEmail}
+                  placeholder="example@email.com"
+                  placeholderTextColor="#C7C7CC"
+                  keyboardType="email-address"
+                  autoCapitalize="none"
+                  autoCorrect={false}
+                />
+              </View>
+              <View style={s.divider} />
+              <View style={s.formRow}>
+                <Text style={s.formLabel}>パスワード</Text>
+                <TextInput
+                  style={s.formInput}
+                  value={password}
+                  onChangeText={setPassword}
+                  placeholder="6文字以上"
+                  placeholderTextColor="#C7C7CC"
+                  secureTextEntry
+                />
+              </View>
+            </View>
 
             <TouchableOpacity
-              style={[styles.authBtn, submitting && { opacity: 0.6 }]}
+              style={[s.authBtn, submitting && { opacity: 0.5 }]}
               onPress={handleAuth}
               disabled={submitting}
             >
-              <Text style={styles.authBtnText}>
-                {isSignUp ? 'アカウント作成' : 'ログイン'}
+              <Text style={s.authBtnText}>
+                {isSignUp ? 'アカウントを作成' : 'ログイン'}
               </Text>
             </TouchableOpacity>
 
-            <TouchableOpacity
-              style={styles.toggleBtn}
-              onPress={() => setIsSignUp(!isSignUp)}
-            >
-              <Text style={styles.toggleText}>
+            <TouchableOpacity style={s.toggleBtn} onPress={() => setIsSignUp(v => !v)}>
+              <Text style={s.toggleText}>
                 {isSignUp ? 'すでにアカウントをお持ちの方' : '新規アカウントを作成'}
               </Text>
             </TouchableOpacity>
-          </View>
+          </>
         )}
-      </View>
+      </ScrollView>
     </SafeAreaView>
   );
 }
 
-const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#f8fafc' },
-  center: { flex: 1, alignItems: 'center', justifyContent: 'center' },
+const s = StyleSheet.create({
+  container: { flex: 1, backgroundColor: '#F2F2F7' },
+
   header: {
     paddingHorizontal: 16,
-    paddingVertical: 12,
-    borderBottomWidth: 1,
-    borderBottomColor: '#e2e8f0',
-    backgroundColor: '#fff',
+    paddingTop: 4,
+    paddingBottom: 10,
   },
-  title: { fontSize: 20, fontWeight: '700', color: '#1e293b' },
-  content: { padding: 16 },
-  card: {
-    backgroundColor: '#fff',
-    borderRadius: 14,
-    padding: 20,
-    shadowColor: '#000',
-    shadowOpacity: 0.05,
-    shadowRadius: 4,
-    elevation: 2,
-    gap: 8,
-  },
-  sectionTitle: { fontSize: 17, fontWeight: '700', color: '#1e293b', marginBottom: 4 },
-  description: { fontSize: 13, color: '#64748b', marginBottom: 8 },
-  email: { fontSize: 15, color: '#6366f1', fontWeight: '600' },
-  label: { fontSize: 13, color: '#64748b', fontWeight: '600' },
-  input: {
-    borderWidth: 1,
-    borderColor: '#e2e8f0',
-    borderRadius: 10,
-    padding: 12,
-    fontSize: 15,
-    color: '#1e293b',
-  },
-  authBtn: {
-    backgroundColor: '#6366f1',
-    borderRadius: 10,
-    padding: 15,
-    alignItems: 'center',
+  title: { fontSize: 28, fontWeight: '700', color: '#1C1C1E', letterSpacing: 0.3 },
+
+  scroll: { padding: 16, paddingBottom: 40 },
+
+  sectionLabel: {
+    fontSize: 13,
+    fontWeight: '500',
+    color: '#6C6C70',
+    textTransform: 'uppercase',
+    letterSpacing: 0.4,
+    marginBottom: 6,
+    marginLeft: 4,
     marginTop: 8,
   },
-  authBtnText: { color: '#fff', fontWeight: '700', fontSize: 16 },
-  toggleBtn: { alignItems: 'center', paddingVertical: 8 },
-  toggleText: { color: '#6366f1', fontSize: 13 },
-  signOutBtn: {
-    borderWidth: 1,
-    borderColor: '#ef4444',
-    borderRadius: 10,
-    padding: 14,
+
+  card: {
+    backgroundColor: '#FFFFFF',
+    borderRadius: 12,
+    paddingHorizontal: 14,
+    overflow: 'hidden',
+    marginBottom: 4,
+  },
+
+  divider: { height: 0.5, backgroundColor: '#E5E5EA' },
+
+  // ログイン済みアカウント行
+  accountRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingVertical: 14,
+    gap: 12,
+  },
+  avatarCircle: {
+    width: 44, height: 44, borderRadius: 22,
+    backgroundColor: '#007AFF',
+    alignItems: 'center', justifyContent: 'center',
+  },
+  accountInfo: { flex: 1 },
+  accountEmail: { fontSize: 15, fontWeight: '500', color: '#1C1C1E' },
+  accountSub:   { fontSize: 12, color: '#8E8E93', marginTop: 2 },
+
+  dangerRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 10,
+    paddingVertical: 14,
+  },
+  dangerText: { fontSize: 15, color: '#FF3B30', fontWeight: '500' },
+
+  // 未ログイン説明カード
+  infoCard: {
+    backgroundColor: '#FFFFFF',
+    borderRadius: 12,
+    padding: 20,
+    alignItems: 'center',
+    gap: 8,
+    marginBottom: 20,
+  },
+  infoTitle: { fontSize: 16, fontWeight: '600', color: '#1C1C1E' },
+  infoDesc:  { fontSize: 13, color: '#8E8E93', textAlign: 'center', lineHeight: 19 },
+
+  // フォーム行
+  formRow: {
+    paddingVertical: 12,
+    gap: 4,
+  },
+  formLabel: { fontSize: 12, color: '#8E8E93', fontWeight: '500' },
+  formInput: {
+    fontSize: 15,
+    color: '#1C1C1E',
+    paddingVertical: 2,
+  },
+
+  authBtn: {
+    backgroundColor: '#007AFF',
+    borderRadius: 12,
+    paddingVertical: 15,
     alignItems: 'center',
     marginTop: 12,
+    marginBottom: 4,
   },
-  signOutText: { color: '#ef4444', fontWeight: '600' },
+  authBtnText: { color: '#FFFFFF', fontSize: 16, fontWeight: '600' },
+
+  toggleBtn: { alignItems: 'center', paddingVertical: 12 },
+  toggleText: { fontSize: 14, color: '#007AFF' },
 });
