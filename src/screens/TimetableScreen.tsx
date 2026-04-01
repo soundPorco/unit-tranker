@@ -17,7 +17,7 @@ import { TimetableGrid } from "../components/TimetableGrid";
 import { TimetableSettingsModal } from "../components/TimetableSettingsModal";
 import { useClasses } from "../hooks/useClasses";
 import { useTimetables, DEFAULT_SETTINGS } from "../hooks/useTimetables";
-import { TimetableStackParamList, DayOfWeek, Period, Class, TimetableSettings, Timetable } from "../types";
+import { TimetableStackParamList, DayOfWeek, Period, Class, TimetableSettings, Timetable, Semester } from "../types";
 
 type Nav = NativeStackNavigationProp<TimetableStackParamList, "TimetableMain">;
 type Route = RouteProp<TimetableStackParamList, "TimetableMain">;
@@ -78,7 +78,7 @@ export function TimetableScreen() {
     const navigation = useNavigation<Nav>();
     const route = useRoute<Route>();
 
-    const { timetables, loaded, updateSettings } = useTimetables();
+    const { timetables, loaded, updateTimetable } = useTimetables();
     const [currentTimetableId, setCurrentTimetableId] = useState(route.params.timetableId);
     const [showSwitcher, setShowSwitcher] = useState(false);
     const [showSettings, setShowSettings] = useState(false);
@@ -100,8 +100,8 @@ export function TimetableScreen() {
         navigation.navigate("ClassForm", { classData: existing, day, period, timetableId: currentTimetableId });
     };
 
-    const handleSaveSettings = async (next: TimetableSettings) => {
-        await updateSettings(currentTimetableId, next);
+    const handleSaveSettings = async (next: TimetableSettings, grade: string, semester: Semester) => {
+        await updateTimetable(currentTimetableId, { ...next, grade, semester });
     };
 
     if (loading || !loaded) {
@@ -175,6 +175,8 @@ export function TimetableScreen() {
             <TimetableSettingsModal
                 visible={showSettings}
                 settings={settings}
+                grade={timetable?.grade ?? '1年'}
+                semester={timetable?.semester ?? '前期'}
                 onSave={handleSaveSettings}
                 onClose={() => setShowSettings(false)}
             />

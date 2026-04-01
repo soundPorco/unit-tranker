@@ -106,5 +106,19 @@ export function useTimetables() {
     );
   };
 
-  return { timetables, loaded, createTimetable, deleteTimetable, updateSettings };
+  const updateTimetable = async (id: string, fields: Partial<Omit<Timetable, 'id' | 'created_at'>>) => {
+    await persist(
+      timetables.map(t =>
+        t.id === id
+          ? {
+              ...t,
+              ...fields,
+              periodTimes: normalizeTimes(fields.periodTimes ?? t.periodTimes),
+            }
+          : t,
+      ),
+    );
+  };
+
+  return { timetables, loaded, createTimetable, deleteTimetable, updateSettings, updateTimetable };
 }

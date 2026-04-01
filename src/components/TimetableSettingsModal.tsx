@@ -4,12 +4,17 @@ import {
   StyleSheet, KeyboardAvoidingView, Platform,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { TimetableSettings, DaysMode } from '../types';
+import { TimetableSettings, DaysMode, Semester } from '../types';
+
+const GRADE_OPTIONS = ['1年', '2年', '3年', '4年', 'その他'];
+const SEMESTER_OPTIONS: Semester[] = ['前期', '後期'];
 
 interface Props {
   visible: boolean;
   settings: TimetableSettings;
-  onSave: (s: TimetableSettings) => void;
+  grade: string;
+  semester: Semester;
+  onSave: (s: TimetableSettings, grade: string, semester: Semester) => void;
   onClose: () => void;
 }
 
@@ -19,13 +24,19 @@ const DAYS_OPTIONS: { value: DaysMode; label: string }[] = [
   { value: 'all',          label: '全曜日' },
 ];
 
-export function TimetableSettingsModal({ visible, settings, onSave, onClose }: Props) {
+export function TimetableSettingsModal({ visible, settings, grade, semester, onSave, onClose }: Props) {
   const [draft, setDraft] = useState<TimetableSettings>(settings);
+  const [draftGrade, setDraftGrade] = useState(grade);
+  const [draftSemester, setDraftSemester] = useState<Semester>(semester);
 
   // visible になるたびに最新 settings を draft に反映
   useEffect(() => {
-    if (visible) setDraft(settings);
-  }, [visible, settings]);
+    if (visible) {
+      setDraft(settings);
+      setDraftGrade(grade);
+      setDraftSemester(semester);
+    }
+  }, [visible, settings, grade, semester]);
 
   const setTime = (idx: number, field: 'start' | 'end', val: string) => {
     const times = draft.periodTimes.map((t, i) => i === idx ? { ...t, [field]: val } : t);
@@ -33,7 +44,7 @@ export function TimetableSettingsModal({ visible, settings, onSave, onClose }: P
   };
 
   const handleSave = () => {
-    onSave(draft);
+    onSave(draft, draftGrade, draftSemester);
     onClose();
   };
 
@@ -56,6 +67,38 @@ export function TimetableSettingsModal({ visible, settings, onSave, onClose }: P
           behavior={Platform.OS === 'ios' ? 'padding' : undefined}
         >
           <ScrollView contentContainerStyle={styles.scroll} keyboardShouldPersistTaps="handled">
+
+            {/* 学年 */}
+            <Text style={styles.sectionLabel}>学年</Text>
+            <View style={[styles.card, { flexDirection: 'row', flexWrap: 'wrap', gap: 8 }]}>
+              {GRADE_OPTIONS.map(g => (
+                <TouchableOpacity
+                  key={g}
+                  style={[styles.periodNumBtn, draftGrade === g && styles.periodNumActive]}
+                  onPress={() => setDraftGrade(g)}
+                >
+                  <Text style={[styles.periodNumText, draftGrade === g && styles.periodNumTextActive]}>
+                    {g}
+                  </Text>
+                </TouchableOpacity>
+              ))}
+            </View>
+
+            {/* 学期 */}
+            <Text style={styles.sectionLabel}>学期</Text>
+            <View style={[styles.card, styles.row]}>
+              {SEMESTER_OPTIONS.map(s => (
+                <TouchableOpacity
+                  key={s}
+                  style={[styles.segmentBtn, draftSemester === s && styles.segmentActive]}
+                  onPress={() => setDraftSemester(s)}
+                >
+                  <Text style={[styles.segmentText, draftSemester === s && styles.segmentTextActive]}>
+                    {s}
+                  </Text>
+                </TouchableOpacity>
+              ))}
+            </View>
 
             {/* 表示曜日 */}
             <Text style={styles.sectionLabel}>表示曜日</Text>
