@@ -83,7 +83,7 @@ export function TimetableScreen() {
     const [showSwitcher, setShowSwitcher] = useState(false);
     const [showSettings, setShowSettings] = useState(false);
 
-    const { classes, loading, refetch } = useClasses(currentTimetableId);
+    const { classes, loading, refetch, deleteClass } = useClasses(currentTimetableId);
 
     useFocusEffect(
         useCallback(() => {
@@ -100,7 +100,10 @@ export function TimetableScreen() {
         navigation.navigate("ClassForm", { classData: existing, day, period, timetableId: currentTimetableId });
     };
 
-    const handleSaveSettings = async (next: TimetableSettings, academicYear: number, semester: Semester) => {
+    const handleSaveSettings = async (next: TimetableSettings, academicYear: number, semester: Semester, classIdsToDelete: string[]) => {
+        for (const id of classIdsToDelete) {
+            await deleteClass(id);
+        }
         await updateTimetable(currentTimetableId, { ...next, academicYear, semester });
     };
 
@@ -177,6 +180,7 @@ export function TimetableScreen() {
                 settings={settings}
                 academicYear={timetable?.academicYear ?? new Date().getFullYear()}
                 semester={timetable?.semester ?? '前期'}
+                classes={classes}
                 onSave={handleSaveSettings}
                 onClose={() => setShowSettings(false)}
             />
