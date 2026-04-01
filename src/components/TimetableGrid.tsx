@@ -129,12 +129,18 @@ export function TimetableGrid({ classes, settings, onCellPress }: Props) {
                                                     {cls.name}
                                                 </Text>
                                                 {cls.room ? (
-                                                    <Text
-                                                        style={styles.roomText}
-                                                        numberOfLines={1}
+                                                    <View
+                                                        style={styles.roomPill}
                                                     >
-                                                        {cls.room}
-                                                    </Text>
+                                                        <Text
+                                                            style={
+                                                                styles.roomText
+                                                            }
+                                                            numberOfLines={1}
+                                                        >
+                                                            {cls.room}
+                                                        </Text>
+                                                    </View>
                                                 ) : null}
                                             </View>
                                         ) : (
@@ -158,7 +164,7 @@ export function TimetableGrid({ classes, settings, onCellPress }: Props) {
 const styles = StyleSheet.create({
     container: {
         flex: 1,
-        backgroundColor: "#F2F2F7",
+        backgroundColor: "#FFFFFF",
         paddingHorizontal: GRID_PAD,
         paddingBottom: GRID_PAD,
     },
@@ -223,17 +229,20 @@ const styles = StyleSheet.create({
         borderRadius: 8,
         padding: 4,
         overflow: "hidden",
+        borderWidth: 1,
+        borderColor: "#f0efef",
     },
     cellFilled: {
         backgroundColor: "#FFFFFF",
+        borderColor: "#dfdfdf",
         shadowColor: "#000",
-        shadowOpacity: 0.05,
-        shadowRadius: 2,
+        shadowOpacity: 0.06,
+        shadowRadius: 3,
         shadowOffset: { width: 0, height: 1 },
-        elevation: 1,
+        elevation: 2,
     },
     cellEmpty: {
-        backgroundColor: "#eeeeee",
+        backgroundColor: "#F8F8F8",
     },
 
     // 科目カード内容
@@ -248,10 +257,18 @@ const styles = StyleSheet.create({
         color: "#1C1C1E",
         lineHeight: 13,
     },
+    roomPill: {
+        alignSelf: "flex-start",
+        marginTop: 3,
+        backgroundColor: "#eaeaea",
+        borderRadius: 999,
+        paddingHorizontal: 5,
+        paddingVertical: 1,
+    },
     roomText: {
-        fontSize: 10,
-        color: "#8E8E93",
-        marginTop: 2,
+        fontSize: 9,
+        color: "#6E6E73",
+        letterSpacing: 0.1,
     },
 
     emptyContainer: {

@@ -90,7 +90,7 @@ export function TimetableScreen() {
 const styles = StyleSheet.create({
     container: {
         flex: 1,
-        backgroundColor: "#fbfbfb",
+        backgroundColor: "#FFFFFF",
     },
     header: {
         flexDirection: "row",
