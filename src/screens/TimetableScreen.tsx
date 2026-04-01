@@ -100,8 +100,8 @@ export function TimetableScreen() {
         navigation.navigate("ClassForm", { classData: existing, day, period, timetableId: currentTimetableId });
     };
 
-    const handleSaveSettings = async (next: TimetableSettings, grade: string, semester: Semester) => {
-        await updateTimetable(currentTimetableId, { ...next, grade, semester });
+    const handleSaveSettings = async (next: TimetableSettings, academicYear: number, semester: Semester) => {
+        await updateTimetable(currentTimetableId, { ...next, academicYear, semester });
     };
 
     if (loading || !loaded) {
@@ -112,7 +112,7 @@ export function TimetableScreen() {
         );
     }
 
-    const headerLabel = timetable ? `${timetable.grade} ${timetable.semester}` : '時間割';
+    const headerLabel = timetable ? `${timetable.academicYear}年度 ${timetable.semester}` : '時間割';
 
     return (
         <SafeAreaView style={styles.container} edges={["top"]}>
@@ -175,7 +175,7 @@ export function TimetableScreen() {
             <TimetableSettingsModal
                 visible={showSettings}
                 settings={settings}
-                grade={timetable?.grade ?? '1年'}
+                academicYear={timetable?.academicYear ?? new Date().getFullYear()}
                 semester={timetable?.semester ?? '前期'}
                 onSave={handleSaveSettings}
                 onClose={() => setShowSettings(false)}

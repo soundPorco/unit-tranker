@@ -4,17 +4,17 @@ import {
   StyleSheet, KeyboardAvoidingView, Platform,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { Ionicons } from '@expo/vector-icons';
 import { TimetableSettings, DaysMode, Semester } from '../types';
 
-const GRADE_OPTIONS = ['1年', '2年', '3年', '4年', 'その他'];
 const SEMESTER_OPTIONS: Semester[] = ['前期', '後期'];
 
 interface Props {
   visible: boolean;
   settings: TimetableSettings;
-  grade: string;
+  academicYear: number;
   semester: Semester;
-  onSave: (s: TimetableSettings, grade: string, semester: Semester) => void;
+  onSave: (s: TimetableSettings, academicYear: number, semester: Semester) => void;
   onClose: () => void;
 }
 
@@ -24,19 +24,18 @@ const DAYS_OPTIONS: { value: DaysMode; label: string }[] = [
   { value: 'all',          label: '全曜日' },
 ];
 
-export function TimetableSettingsModal({ visible, settings, grade, semester, onSave, onClose }: Props) {
+export function TimetableSettingsModal({ visible, settings, academicYear, semester, onSave, onClose }: Props) {
   const [draft, setDraft] = useState<TimetableSettings>(settings);
-  const [draftGrade, setDraftGrade] = useState(grade);
+  const [draftYear, setDraftYear] = useState(academicYear);
   const [draftSemester, setDraftSemester] = useState<Semester>(semester);
 
-  // visible になるたびに最新 settings を draft に反映
   useEffect(() => {
     if (visible) {
       setDraft(settings);
-      setDraftGrade(grade);
+      setDraftYear(academicYear);
       setDraftSemester(semester);
     }
-  }, [visible, settings, grade, semester]);
+  }, [visible, settings, academicYear, semester]);
 
   const setTime = (idx: number, field: 'start' | 'end', val: string) => {
     const times = draft.periodTimes.map((t, i) => i === idx ? { ...t, [field]: val } : t);
@@ -44,7 +43,7 @@ export function TimetableSettingsModal({ visible, settings, grade, semester, onS
   };
 
   const handleSave = () => {
-    onSave(draft, draftGrade, draftSemester);
+    onSave(draft, draftYear, draftSemester);
     onClose();
   };
 
@@ -68,20 +67,24 @@ export function TimetableSettingsModal({ visible, settings, grade, semester, onS
         >
           <ScrollView contentContainerStyle={styles.scroll} keyboardShouldPersistTaps="handled">
 
-            {/* 学年 */}
-            <Text style={styles.sectionLabel}>学年</Text>
-            <View style={[styles.card, { flexDirection: 'row', flexWrap: 'wrap', gap: 8 }]}>
-              {GRADE_OPTIONS.map(g => (
+            {/* 年度 */}
+            <Text style={styles.sectionLabel}>年度</Text>
+            <View style={styles.card}>
+              <View style={styles.yearRow}>
                 <TouchableOpacity
-                  key={g}
-                  style={[styles.periodNumBtn, draftGrade === g && styles.periodNumActive]}
-                  onPress={() => setDraftGrade(g)}
+                  style={styles.yearBtn}
+                  onPress={() => setDraftYear(y => y - 1)}
                 >
-                  <Text style={[styles.periodNumText, draftGrade === g && styles.periodNumTextActive]}>
-                    {g}
-                  </Text>
+                  <Ionicons name="remove" size={20} color="#007AFF" />
                 </TouchableOpacity>
-              ))}
+                <Text style={styles.yearText}>{draftYear}年度</Text>
+                <TouchableOpacity
+                  style={styles.yearBtn}
+                  onPress={() => setDraftYear(y => y + 1)}
+                >
+                  <Ionicons name="add" size={20} color="#007AFF" />
+                </TouchableOpacity>
+              </View>
             </View>
 
             {/* 学期 */}
@@ -215,7 +218,30 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
 
-  // 表示曜日セグメント
+  // 年度ステッパー
+  yearRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 24,
+  },
+  yearBtn: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    backgroundColor: '#F2F2F7',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  yearText: {
+    fontSize: 20,
+    fontWeight: '600',
+    color: '#1C1C1E',
+    minWidth: 120,
+    textAlign: 'center',
+  },
+
+  // 表示曜日・学期セグメント
   segmentBtn: {
     flex: 1,
     paddingVertical: 8,

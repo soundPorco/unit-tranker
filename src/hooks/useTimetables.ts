@@ -28,8 +28,17 @@ function normalizeTimes(times: PeriodTime[]): PeriodTime[] {
   return t.slice(0, 8);
 }
 
-function normalizeTimetable(t: Timetable): Timetable {
-  return { ...t, periodTimes: normalizeTimes(t.periodTimes) };
+function normalizeTimetable(raw: any): Timetable {
+  // 旧データ (grade: string) を academicYear: number に移行
+  const academicYear: number =
+    typeof raw.academicYear === 'number'
+      ? raw.academicYear
+      : new Date().getFullYear();
+  return {
+    ...raw,
+    academicYear,
+    periodTimes: normalizeTimes(raw.periodTimes),
+  };
 }
 
 export function useTimetables() {
@@ -41,7 +50,7 @@ export function useTimetables() {
       const json = await AsyncStorage.getItem(STORAGE_KEY);
       if (json) {
         try {
-          const parsed: Timetable[] = JSON.parse(json);
+          const parsed: any[] = JSON.parse(json);
           setTimetables(parsed.map(normalizeTimetable));
           setLoaded(true);
           return;
@@ -57,7 +66,7 @@ export function useTimetables() {
           const semester: Semester = semStr.includes('後期') ? '後期' : '前期';
           const defaultTimetable: Timetable = {
             id: 'default',
-            grade: '1年',
+            academicYear: new Date().getFullYear(),
             semester,
             created_at: new Date().toISOString(),
             periodCount: legacy.periodCount ?? 6,
@@ -78,10 +87,10 @@ export function useTimetables() {
     await AsyncStorage.setItem(STORAGE_KEY, JSON.stringify(list));
   };
 
-  const createTimetable = async (grade: string, semester: Semester): Promise<Timetable> => {
+  const createTimetable = async (academicYear: number, semester: Semester): Promise<Timetable> => {
     const newT: Timetable = {
       id: Date.now().toString(),
-      grade,
+      academicYear,
       semester,
       created_at: new Date().toISOString(),
       periodCount: DEFAULT_SETTINGS.periodCount,

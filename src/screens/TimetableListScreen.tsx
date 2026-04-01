@@ -18,7 +18,6 @@ import { TimetableStackParamList, Semester } from '../types';
 
 type Nav = NativeStackNavigationProp<TimetableStackParamList, 'TimetableList'>;
 
-const GRADE_OPTIONS = ['1年', '2年', '3年', '4年', 'その他'];
 const SEMESTER_OPTIONS: Semester[] = ['前期', '後期'];
 
 function CreateTimetableModal({
@@ -28,9 +27,10 @@ function CreateTimetableModal({
 }: {
   visible: boolean;
   onClose: () => void;
-  onCreate: (grade: string, semester: Semester) => void;
+  onCreate: (academicYear: number, semester: Semester) => void;
 }) {
-  const [grade, setGrade] = useState('1年');
+  const currentYear = new Date().getFullYear();
+  const [academicYear, setAcademicYear] = useState(currentYear);
   const [semester, setSemester] = useState<Semester>('前期');
 
   return (
@@ -41,24 +41,28 @@ function CreateTimetableModal({
             <Text style={modal.cancel}>キャンセル</Text>
           </TouchableOpacity>
           <Text style={modal.title}>時間割を追加</Text>
-          <TouchableOpacity onPress={() => onCreate(grade, semester)}>
+          <TouchableOpacity onPress={() => onCreate(academicYear, semester)}>
             <Text style={modal.save}>追加</Text>
           </TouchableOpacity>
         </View>
 
         <ScrollView contentContainerStyle={modal.scroll}>
-          <Text style={modal.label}>学年</Text>
+          <Text style={modal.label}>年度</Text>
           <View style={modal.card}>
-            <View style={modal.chipRow}>
-              {GRADE_OPTIONS.map(g => (
-                <TouchableOpacity
-                  key={g}
-                  style={[modal.chip, grade === g && modal.chipActive]}
-                  onPress={() => setGrade(g)}
-                >
-                  <Text style={[modal.chipText, grade === g && modal.chipTextActive]}>{g}</Text>
-                </TouchableOpacity>
-              ))}
+            <View style={modal.yearRow}>
+              <TouchableOpacity
+                style={modal.yearBtn}
+                onPress={() => setAcademicYear(y => y - 1)}
+              >
+                <Ionicons name="remove" size={20} color="#007AFF" />
+              </TouchableOpacity>
+              <Text style={modal.yearText}>{academicYear}年度</Text>
+              <TouchableOpacity
+                style={modal.yearBtn}
+                onPress={() => setAcademicYear(y => y + 1)}
+              >
+                <Ionicons name="add" size={20} color="#007AFF" />
+              </TouchableOpacity>
             </View>
           </View>
 
@@ -85,9 +89,9 @@ export function TimetableListScreen() {
   const { timetables, loaded, createTimetable, deleteTimetable } = useTimetables();
   const [showCreate, setShowCreate] = useState(false);
 
-  const handleCreate = async (grade: string, semester: Semester) => {
+  const handleCreate = async (academicYear: number, semester: Semester) => {
     setShowCreate(false);
-    const newT = await createTimetable(grade, semester);
+    const newT = await createTimetable(academicYear, semester);
     navigation.navigate('TimetableMain', { timetableId: newT.id });
   };
 
@@ -127,7 +131,7 @@ export function TimetableListScreen() {
           keyExtractor={item => item.id}
           contentContainerStyle={styles.list}
           renderItem={({ item }) => {
-            const label = `${item.grade} ${item.semester}`;
+            const label = `${item.academicYear}年度 ${item.semester}`;
             const date = new Date(item.created_at).toLocaleDateString('ja-JP', {
               year: 'numeric', month: 'short', day: 'numeric',
             });
@@ -250,18 +254,28 @@ const modal = StyleSheet.create({
     borderRadius: 12,
     padding: 12,
   },
-  chipRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
-  chip: {
-    paddingHorizontal: 14,
-    paddingVertical: 7,
-    borderRadius: 20,
-    backgroundColor: '#F2F2F7',
-    borderWidth: 1,
-    borderColor: '#E5E5EA',
+
+  yearRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 24,
   },
-  chipActive: { backgroundColor: '#007AFF', borderColor: '#007AFF' },
-  chipText: { fontSize: 14, color: '#3C3C43', fontWeight: '500' },
-  chipTextActive: { color: '#FFFFFF', fontWeight: '600' },
+  yearBtn: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    backgroundColor: '#F2F2F7',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  yearText: {
+    fontSize: 20,
+    fontWeight: '600',
+    color: '#1C1C1E',
+    minWidth: 120,
+    textAlign: 'center',
+  },
 
   row: { flexDirection: 'row', gap: 8 },
   segBtn: {

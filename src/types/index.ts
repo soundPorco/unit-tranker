@@ -20,7 +20,7 @@ export interface TimetableSettings {
 
 export interface Timetable extends TimetableSettings {
   id: string;
-  grade: string;     // "1年", "2年", etc.
+  academicYear: number; // e.g. 2025
   semester: Semester;
   created_at: string;
 }
