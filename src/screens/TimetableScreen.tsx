@@ -45,7 +45,7 @@ function TimetableSwitcher({
                                 scrollEnabled={timetables.length > 6}
                                 ItemSeparatorComponent={() => <View style={sw.sep} />}
                                 renderItem={({ item }) => {
-                                    const label = `${item.grade} ${item.semester}`;
+                                    const label = `${item.academicYear}年度 ${item.semester}`;
                                     const active = item.id === currentId;
                                     return (
                                         <TouchableOpacity
