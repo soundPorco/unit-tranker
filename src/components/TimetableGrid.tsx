@@ -180,7 +180,7 @@ const styles = StyleSheet.create({
         justifyContent: "center",
     },
     dayText: {
-        fontSize: 12,
+        fontSize: 14,
         fontWeight: "600",
         color: "#1C1C1E",
         letterSpacing: 0.2,
@@ -203,7 +203,7 @@ const styles = StyleSheet.create({
         gap: 2,
     },
     periodNumber: {
-        fontSize: 11,
+        fontSize: 13,
         fontWeight: "700",
         color: "#3C3C43",
     },
@@ -212,15 +212,15 @@ const styles = StyleSheet.create({
         gap: 0,
     },
     timeText: {
-        fontSize: 8.5,
+        fontSize: 10,
         color: "#8E8E93",
         letterSpacing: -0.3,
-        lineHeight: 10,
+        lineHeight: 12,
     },
     timeSep: {
-        fontSize: 7,
+        fontSize: 8,
         color: "#C7C7CC",
-        lineHeight: 9,
+        lineHeight: 10,
     },
 
     // セル共通
@@ -252,10 +252,10 @@ const styles = StyleSheet.create({
         paddingLeft: 2,
     },
     className: {
-        fontSize: 10,
+        fontSize: 12,
         fontWeight: "600",
         color: "#1C1C1E",
-        lineHeight: 13,
+        lineHeight: 15,
     },
     roomPill: {
         alignSelf: "flex-start",
@@ -266,7 +266,7 @@ const styles = StyleSheet.create({
         paddingVertical: 1,
     },
     roomText: {
-        fontSize: 9,
+        fontSize: 10,
         color: "#6E6E73",
         letterSpacing: 0.1,
     },
