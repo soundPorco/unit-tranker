@@ -19,13 +19,6 @@ const DAYS_OPTIONS: { value: DaysMode; label: string }[] = [
   { value: 'all',          label: '全曜日' },
 ];
 
-function generateSemesters(): string[] {
-  const y = new Date().getFullYear();
-  return [-1, 0, 1, 2].flatMap(d => [`${y + d}年度前期`, `${y + d}年度後期`]);
-}
-
-const SEMESTERS = generateSemesters();
-
 export function TimetableSettingsModal({ visible, settings, onSave, onClose }: Props) {
   const [draft, setDraft] = useState<TimetableSettings>(settings);
 
@@ -63,22 +56,6 @@ export function TimetableSettingsModal({ visible, settings, onSave, onClose }: P
           behavior={Platform.OS === 'ios' ? 'padding' : undefined}
         >
           <ScrollView contentContainerStyle={styles.scroll} keyboardShouldPersistTaps="handled">
-
-            {/* 学期 */}
-            <Text style={styles.sectionLabel}>学期</Text>
-            <View style={styles.card}>
-              <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.semesterRow}>
-                {SEMESTERS.map(s => (
-                  <TouchableOpacity
-                    key={s}
-                    style={[styles.semesterChip, draft.semester === s && styles.chipActive]}
-                    onPress={() => setDraft(d => ({ ...d, semester: s }))}
-                  >
-                    <Text style={[styles.chipText, draft.semester === s && styles.chipTextActive]}>{s}</Text>
-                  </TouchableOpacity>
-                ))}
-              </ScrollView>
-            </View>
 
             {/* 表示曜日 */}
             <Text style={styles.sectionLabel}>表示曜日</Text>
@@ -194,20 +171,6 @@ const styles = StyleSheet.create({
     gap: 8,
     alignItems: 'center',
   },
-
-  // 学期チップ
-  semesterRow: { gap: 8, paddingVertical: 2 },
-  semesterChip: {
-    paddingHorizontal: 14,
-    paddingVertical: 7,
-    borderRadius: 20,
-    backgroundColor: '#F2F2F7',
-    borderWidth: 1,
-    borderColor: '#E5E5EA',
-  },
-  chipActive: { backgroundColor: '#007AFF', borderColor: '#007AFF' },
-  chipText: { fontSize: 14, color: '#3C3C43', fontWeight: '500' },
-  chipTextActive: { color: '#FFFFFF', fontWeight: '600' },
 
   // 表示曜日セグメント
   segmentBtn: {

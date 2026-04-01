@@ -19,7 +19,6 @@ export const DEFAULT_TIMETABLE_SETTINGS: TimetableSettings = {
   periodCount: 6,
   daysMode: 'weekdays_sat',
   periodTimes: DEFAULT_TIMES,
-  semester: '2026年度前期',
 };
 
 // 常に8件になるよう補完する

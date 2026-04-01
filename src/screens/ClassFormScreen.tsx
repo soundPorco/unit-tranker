@@ -70,8 +70,8 @@ function SegmentPicker<T extends string>({
 export function ClassFormScreen() {
   const navigation = useNavigation();
   const route = useRoute<Route>();
-  const { classData, day, period } = route.params ?? {};
-  const { addClass, updateClass, deleteClass } = useClasses();
+  const { classData, day, period, timetableId } = route.params ?? {};
+  const { addClass, updateClass, deleteClass } = useClasses(timetableId);
 
   const [name,       setName]       = useState(classData?.name ?? '');
   const [teacher,    setTeacher]    = useState(classData?.teacher ?? '');

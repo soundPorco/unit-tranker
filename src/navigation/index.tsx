@@ -4,6 +4,7 @@ import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { Ionicons } from '@expo/vector-icons';
 
+import { TimetableListScreen } from '../screens/TimetableListScreen';
 import { TimetableScreen } from '../screens/TimetableScreen';
 import { ClassFormScreen } from '../screens/ClassFormScreen';
 import { CalendarScreen } from '../screens/CalendarScreen';
@@ -21,6 +22,7 @@ const GradeStack = createNativeStackNavigator<GradeStackParamList>();
 function TimetableNavigator() {
   return (
     <TimetableStack.Navigator>
+      <TimetableStack.Screen name="TimetableList" component={TimetableListScreen} options={{ headerShown: false }} />
       <TimetableStack.Screen name="TimetableMain" component={TimetableScreen} options={{ headerShown: false }} />
       <TimetableStack.Screen name="ClassForm" component={ClassFormScreen} options={{ title: '講義登録', presentation: 'modal', headerTintColor: '#007AFF' }} />
     </TimetableStack.Navigator>

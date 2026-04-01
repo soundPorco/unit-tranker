@@ -7,21 +7,25 @@ import {
     TouchableOpacity,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { useNavigation, useFocusEffect } from "@react-navigation/native";
+import { useNavigation, useFocusEffect, useRoute, RouteProp } from "@react-navigation/native";
 import { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import { Ionicons } from "@expo/vector-icons";
 import { TimetableGrid } from "../components/TimetableGrid";
 import { TimetableSettingsModal } from "../components/TimetableSettingsModal";
 import { useClasses } from "../hooks/useClasses";
-import { useTimetableSettings } from "../hooks/useTimetableSettings";
-import { TimetableStackParamList, DayOfWeek, Period, Class } from "../types";
+import { useTimetables, DEFAULT_SETTINGS } from "../hooks/useTimetables";
+import { TimetableStackParamList, DayOfWeek, Period, Class, TimetableSettings } from "../types";
 
 type Nav = NativeStackNavigationProp<TimetableStackParamList, "TimetableMain">;
+type Route = RouteProp<TimetableStackParamList, "TimetableMain">;
 
 export function TimetableScreen() {
     const navigation = useNavigation<Nav>();
-    const { classes, loading, refetch } = useClasses();
-    const { settings, saveSettings, loaded } = useTimetableSettings();
+    const route = useRoute<Route>();
+    const { timetableId } = route.params;
+
+    const { timetables, loaded, updateSettings } = useTimetables();
+    const { classes, loading, refetch } = useClasses(timetableId);
     const [showSettings, setShowSettings] = useState(false);
 
     useFocusEffect(
@@ -30,12 +34,21 @@ export function TimetableScreen() {
         }, [refetch]),
     );
 
+    const timetable = timetables.find(t => t.id === timetableId) ?? null;
+    const settings: TimetableSettings = timetable
+        ? { periodCount: timetable.periodCount, daysMode: timetable.daysMode, periodTimes: timetable.periodTimes }
+        : DEFAULT_SETTINGS;
+
     const handleCellPress = (
         day: DayOfWeek,
         period: Period,
         existing?: Class,
     ) => {
-        navigation.navigate("ClassForm", { classData: existing, day, period });
+        navigation.navigate("ClassForm", { classData: existing, day, period, timetableId });
+    };
+
+    const handleSaveSettings = async (next: TimetableSettings) => {
+        await updateSettings(timetableId, next);
     };
 
     if (loading || !loaded) {
@@ -46,12 +59,22 @@ export function TimetableScreen() {
         );
     }
 
+    const headerLabel = timetable
+        ? `${timetable.grade} ${timetable.semester}`
+        : '時間割';
+
     return (
         <SafeAreaView style={styles.container} edges={["top"]}>
-            {/* ヘッダー：学期テキスト中央 + 右に歯車 */}
+            {/* ヘッダー */}
             <View style={styles.header}>
-                <View style={styles.headerSide} />
-                <Text style={styles.semesterTitle}>{settings.semester}</Text>
+                <TouchableOpacity
+                    onPress={() => navigation.goBack()}
+                    style={styles.backBtn}
+                    hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+                >
+                    <Ionicons name="chevron-back" size={22} color="#007AFF" />
+                </TouchableOpacity>
+                <Text style={styles.semesterTitle}>{headerLabel}</Text>
                 <View style={styles.headerSide}>
                     <TouchableOpacity
                         onPress={() => setShowSettings(true)}
@@ -80,7 +103,7 @@ export function TimetableScreen() {
             <TimetableSettingsModal
                 visible={showSettings}
                 settings={settings}
-                onSave={saveSettings}
+                onSave={handleSaveSettings}
                 onClose={() => setShowSettings(false)}
             />
         </SafeAreaView>
@@ -99,6 +122,10 @@ const styles = StyleSheet.create({
         paddingHorizontal: 16,
         paddingTop: 6,
         paddingBottom: 10,
+    },
+    backBtn: {
+        width: 36,
+        alignItems: "flex-start",
     },
     headerSide: {
         width: 36,

@@ -5,6 +5,7 @@ export type EvaluationType = 'attendance' | 'assignment' | 'exam' | 'balanced';
 export type ClassType = 'required' | 'elective_required' | 'elective';
 export type ExamType = 'written' | 'report' | 'oral' | 'none';
 export type DaysMode = 'weekdays' | 'weekdays_sat' | 'all';
+export type Semester = '前期' | '後期';
 
 export interface PeriodTime {
   start: string; // "HH:MM"
@@ -15,12 +16,19 @@ export interface TimetableSettings {
   periodCount: number;       // 1〜8
   daysMode: DaysMode;
   periodTimes: PeriodTime[]; // 常に8件
-  semester: string;          // "2026年度前期"
+}
+
+export interface Timetable extends TimetableSettings {
+  id: string;
+  grade: string;     // "1年", "2年", etc.
+  semester: Semester;
+  created_at: string;
 }
 
 export interface Class {
   id: string;
   user_id: string;
+  timetable_id: string | null;
   name: string;
   teacher: string | null;
   room: string | null;
@@ -71,8 +79,9 @@ export type RootTabParamList = {
 };
 
 export type TimetableStackParamList = {
-  TimetableMain: undefined;
-  ClassForm: { classData?: Class; day?: DayOfWeek; period?: Period };
+  TimetableList: undefined;
+  TimetableMain: { timetableId: string };
+  ClassForm: { classData?: Class; day?: DayOfWeek; period?: Period; timetableId: string };
 };
 
 export type GradeStackParamList = {
