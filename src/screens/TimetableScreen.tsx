@@ -105,7 +105,7 @@ const styles = StyleSheet.create({
         alignItems: "flex-end",
     },
     semesterTitle: {
-        fontSize: 17,
+        fontSize: 22,
         fontWeight: "700",
         color: "#1C1C1E",
         letterSpacing: 0.3,
