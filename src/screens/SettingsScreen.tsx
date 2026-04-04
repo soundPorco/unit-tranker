@@ -57,11 +57,7 @@ export function SettingsScreen() {
   }
 
   return (
-    <SafeAreaView style={s.container} edges={['top']}>
-      <View style={s.header}>
-        <Text style={s.title}>設定</Text>
-      </View>
-
+    <SafeAreaView style={s.container} edges={['bottom']}>
       <ScrollView contentContainerStyle={s.scroll} showsVerticalScrollIndicator={false}>
         {session ? (
           <>
@@ -155,13 +151,6 @@ export function SettingsScreen() {
 
 const s = StyleSheet.create({
   container: { flex: 1, backgroundColor: '#F2F2F7' },
-
-  header: {
-    paddingHorizontal: 16,
-    paddingTop: 4,
-    paddingBottom: 10,
-  },
-  title: { fontSize: 28, fontWeight: '700', color: '#1C1C1E', letterSpacing: 0.3 },
 
   scroll: { padding: 16, paddingBottom: 40 },
 

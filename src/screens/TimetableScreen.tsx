@@ -1,4 +1,4 @@
-import React, { useCallback, useState } from "react";
+import React, { useCallback, useEffect, useState } from "react";
 import {
     View,
     Text,
@@ -8,9 +8,10 @@ import {
     Modal,
     TouchableWithoutFeedback,
     FlatList,
+    ScrollView,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { useNavigation, useFocusEffect, useRoute, RouteProp } from "@react-navigation/native";
+import { useNavigation, useFocusEffect } from "@react-navigation/native";
 import { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import { Ionicons } from "@expo/vector-icons";
 import { TimetableGrid } from "../components/TimetableGrid";
@@ -20,7 +21,8 @@ import { useTimetables, DEFAULT_SETTINGS } from "../hooks/useTimetables";
 import { TimetableStackParamList, DayOfWeek, Period, Class, TimetableSettings, Timetable, Semester } from "../types";
 
 type Nav = NativeStackNavigationProp<TimetableStackParamList, "TimetableMain">;
-type Route = RouteProp<TimetableStackParamList, "TimetableMain">;
+
+const SEMESTER_OPTIONS: Semester[] = ['前期', '後期'];
 
 function TimetableSwitcher({
     timetables,
@@ -74,16 +76,86 @@ function TimetableSwitcher({
     );
 }
 
+function CreateTimetableModal({
+    visible,
+    onClose,
+    onCreate,
+}: {
+    visible: boolean;
+    onClose: () => void;
+    onCreate: (academicYear: number, semester: Semester) => void;
+}) {
+    const currentYear = new Date().getFullYear();
+    const [academicYear, setAcademicYear] = useState(currentYear);
+    const [semester, setSemester] = useState<Semester>('前期');
+
+    return (
+        <Modal visible={visible} animationType="slide" presentationStyle="pageSheet">
+            <SafeAreaView style={cm.container}>
+                <View style={cm.header}>
+                    <TouchableOpacity onPress={onClose}>
+                        <Text style={cm.cancel}>キャンセル</Text>
+                    </TouchableOpacity>
+                    <Text style={cm.title}>時間割を追加</Text>
+                    <TouchableOpacity onPress={() => onCreate(academicYear, semester)}>
+                        <Text style={cm.save}>追加</Text>
+                    </TouchableOpacity>
+                </View>
+
+                <ScrollView contentContainerStyle={cm.scroll}>
+                    <Text style={cm.label}>年度</Text>
+                    <View style={cm.card}>
+                        <View style={cm.yearRow}>
+                            <TouchableOpacity
+                                style={cm.yearBtn}
+                                onPress={() => setAcademicYear(y => y - 1)}
+                            >
+                                <Ionicons name="remove" size={20} color="#007AFF" />
+                            </TouchableOpacity>
+                            <Text style={cm.yearText}>{academicYear}年度</Text>
+                            <TouchableOpacity
+                                style={cm.yearBtn}
+                                onPress={() => setAcademicYear(y => y + 1)}
+                            >
+                                <Ionicons name="add" size={20} color="#007AFF" />
+                            </TouchableOpacity>
+                        </View>
+                    </View>
+
+                    <Text style={cm.label}>学期</Text>
+                    <View style={[cm.card, cm.row]}>
+                        {SEMESTER_OPTIONS.map(s => (
+                            <TouchableOpacity
+                                key={s}
+                                style={[cm.segBtn, semester === s && cm.segActive]}
+                                onPress={() => setSemester(s)}
+                            >
+                                <Text style={[cm.segText, semester === s && cm.segTextActive]}>{s}</Text>
+                            </TouchableOpacity>
+                        ))}
+                    </View>
+                </ScrollView>
+            </SafeAreaView>
+        </Modal>
+    );
+}
+
 export function TimetableScreen() {
     const navigation = useNavigation<Nav>();
-    const route = useRoute<Route>();
 
-    const { timetables, loaded, updateTimetable } = useTimetables();
-    const [currentTimetableId, setCurrentTimetableId] = useState(route.params.timetableId);
+    const { timetables, loaded, createTimetable, updateTimetable } = useTimetables();
+    const [currentTimetableId, setCurrentTimetableId] = useState<string | null>(null);
     const [showSwitcher, setShowSwitcher] = useState(false);
     const [showSettings, setShowSettings] = useState(false);
+    const [showCreate, setShowCreate] = useState(false);
 
-    const { classes, loading, refetch, deleteClass } = useClasses(currentTimetableId);
+    useEffect(() => {
+        if (loaded && currentTimetableId === null && timetables.length > 0) {
+            setCurrentTimetableId(timetables[0].id);
+        }
+    }, [loaded, timetables, currentTimetableId]);
+
+    const { classes, loading, refetch, deleteClass } = useClasses(currentTimetableId ?? '');
 
     useFocusEffect(
         useCallback(() => {
@@ -97,6 +169,7 @@ export function TimetableScreen() {
         : DEFAULT_SETTINGS;
 
     const handleCellPress = (day: DayOfWeek, period: Period, existing?: Class) => {
+        if (!currentTimetableId) return;
         navigation.navigate("ClassForm", { classData: existing, day, period, timetableId: currentTimetableId });
     };
 
@@ -104,7 +177,15 @@ export function TimetableScreen() {
         for (const id of classIdsToDelete) {
             await deleteClass(id);
         }
-        await updateTimetable(currentTimetableId, { ...next, academicYear, semester });
+        if (currentTimetableId) {
+            await updateTimetable(currentTimetableId, { ...next, academicYear, semester });
+        }
+    };
+
+    const handleCreate = async (academicYear: number, semester: Semester) => {
+        setShowCreate(false);
+        const newT = await createTimetable(academicYear, semester);
+        setCurrentTimetableId(newT.id);
     };
 
     if (loading || !loaded) {
@@ -115,20 +196,41 @@ export function TimetableScreen() {
         );
     }
 
+    if (loaded && timetables.length === 0) {
+        return (
+            <SafeAreaView style={styles.container} edges={["top"]}>
+                <View style={styles.header}>
+                    <Text style={styles.semesterTitle}>時間割</Text>
+                    <View style={styles.headerSide}>
+                        <TouchableOpacity
+                            onPress={() => setShowCreate(true)}
+                            style={styles.gearBtn}
+                            hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+                        >
+                            <Ionicons name="add" size={24} color="#007AFF" />
+                        </TouchableOpacity>
+                    </View>
+                </View>
+                <View style={styles.emptyContainer}>
+                    <Ionicons name="calendar-outline" size={52} color="#C7C7CC" />
+                    <Text style={styles.emptyTitle}>時間割がありません</Text>
+                    <Text style={styles.emptyDesc}>右上の＋ボタンで追加しましょう</Text>
+                </View>
+                <CreateTimetableModal
+                    visible={showCreate}
+                    onClose={() => setShowCreate(false)}
+                    onCreate={handleCreate}
+                />
+            </SafeAreaView>
+        );
+    }
+
     const headerLabel = timetable ? `${timetable.academicYear}年度 ${timetable.semester}` : '時間割';
 
     return (
         <SafeAreaView style={styles.container} edges={["top"]}>
             {/* ヘッダー */}
             <View style={styles.header}>
-                <TouchableOpacity
-                    onPress={() => navigation.goBack()}
-                    style={styles.backBtn}
-                    hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
-                >
-                    <Ionicons name="chevron-back" size={22} color="#007AFF" />
-                </TouchableOpacity>
-
                 {/* 時間割切り替えボタン */}
                 <TouchableOpacity
                     style={styles.switcherBtn}
@@ -145,6 +247,13 @@ export function TimetableScreen() {
                 </TouchableOpacity>
 
                 <View style={styles.headerSide}>
+                    <TouchableOpacity
+                        onPress={() => setShowCreate(true)}
+                        style={styles.gearBtn}
+                        hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+                    >
+                        <Ionicons name="add" size={24} color="#007AFF" />
+                    </TouchableOpacity>
                     <TouchableOpacity
                         onPress={() => setShowSettings(true)}
                         style={styles.gearBtn}
@@ -168,11 +277,18 @@ export function TimetableScreen() {
             {showSwitcher && (
                 <TimetableSwitcher
                     timetables={timetables}
-                    currentId={currentTimetableId}
+                    currentId={currentTimetableId ?? ''}
                     onSelect={setCurrentTimetableId}
                     onClose={() => setShowSwitcher(false)}
                 />
             )}
+
+            {/* 時間割作成モーダル */}
+            <CreateTimetableModal
+                visible={showCreate}
+                onClose={() => setShowCreate(false)}
+                onCreate={handleCreate}
+            />
 
             {/* 設定モーダル */}
             <TimetableSettingsModal
@@ -201,15 +317,10 @@ const styles = StyleSheet.create({
         paddingTop: 6,
         paddingBottom: 10,
     },
-    backBtn: {
-        width: 36,
-        alignItems: "flex-start",
-    },
     switcherBtn: {
         flex: 1,
         flexDirection: "row",
         alignItems: "center",
-        justifyContent: "center",
         gap: 4,
     },
     semesterTitle: {
@@ -222,8 +333,9 @@ const styles = StyleSheet.create({
         marginTop: 3,
     },
     headerSide: {
-        width: 36,
-        alignItems: "flex-end",
+        flexDirection: "row",
+        alignItems: "center",
+        gap: 8,
     },
     gearBtn: {
         padding: 4,
@@ -231,6 +343,15 @@ const styles = StyleSheet.create({
     gridContainer: {
         flex: 1,
     },
+    emptyContainer: {
+        flex: 1,
+        alignItems: 'center',
+        justifyContent: 'center',
+        gap: 8,
+        paddingBottom: 60,
+    },
+    emptyTitle: { fontSize: 17, fontWeight: '600', color: '#3C3C43', marginTop: 8 },
+    emptyDesc: { fontSize: 14, color: '#8E8E93' },
 });
 
 // ドロップダウンスタイル
@@ -239,7 +360,7 @@ const sw = StyleSheet.create({
         flex: 1,
         backgroundColor: "rgba(0,0,0,0.3)",
         alignItems: "center",
-        paddingTop: 100, // ヘッダー分の余白
+        paddingTop: 100,
     },
     card: {
         backgroundColor: "#FFFFFF",
@@ -273,4 +394,70 @@ const sw = StyleSheet.create({
         color: "#007AFF",
         fontWeight: "600",
     },
+});
+
+// 作成モーダルスタイル
+const cm = StyleSheet.create({
+    container: { flex: 1, backgroundColor: '#F2F2F7' },
+    header: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        justifyContent: 'space-between',
+        paddingHorizontal: 16,
+        paddingVertical: 12,
+        borderBottomWidth: 0.5,
+        borderBottomColor: '#C6C6C8',
+        backgroundColor: '#F2F2F7',
+    },
+    title: { fontSize: 17, fontWeight: '600', color: '#1C1C1E' },
+    cancel: { fontSize: 17, color: '#007AFF' },
+    save: { fontSize: 17, color: '#007AFF', fontWeight: '600' },
+    scroll: { padding: 16, gap: 4 },
+    label: {
+        fontSize: 13,
+        color: '#6C6C70',
+        fontWeight: '500',
+        marginTop: 16,
+        marginBottom: 6,
+        marginLeft: 4,
+        textTransform: 'uppercase',
+        letterSpacing: 0.4,
+    },
+    card: {
+        backgroundColor: '#FFFFFF',
+        borderRadius: 12,
+        padding: 12,
+    },
+    yearRow: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        justifyContent: 'center',
+        gap: 24,
+    },
+    yearBtn: {
+        width: 36,
+        height: 36,
+        borderRadius: 18,
+        backgroundColor: '#F2F2F7',
+        alignItems: 'center',
+        justifyContent: 'center',
+    },
+    yearText: {
+        fontSize: 20,
+        fontWeight: '600',
+        color: '#1C1C1E',
+        minWidth: 120,
+        textAlign: 'center',
+    },
+    row: { flexDirection: 'row', gap: 8 },
+    segBtn: {
+        flex: 1,
+        paddingVertical: 8,
+        alignItems: 'center',
+        borderRadius: 8,
+        backgroundColor: '#F2F2F7',
+    },
+    segActive: { backgroundColor: '#007AFF' },
+    segText: { fontSize: 14, color: '#3C3C43', fontWeight: '500' },
+    segTextActive: { color: '#FFFFFF', fontWeight: '600' },
 });

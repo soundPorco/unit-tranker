@@ -8,9 +8,13 @@ import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { Ionicons } from '@expo/vector-icons';
 import { useClasses } from '../hooks/useClasses';
 import { useAllClassStats } from '../hooks/useAllClassStats';
-import { GradeStackParamList } from '../types';
+import { GradeStackParamList, RootStackParamList } from '../types';
+import { CompositeNavigationProp } from '@react-navigation/native';
 
-type Nav = NativeStackNavigationProp<GradeStackParamList, 'GradeList'>;
+type Nav = CompositeNavigationProp<
+  NativeStackNavigationProp<GradeStackParamList, 'GradeList'>,
+  NativeStackNavigationProp<RootStackParamList>
+>;
 
 const DAYS = ['月', '火', '水', '木', '金', '土', '日'];
 const DAY_COLORS = ['#007AFF', '#34C759', '#FF9500', '#FF3B30', '#AF52DE', '#5AC8FA', '#FF6B6B'];
@@ -50,8 +54,16 @@ export function GradeListScreen() {
     <SafeAreaView style={styles.container} edges={['top']}>
       {/* ヘッダー */}
       <View style={styles.header}>
-        <Text style={styles.title}>成績</Text>
-        <Text style={styles.subtitle}>{classes.length} 科目</Text>
+        <View style={styles.headerLeft}>
+          <Text style={styles.title}>成績</Text>
+          <Text style={styles.subtitle}>{classes.length} 科目</Text>
+        </View>
+        <TouchableOpacity
+          onPress={() => navigation.navigate('Settings')}
+          hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+        >
+          <Ionicons name="person-circle-outline" size={26} color="#8E8E93" />
+        </TouchableOpacity>
       </View>
 
       {classes.length === 0 ? (
@@ -139,6 +151,11 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     paddingTop: 4,
     paddingBottom: 10,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+  },
+  headerLeft: {
     flexDirection: 'row',
     alignItems: 'baseline',
     gap: 8,
