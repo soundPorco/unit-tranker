@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Timetable, TimetableSettings, PeriodTime, Semester } from '../types';
 
@@ -87,6 +87,16 @@ export function useTimetables() {
     await AsyncStorage.setItem(STORAGE_KEY, JSON.stringify(list));
   };
 
+  const reload = useCallback(async () => {
+    const json = await AsyncStorage.getItem(STORAGE_KEY);
+    if (json) {
+      try {
+        const parsed: any[] = JSON.parse(json);
+        setTimetables(parsed.map(normalizeTimetable));
+      } catch {}
+    }
+  }, []);
+
   const createTimetable = async (academicYear: number, semester: Semester): Promise<Timetable> => {
     const newT: Timetable = {
       id: Date.now().toString(),
@@ -129,5 +139,5 @@ export function useTimetables() {
     );
   };
 
-  return { timetables, loaded, createTimetable, deleteTimetable, updateSettings, updateTimetable };
+  return { timetables, loaded, reload, createTimetable, deleteTimetable, updateSettings, updateTimetable };
 }

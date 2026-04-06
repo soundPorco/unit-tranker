@@ -34,7 +34,7 @@ export function TimetableSettingsScreen() {
   const route = useRoute<Route>();
   const { timetableId } = route.params;
 
-  const { timetables, updateTimetable } = useTimetables();
+  const { timetables, updateTimetable, loaded } = useTimetables();
   const { classes, deleteClass } = useClasses(timetableId);
 
   const timetable = timetables.find(t => t.id === timetableId) ?? null;
@@ -50,12 +50,12 @@ export function TimetableSettingsScreen() {
   const [pendingAffected, setPendingAffected] = useState<Class[]>([]);
 
   useEffect(() => {
-    if (timetable) {
+    if (loaded && timetable) {
       setDraft({ periodCount: timetable.periodCount, daysMode: timetable.daysMode, periodTimes: timetable.periodTimes });
       setDraftYear(timetable.academicYear);
       setDraftSemester(timetable.semester);
     }
-  }, [timetableId]);
+  }, [timetableId, loaded]);
 
   const setTime = (idx: number, field: 'start' | 'end', val: string) => {
     const times = draft.periodTimes.map((t, i) => i === idx ? { ...t, [field]: val } : t);

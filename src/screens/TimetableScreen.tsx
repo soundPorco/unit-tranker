@@ -143,7 +143,7 @@ function CreateTimetableModal({
 export function TimetableScreen() {
     const navigation = useNavigation<Nav>();
 
-    const { timetables, loaded, createTimetable } = useTimetables();
+    const { timetables, loaded, reload, createTimetable } = useTimetables();
     const [currentTimetableId, setCurrentTimetableId] = useState<string | null>(null);
     const [showSwitcher, setShowSwitcher] = useState(false);
     const [showCreate, setShowCreate] = useState(false);
@@ -159,7 +159,8 @@ export function TimetableScreen() {
     useFocusEffect(
         useCallback(() => {
             refetch();
-        }, [refetch]),
+            reload();
+        }, [refetch, reload]),
     );
 
     const timetable = timetables.find(t => t.id === currentTimetableId) ?? null;
