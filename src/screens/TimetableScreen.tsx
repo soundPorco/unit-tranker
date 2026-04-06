@@ -15,10 +15,10 @@ import { useNavigation, useFocusEffect } from "@react-navigation/native";
 import { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import { Ionicons } from "@expo/vector-icons";
 import { TimetableGrid } from "../components/TimetableGrid";
-import { TimetableSettingsModal } from "../components/TimetableSettingsModal";
 import { useClasses } from "../hooks/useClasses";
 import { useTimetables, DEFAULT_SETTINGS } from "../hooks/useTimetables";
 import { TimetableStackParamList, DayOfWeek, Period, Class, TimetableSettings, Timetable, Semester } from "../types";
+
 
 type Nav = NativeStackNavigationProp<TimetableStackParamList, "TimetableMain">;
 
@@ -143,10 +143,9 @@ function CreateTimetableModal({
 export function TimetableScreen() {
     const navigation = useNavigation<Nav>();
 
-    const { timetables, loaded, createTimetable, updateTimetable } = useTimetables();
+    const { timetables, loaded, createTimetable } = useTimetables();
     const [currentTimetableId, setCurrentTimetableId] = useState<string | null>(null);
     const [showSwitcher, setShowSwitcher] = useState(false);
-    const [showSettings, setShowSettings] = useState(false);
     const [showCreate, setShowCreate] = useState(false);
 
     useEffect(() => {
@@ -155,7 +154,7 @@ export function TimetableScreen() {
         }
     }, [loaded, timetables, currentTimetableId]);
 
-    const { classes, loading, refetch, deleteClass } = useClasses(currentTimetableId ?? '');
+    const { classes, loading, refetch } = useClasses(currentTimetableId ?? '');
 
     useFocusEffect(
         useCallback(() => {
@@ -171,15 +170,6 @@ export function TimetableScreen() {
     const handleCellPress = (day: DayOfWeek, period: Period, existing?: Class) => {
         if (!currentTimetableId) return;
         navigation.navigate("ClassForm", { classData: existing, day, period, timetableId: currentTimetableId });
-    };
-
-    const handleSaveSettings = async (next: TimetableSettings, academicYear: number, semester: Semester, classIdsToDelete: string[]) => {
-        for (const id of classIdsToDelete) {
-            await deleteClass(id);
-        }
-        if (currentTimetableId) {
-            await updateTimetable(currentTimetableId, { ...next, academicYear, semester });
-        }
     };
 
     const handleCreate = async (academicYear: number, semester: Semester) => {
@@ -255,7 +245,7 @@ export function TimetableScreen() {
                         <Ionicons name="add" size={24} color="#007AFF" />
                     </TouchableOpacity>
                     <TouchableOpacity
-                        onPress={() => setShowSettings(true)}
+                        onPress={() => currentTimetableId && navigation.navigate("TimetableSettings", { timetableId: currentTimetableId })}
                         style={styles.gearBtn}
                         hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
                     >
@@ -290,16 +280,6 @@ export function TimetableScreen() {
                 onCreate={handleCreate}
             />
 
-            {/* 設定モーダル */}
-            <TimetableSettingsModal
-                visible={showSettings}
-                settings={settings}
-                academicYear={timetable?.academicYear ?? new Date().getFullYear()}
-                semester={timetable?.semester ?? '前期'}
-                classes={classes}
-                onSave={handleSaveSettings}
-                onClose={() => setShowSettings(false)}
-            />
         </SafeAreaView>
     );
 }

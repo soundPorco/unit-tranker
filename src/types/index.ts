@@ -70,20 +70,17 @@ export interface Note {
   updated_at: string;
 }
 
-export type RootStackParamList = {
-  MainTabs: undefined;
-  Settings: undefined;
-};
-
 export type RootTabParamList = {
   Timetable: undefined;
   Calendar: undefined;
   Assignments: undefined;
   Grade: undefined;
+  Settings: undefined;
 };
 
 export type TimetableStackParamList = {
   TimetableMain: undefined;
+  TimetableSettings: { timetableId: string };
   ClassForm: { classData?: Class; day?: DayOfWeek; period?: Period; timetableId: string };
 };
 
