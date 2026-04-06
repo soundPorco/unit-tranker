@@ -1,9 +1,7 @@
-import React, { useState, useEffect, useRef, useCallback, useMemo } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
-  View, Text, ScrollView, TouchableOpacity,
+  View, Text, ScrollView, TouchableOpacity, TextInput,
   StyleSheet, KeyboardAvoidingView, Platform, Modal,
-  TouchableWithoutFeedback, NativeSyntheticEvent, NativeScrollEvent,
-  FlatList,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
@@ -31,161 +29,12 @@ const DAYS_OPTIONS: { value: DaysMode; label: string }[] = [
   { value: 'all',          label: '全曜日' },
 ];
 
-// ─── スクロールピッカー ───────────────────────────────────
-
-const ITEM_H = 46;
-const VISIBLE = 5;
-const PICKER_H = ITEM_H * VISIBLE;
-const PAD = ITEM_H * Math.floor(VISIBLE / 2);
-
-const HOURS = Array.from({ length: 24 }, (_, i) => String(i).padStart(2, '0'));
-const MINUTES = Array.from({ length: 60 }, (_, i) => String(i).padStart(2, '0'));
-
-// 選択状態に依存しないメモ化アイテム — スクロール中に再レンダリングしない
-const PickerItem = React.memo(({ label }: { label: string }) => (
-  <View style={ps.item}>
-    <Text style={ps.itemText}>{label}</Text>
-  </View>
-));
-
-const ScrollColumn = React.memo(function ScrollColumn({
-  values,
-  selected,
-  onChange,
-}: {
-  values: string[];
-  selected: string;
-  onChange: (val: string) => void;
-}) {
-  const listRef = useRef<FlatList<string>>(null);
-  const isScrollingRef = useRef(false);
-
-  // selectedIdx を ref で持ち、常に最新値を参照できるようにする
-  const selectedIdxRef = useRef(Math.max(0, values.indexOf(selected)));
-  selectedIdxRef.current = Math.max(0, values.indexOf(selected));
-
-  const scrollToIdx = useCallback((idx: number, animated: boolean) => {
-    listRef.current?.scrollToOffset({ offset: idx * ITEM_H, animated });
-  }, []);
-
-  // selected が外部から変わったとき（モーダルを開いた直後）だけスクロール
-  useEffect(() => {
-    if (!isScrollingRef.current) {
-      scrollToIdx(selectedIdxRef.current, false);
-    }
-  }, [selected, scrollToIdx]);
-
-  const getItemLayout = useCallback((_: any, index: number) => ({
-    length: ITEM_H,
-    offset: PAD + ITEM_H * index, // ListHeader 分のオフセットを含む
-    index,
-  }), []);
-
-  const renderItem = useCallback(({ item }: { item: string }) => (
-    <PickerItem label={item} />
-  ), []);
-
-  const keyExtractor = useCallback((item: string) => item, []);
-
-  const handleScrollBeginDrag = useCallback(() => {
-    isScrollingRef.current = true;
-  }, []);
-
-  // スクロール終了時のみ onChange を呼ぶ（二重発火なし）
-  const handleMomentumScrollEnd = useCallback((e: NativeSyntheticEvent<NativeScrollEvent>) => {
-    isScrollingRef.current = false;
-    const rawIdx = Math.round(e.nativeEvent.contentOffset.y / ITEM_H);
-    const idx = Math.max(0, Math.min(rawIdx, values.length - 1));
-    onChange(values[idx]);
-  }, [values, onChange]);
-
-  const listHeader = useMemo(() => <View style={{ height: PAD }} />, []);
-  const listFooter = useMemo(() => <View style={{ height: PAD }} />, []);
-
-  return (
-    <View style={ps.column}>
-      <FlatList
-        ref={listRef}
-        data={values}
-        keyExtractor={keyExtractor}
-        renderItem={renderItem}
-        getItemLayout={getItemLayout}
-        ListHeaderComponent={listHeader}
-        ListFooterComponent={listFooter}
-        showsVerticalScrollIndicator={false}
-        snapToInterval={ITEM_H}
-        decelerationRate="fast"
-        scrollEventThrottle={16}
-        onLayout={() => scrollToIdx(selectedIdxRef.current, false)}
-        onScrollBeginDrag={handleScrollBeginDrag}
-        onMomentumScrollEnd={handleMomentumScrollEnd}
-        removeClippedSubviews={false}
-      />
-      {/* 選択中ハイライト枠 */}
-      <View style={ps.highlight} pointerEvents="none" />
-    </View>
-  );
-});
-
-function TimePickerModal({
-  visible,
-  value,
-  onConfirm,
-  onClose,
-}: {
-  visible: boolean;
-  value: string;
-  onConfirm: (val: string) => void;
-  onClose: () => void;
-}) {
-  const parts = value.split(':');
-  const [selH, setSelH] = useState(parts[0] ?? '09');
-  const [selM, setSelM] = useState(parts[1] ?? '00');
-
-  // モーダルが開くたびに初期値をリセット
-  useEffect(() => {
-    if (visible) {
-      const p = value.split(':');
-      setSelH(p[0] ?? '09');
-      setSelM(p[1] ?? '00');
-    }
-  }, [visible, value]);
-
-  return (
-    <Modal visible={visible} transparent animationType="slide" onRequestClose={onClose}>
-      <TouchableWithoutFeedback onPress={onClose}>
-        <View style={pm.backdrop}>
-          <TouchableWithoutFeedback>
-            <View style={pm.sheet}>
-              {/* ヘッダー */}
-              <View style={pm.header}>
-                <TouchableOpacity onPress={onClose} hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}>
-                  <Text style={pm.cancel}>キャンセル</Text>
-                </TouchableOpacity>
-                <Text style={pm.title}>時間を選択</Text>
-                <TouchableOpacity
-                  onPress={() => { onConfirm(`${selH}:${selM}`); onClose(); }}
-                  hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
-                >
-                  <Text style={pm.done}>完了</Text>
-                </TouchableOpacity>
-              </View>
-
-              {/* ピッカー本体 */}
-              <View style={pm.pickerRow}>
-                <ScrollColumn values={HOURS} selected={selH} onChange={setSelH} />
-                <Text style={pm.colon}>:</Text>
-                <ScrollColumn values={MINUTES} selected={selM} onChange={setSelM} />
-              </View>
-            </View>
-          </TouchableWithoutFeedback>
-        </View>
-      </TouchableWithoutFeedback>
-    </Modal>
-  );
+// 数字4桁を入力すると自動的に HH:MM 形式に補完する
+function formatTimeInput(text: string): string {
+  const digits = text.replace(/\D/g, '').slice(0, 4);
+  if (digits.length <= 2) return digits;
+  return `${digits.slice(0, 2)}:${digits.slice(2)}`;
 }
-
-// ─── メイン画面 ──────────────────────────────────────────
 
 export function TimetableSettingsScreen() {
   const navigation = useNavigation<Nav>();
@@ -217,24 +66,11 @@ export function TimetableSettingsScreen() {
     }
   }, [loaded]);
 
-  // 時間ピッカー
-  const [editingField, setEditingField] = useState<{ idx: number; field: 'start' | 'end' } | null>(null);
-
-  const openPicker = (idx: number, field: 'start' | 'end') => setEditingField({ idx, field });
-  const closePicker = () => setEditingField(null);
-
-  const handleTimeConfirm = (val: string) => {
-    if (!editingField) return;
-    const { idx, field } = editingField;
+  const setTime = (idx: number, field: 'start' | 'end', val: string) => {
     const times = globalDraft.periodTimes.map((t, i) => i === idx ? { ...t, [field]: val } : t);
     setGlobalDraft(d => ({ ...d, periodTimes: times }));
   };
 
-  const pickerValue = editingField
-    ? (globalDraft.periodTimes[editingField.idx]?.[editingField.field] ?? '09:00')
-    : '09:00';
-
-  // 削除確認モーダル
   const [confirmVisible, setConfirmVisible] = useState(false);
   const [pendingAffected, setPendingAffected] = useState<Class[]>([]);
 
@@ -346,25 +182,25 @@ export function TimetableSettingsScreen() {
             {Array.from({ length: globalDraft.periodCount }, (_, i) => i).map(idx => (
               <View key={idx} style={[s.timeRow, idx < globalDraft.periodCount - 1 && s.timeRowBorder]}>
                 <Text style={s.timeLabel}>{idx + 1}限</Text>
-                <TouchableOpacity
-                  style={s.timeBtn}
-                  onPress={() => openPicker(idx, 'start')}
-                  activeOpacity={0.7}
-                >
-                  <Text style={s.timeBtnText}>
-                    {globalDraft.periodTimes[idx]?.start || '──:──'}
-                  </Text>
-                </TouchableOpacity>
+                <TextInput
+                  style={s.timeInput}
+                  value={globalDraft.periodTimes[idx]?.start ?? ''}
+                  onChangeText={v => setTime(idx, 'start', formatTimeInput(v))}
+                  placeholder="09:00"
+                  placeholderTextColor="#C7C7CC"
+                  keyboardType="number-pad"
+                  maxLength={5}
+                />
                 <Text style={s.timeSep}>〜</Text>
-                <TouchableOpacity
-                  style={s.timeBtn}
-                  onPress={() => openPicker(idx, 'end')}
-                  activeOpacity={0.7}
-                >
-                  <Text style={s.timeBtnText}>
-                    {globalDraft.periodTimes[idx]?.end || '──:──'}
-                  </Text>
-                </TouchableOpacity>
+                <TextInput
+                  style={s.timeInput}
+                  value={globalDraft.periodTimes[idx]?.end ?? ''}
+                  onChangeText={v => setTime(idx, 'end', formatTimeInput(v))}
+                  placeholder="10:30"
+                  placeholderTextColor="#C7C7CC"
+                  keyboardType="number-pad"
+                  maxLength={5}
+                />
               </View>
             ))}
           </View>
@@ -375,14 +211,6 @@ export function TimetableSettingsScreen() {
 
         </ScrollView>
       </KeyboardAvoidingView>
-
-      {/* 時間ピッカーモーダル */}
-      <TimePickerModal
-        visible={editingField !== null}
-        value={pickerValue}
-        onConfirm={handleTimeConfirm}
-        onClose={closePicker}
-      />
 
       {/* 削除確認モーダル */}
       <Modal visible={confirmVisible} transparent animationType="fade">
@@ -418,92 +246,6 @@ export function TimetableSettingsScreen() {
     </SafeAreaView>
   );
 }
-
-// ─── スクロールカラムスタイル ─────────────────────────────
-
-const ps = StyleSheet.create({
-  column: {
-    width: 80,
-    height: PICKER_H,
-    overflow: 'hidden',
-  },
-  item: {
-    height: ITEM_H,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  itemText: {
-    fontSize: 22,
-    color: '#1C1C1E',
-    fontWeight: '400',
-  },
-  highlight: {
-    position: 'absolute',
-    top: PAD,
-    height: ITEM_H,
-    left: 6,
-    right: 6,
-    borderTopWidth: StyleSheet.hairlineWidth,
-    borderBottomWidth: StyleSheet.hairlineWidth,
-    borderColor: '#C6C6C8',
-    borderRadius: 4,
-  },
-});
-
-// ─── 時間ピッカーモーダルスタイル ────────────────────────
-
-const pm = StyleSheet.create({
-  backdrop: {
-    flex: 1,
-    backgroundColor: 'rgba(0,0,0,0.4)',
-    justifyContent: 'flex-end',
-  },
-  sheet: {
-    backgroundColor: '#F2F2F7',
-    borderTopLeftRadius: 20,
-    borderTopRightRadius: 20,
-    paddingBottom: 40,
-  },
-  header: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingHorizontal: 20,
-    paddingVertical: 14,
-    borderBottomWidth: StyleSheet.hairlineWidth,
-    borderBottomColor: '#C6C6C8',
-  },
-  title: {
-    fontSize: 17,
-    fontWeight: '600',
-    color: '#1C1C1E',
-  },
-  cancel: {
-    fontSize: 17,
-    color: '#8E8E93',
-  },
-  done: {
-    fontSize: 17,
-    color: '#007AFF',
-    fontWeight: '600',
-  },
-  pickerRow: {
-    flexDirection: 'row',
-    justifyContent: 'center',
-    alignItems: 'center',
-    paddingVertical: 12,
-    gap: 4,
-  },
-  colon: {
-    fontSize: 28,
-    fontWeight: '600',
-    color: '#1C1C1E',
-    marginHorizontal: 4,
-    marginBottom: 4,
-  },
-});
-
-// ─── メイン画面スタイル ───────────────────────────────────
 
 const s = StyleSheet.create({
   container: { flex: 1, backgroundColor: '#F2F2F7' },
@@ -569,18 +311,9 @@ const s = StyleSheet.create({
   timeRow: { flexDirection: 'row', alignItems: 'center', paddingVertical: 10, gap: 8 },
   timeRowBorder: { borderBottomWidth: 0.5, borderBottomColor: '#E5E5EA' },
   timeLabel: { width: 32, fontSize: 15, color: '#1C1C1E', fontWeight: '500' },
-  timeBtn: {
-    flex: 1,
-    backgroundColor: '#F2F2F7',
-    borderRadius: 8,
-    paddingVertical: 8,
-    alignItems: 'center',
-  },
-  timeBtnText: {
-    fontSize: 16,
-    fontWeight: '500',
-    color: '#007AFF',
-    letterSpacing: 0.5,
+  timeInput: {
+    flex: 1, backgroundColor: '#F2F2F7', borderRadius: 8,
+    paddingHorizontal: 10, paddingVertical: 7, fontSize: 15, color: '#1C1C1E', textAlign: 'center',
   },
   timeSep: { fontSize: 14, color: '#8E8E93' },
 
@@ -590,8 +323,6 @@ const s = StyleSheet.create({
   },
   saveBtnText: { color: '#FFFFFF', fontSize: 16, fontWeight: '600' },
 });
-
-// ─── 削除確認モーダルスタイル ─────────────────────────────
 
 const c = StyleSheet.create({
   overlay: {
