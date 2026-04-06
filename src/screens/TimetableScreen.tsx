@@ -16,7 +16,7 @@ import { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import { Ionicons } from "@expo/vector-icons";
 import { TimetableGrid } from "../components/TimetableGrid";
 import { useClasses } from "../hooks/useClasses";
-import { useTimetables, DEFAULT_SETTINGS } from "../hooks/useTimetables";
+import { useTimetables } from "../hooks/useTimetables";
 import { TimetableStackParamList, DayOfWeek, Period, Class, TimetableSettings, Timetable, Semester } from "../types";
 
 
@@ -143,7 +143,7 @@ function CreateTimetableModal({
 export function TimetableScreen() {
     const navigation = useNavigation<Nav>();
 
-    const { timetables, loaded, reload, createTimetable } = useTimetables();
+    const { timetables, loaded, reload, globalSettings, createTimetable } = useTimetables();
     const [currentTimetableId, setCurrentTimetableId] = useState<string | null>(null);
     const [showSwitcher, setShowSwitcher] = useState(false);
     const [showCreate, setShowCreate] = useState(false);
@@ -164,9 +164,7 @@ export function TimetableScreen() {
     );
 
     const timetable = timetables.find(t => t.id === currentTimetableId) ?? null;
-    const settings: TimetableSettings = timetable
-        ? { periodCount: timetable.periodCount, daysMode: timetable.daysMode, periodTimes: timetable.periodTimes }
-        : DEFAULT_SETTINGS;
+    const settings: TimetableSettings = globalSettings;
 
     const handleCellPress = (day: DayOfWeek, period: Period, existing?: Class) => {
         if (!currentTimetableId) return;

@@ -1,13 +1,15 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef, useCallback, useMemo } from 'react';
 import {
-  View, Text, ScrollView, TouchableOpacity, TextInput,
-  StyleSheet, KeyboardAvoidingView, Platform, Modal, Alert,
+  View, Text, ScrollView, TouchableOpacity,
+  StyleSheet, KeyboardAvoidingView, Platform, Modal,
+  TouchableWithoutFeedback, NativeSyntheticEvent, NativeScrollEvent,
+  FlatList,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { Ionicons } from '@expo/vector-icons';
-import { useTimetables, DEFAULT_SETTINGS } from '../hooks/useTimetables';
+import { useTimetables } from '../hooks/useTimetables';
 import { useClasses } from '../hooks/useClasses';
 import { TimetableStackParamList, TimetableSettings, DaysMode, Semester, Class } from '../types';
 
@@ -29,43 +31,217 @@ const DAYS_OPTIONS: { value: DaysMode; label: string }[] = [
   { value: 'all',          label: '全曜日' },
 ];
 
+// ─── スクロールピッカー ───────────────────────────────────
+
+const ITEM_H = 46;
+const VISIBLE = 5;
+const PICKER_H = ITEM_H * VISIBLE;
+const PAD = ITEM_H * Math.floor(VISIBLE / 2);
+
+const HOURS = Array.from({ length: 24 }, (_, i) => String(i).padStart(2, '0'));
+const MINUTES = Array.from({ length: 60 }, (_, i) => String(i).padStart(2, '0'));
+
+// 選択状態に依存しないメモ化アイテム — スクロール中に再レンダリングしない
+const PickerItem = React.memo(({ label }: { label: string }) => (
+  <View style={ps.item}>
+    <Text style={ps.itemText}>{label}</Text>
+  </View>
+));
+
+const ScrollColumn = React.memo(function ScrollColumn({
+  values,
+  selected,
+  onChange,
+}: {
+  values: string[];
+  selected: string;
+  onChange: (val: string) => void;
+}) {
+  const listRef = useRef<FlatList<string>>(null);
+  const isScrollingRef = useRef(false);
+
+  // selectedIdx を ref で持ち、常に最新値を参照できるようにする
+  const selectedIdxRef = useRef(Math.max(0, values.indexOf(selected)));
+  selectedIdxRef.current = Math.max(0, values.indexOf(selected));
+
+  const scrollToIdx = useCallback((idx: number, animated: boolean) => {
+    listRef.current?.scrollToOffset({ offset: idx * ITEM_H, animated });
+  }, []);
+
+  // selected が外部から変わったとき（モーダルを開いた直後）だけスクロール
+  useEffect(() => {
+    if (!isScrollingRef.current) {
+      scrollToIdx(selectedIdxRef.current, false);
+    }
+  }, [selected, scrollToIdx]);
+
+  const getItemLayout = useCallback((_: any, index: number) => ({
+    length: ITEM_H,
+    offset: PAD + ITEM_H * index, // ListHeader 分のオフセットを含む
+    index,
+  }), []);
+
+  const renderItem = useCallback(({ item }: { item: string }) => (
+    <PickerItem label={item} />
+  ), []);
+
+  const keyExtractor = useCallback((item: string) => item, []);
+
+  const handleScrollBeginDrag = useCallback(() => {
+    isScrollingRef.current = true;
+  }, []);
+
+  // スクロール終了時のみ onChange を呼ぶ（二重発火なし）
+  const handleMomentumScrollEnd = useCallback((e: NativeSyntheticEvent<NativeScrollEvent>) => {
+    isScrollingRef.current = false;
+    const rawIdx = Math.round(e.nativeEvent.contentOffset.y / ITEM_H);
+    const idx = Math.max(0, Math.min(rawIdx, values.length - 1));
+    onChange(values[idx]);
+  }, [values, onChange]);
+
+  const listHeader = useMemo(() => <View style={{ height: PAD }} />, []);
+  const listFooter = useMemo(() => <View style={{ height: PAD }} />, []);
+
+  return (
+    <View style={ps.column}>
+      <FlatList
+        ref={listRef}
+        data={values}
+        keyExtractor={keyExtractor}
+        renderItem={renderItem}
+        getItemLayout={getItemLayout}
+        ListHeaderComponent={listHeader}
+        ListFooterComponent={listFooter}
+        showsVerticalScrollIndicator={false}
+        snapToInterval={ITEM_H}
+        decelerationRate="fast"
+        scrollEventThrottle={16}
+        onLayout={() => scrollToIdx(selectedIdxRef.current, false)}
+        onScrollBeginDrag={handleScrollBeginDrag}
+        onMomentumScrollEnd={handleMomentumScrollEnd}
+        removeClippedSubviews={false}
+      />
+      {/* 選択中ハイライト枠 */}
+      <View style={ps.highlight} pointerEvents="none" />
+    </View>
+  );
+});
+
+function TimePickerModal({
+  visible,
+  value,
+  onConfirm,
+  onClose,
+}: {
+  visible: boolean;
+  value: string;
+  onConfirm: (val: string) => void;
+  onClose: () => void;
+}) {
+  const parts = value.split(':');
+  const [selH, setSelH] = useState(parts[0] ?? '09');
+  const [selM, setSelM] = useState(parts[1] ?? '00');
+
+  // モーダルが開くたびに初期値をリセット
+  useEffect(() => {
+    if (visible) {
+      const p = value.split(':');
+      setSelH(p[0] ?? '09');
+      setSelM(p[1] ?? '00');
+    }
+  }, [visible, value]);
+
+  return (
+    <Modal visible={visible} transparent animationType="slide" onRequestClose={onClose}>
+      <TouchableWithoutFeedback onPress={onClose}>
+        <View style={pm.backdrop}>
+          <TouchableWithoutFeedback>
+            <View style={pm.sheet}>
+              {/* ヘッダー */}
+              <View style={pm.header}>
+                <TouchableOpacity onPress={onClose} hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}>
+                  <Text style={pm.cancel}>キャンセル</Text>
+                </TouchableOpacity>
+                <Text style={pm.title}>時間を選択</Text>
+                <TouchableOpacity
+                  onPress={() => { onConfirm(`${selH}:${selM}`); onClose(); }}
+                  hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+                >
+                  <Text style={pm.done}>完了</Text>
+                </TouchableOpacity>
+              </View>
+
+              {/* ピッカー本体 */}
+              <View style={pm.pickerRow}>
+                <ScrollColumn values={HOURS} selected={selH} onChange={setSelH} />
+                <Text style={pm.colon}>:</Text>
+                <ScrollColumn values={MINUTES} selected={selM} onChange={setSelM} />
+              </View>
+            </View>
+          </TouchableWithoutFeedback>
+        </View>
+      </TouchableWithoutFeedback>
+    </Modal>
+  );
+}
+
+// ─── メイン画面 ──────────────────────────────────────────
+
 export function TimetableSettingsScreen() {
   const navigation = useNavigation<Nav>();
   const route = useRoute<Route>();
   const { timetableId } = route.params;
 
-  const { timetables, updateTimetable, loaded } = useTimetables();
+  const { timetables, updateTimetable, loaded, globalSettings, updateGlobalSettings } = useTimetables();
   const { classes, deleteClass } = useClasses(timetableId);
 
   const timetable = timetables.find(t => t.id === timetableId) ?? null;
-  const initial: TimetableSettings = timetable
-    ? { periodCount: timetable.periodCount, daysMode: timetable.daysMode, periodTimes: timetable.periodTimes }
-    : DEFAULT_SETTINGS;
 
-  const [draft, setDraft] = useState<TimetableSettings>(initial);
+  // 個別設定（この時間割）
   const [draftYear, setDraftYear] = useState(timetable?.academicYear ?? new Date().getFullYear());
   const [draftSemester, setDraftSemester] = useState<Semester>(timetable?.semester ?? '前期');
 
-  const [confirmVisible, setConfirmVisible] = useState(false);
-  const [pendingAffected, setPendingAffected] = useState<Class[]>([]);
+  // 全体設定（全時間割共通）
+  const [globalDraft, setGlobalDraft] = useState<TimetableSettings>(globalSettings);
 
   useEffect(() => {
     if (loaded && timetable) {
-      setDraft({ periodCount: timetable.periodCount, daysMode: timetable.daysMode, periodTimes: timetable.periodTimes });
       setDraftYear(timetable.academicYear);
       setDraftSemester(timetable.semester);
     }
   }, [timetableId, loaded]);
 
-  const setTime = (idx: number, field: 'start' | 'end', val: string) => {
-    const times = draft.periodTimes.map((t, i) => i === idx ? { ...t, [field]: val } : t);
-    setDraft(d => ({ ...d, periodTimes: times }));
+  useEffect(() => {
+    if (loaded) {
+      setGlobalDraft(globalSettings);
+    }
+  }, [loaded]);
+
+  // 時間ピッカー
+  const [editingField, setEditingField] = useState<{ idx: number; field: 'start' | 'end' } | null>(null);
+
+  const openPicker = (idx: number, field: 'start' | 'end') => setEditingField({ idx, field });
+  const closePicker = () => setEditingField(null);
+
+  const handleTimeConfirm = (val: string) => {
+    if (!editingField) return;
+    const { idx, field } = editingField;
+    const times = globalDraft.periodTimes.map((t, i) => i === idx ? { ...t, [field]: val } : t);
+    setGlobalDraft(d => ({ ...d, periodTimes: times }));
   };
 
+  const pickerValue = editingField
+    ? (globalDraft.periodTimes[editingField.idx]?.[editingField.field] ?? '09:00')
+    : '09:00';
+
+  // 削除確認モーダル
+  const [confirmVisible, setConfirmVisible] = useState(false);
+  const [pendingAffected, setPendingAffected] = useState<Class[]>([]);
+
   const handleSave = () => {
-    const newMaxDay = DAYS_MODE_MAX[draft.daysMode];
+    const newMaxDay = DAYS_MODE_MAX[globalDraft.daysMode];
     const hiddenByDay = classes.filter(c => c.day_of_week > newMaxDay);
-    const hiddenByPeriod = classes.filter(c => c.period > draft.periodCount);
+    const hiddenByPeriod = classes.filter(c => c.period > globalDraft.periodCount);
     const affected = [...hiddenByDay, ...hiddenByPeriod.filter(c => !hiddenByDay.find(d => d.id === c.id))];
 
     if (affected.length === 0) {
@@ -80,7 +256,8 @@ export function TimetableSettingsScreen() {
     for (const id of classIdsToDelete) {
       await deleteClass(id);
     }
-    await updateTimetable(timetableId, { ...draft, academicYear: draftYear, semester: draftSemester });
+    await updateTimetable(timetableId, { academicYear: draftYear, semester: draftSemester });
+    await updateGlobalSettings(globalDraft);
     navigation.goBack();
   };
 
@@ -89,8 +266,17 @@ export function TimetableSettingsScreen() {
       <KeyboardAvoidingView style={{ flex: 1 }} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
         <ScrollView contentContainerStyle={s.scroll} keyboardShouldPersistTaps="handled">
 
+          {/* ─── 個別設定セクション ─── */}
+          <View style={s.sectionHeader}>
+            <View style={s.sectionIconWrap}>
+              <Ionicons name="calendar-outline" size={15} color="#007AFF" />
+            </View>
+            <Text style={s.sectionHeaderText}>この時間割の設定</Text>
+          </View>
+          <Text style={s.sectionNote}>この時間割にのみ適用されます</Text>
+
           {/* 年度 */}
-          <Text style={s.sectionLabel}>年度</Text>
+          <Text style={s.fieldLabel}>年度</Text>
           <View style={s.card}>
             <View style={s.yearRow}>
               <TouchableOpacity style={s.yearBtn} onPress={() => setDraftYear(y => y - 1)}>
@@ -104,7 +290,7 @@ export function TimetableSettingsScreen() {
           </View>
 
           {/* 学期 */}
-          <Text style={s.sectionLabel}>学期</Text>
+          <Text style={s.fieldLabel}>学期</Text>
           <View style={[s.card, s.row]}>
             {SEMESTER_OPTIONS.map(opt => (
               <TouchableOpacity
@@ -117,59 +303,68 @@ export function TimetableSettingsScreen() {
             ))}
           </View>
 
+          {/* ─── 全体設定セクション ─── */}
+          <View style={[s.sectionHeader, { marginTop: 28 }]}>
+            <View style={[s.sectionIconWrap, { backgroundColor: '#F0FFF4' }]}>
+              <Ionicons name="grid-outline" size={15} color="#34C759" />
+            </View>
+            <Text style={s.sectionHeaderText}>全体設定</Text>
+          </View>
+          <Text style={s.sectionNote}>全ての時間割に共通して適用されます</Text>
+
           {/* 表示曜日 */}
-          <Text style={s.sectionLabel}>表示曜日</Text>
+          <Text style={s.fieldLabel}>表示曜日</Text>
           <View style={[s.card, s.row]}>
             {DAYS_OPTIONS.map(opt => (
               <TouchableOpacity
                 key={opt.value}
-                style={[s.segBtn, draft.daysMode === opt.value && s.segActive]}
-                onPress={() => setDraft(d => ({ ...d, daysMode: opt.value }))}
+                style={[s.segBtn, globalDraft.daysMode === opt.value && s.segActive]}
+                onPress={() => setGlobalDraft(d => ({ ...d, daysMode: opt.value }))}
               >
-                <Text style={[s.segText, draft.daysMode === opt.value && s.segTextActive]}>{opt.label}</Text>
+                <Text style={[s.segText, globalDraft.daysMode === opt.value && s.segTextActive]}>{opt.label}</Text>
               </TouchableOpacity>
             ))}
           </View>
 
           {/* 時限数 */}
-          <Text style={s.sectionLabel}>時限数</Text>
+          <Text style={s.fieldLabel}>時限数</Text>
           <View style={[s.card, s.row, { flexWrap: 'wrap', gap: 8 }]}>
             {[1, 2, 3, 4, 5, 6, 7, 8].map(n => (
               <TouchableOpacity
                 key={n}
-                style={[s.periodBtn, draft.periodCount === n && s.periodBtnActive]}
-                onPress={() => setDraft(d => ({ ...d, periodCount: n }))}
+                style={[s.periodBtn, globalDraft.periodCount === n && s.periodBtnActive]}
+                onPress={() => setGlobalDraft(d => ({ ...d, periodCount: n }))}
               >
-                <Text style={[s.periodText, draft.periodCount === n && s.periodTextActive]}>{n}限</Text>
+                <Text style={[s.periodText, globalDraft.periodCount === n && s.periodTextActive]}>{n}限</Text>
               </TouchableOpacity>
             ))}
           </View>
 
-          {/* 各時限の時間 */}
-          <Text style={s.sectionLabel}>各時限の時間</Text>
+          {/* 授業時間 */}
+          <Text style={s.fieldLabel}>授業時間</Text>
           <View style={s.card}>
-            {Array.from({ length: draft.periodCount }, (_, i) => i).map(idx => (
-              <View key={idx} style={[s.timeRow, idx < draft.periodCount - 1 && s.timeRowBorder]}>
+            {Array.from({ length: globalDraft.periodCount }, (_, i) => i).map(idx => (
+              <View key={idx} style={[s.timeRow, idx < globalDraft.periodCount - 1 && s.timeRowBorder]}>
                 <Text style={s.timeLabel}>{idx + 1}限</Text>
-                <TextInput
-                  style={s.timeInput}
-                  value={draft.periodTimes[idx]?.start ?? ''}
-                  onChangeText={v => setTime(idx, 'start', v)}
-                  placeholder="09:00"
-                  placeholderTextColor="#C7C7CC"
-                  keyboardType="numbers-and-punctuation"
-                  maxLength={5}
-                />
+                <TouchableOpacity
+                  style={s.timeBtn}
+                  onPress={() => openPicker(idx, 'start')}
+                  activeOpacity={0.7}
+                >
+                  <Text style={s.timeBtnText}>
+                    {globalDraft.periodTimes[idx]?.start || '──:──'}
+                  </Text>
+                </TouchableOpacity>
                 <Text style={s.timeSep}>〜</Text>
-                <TextInput
-                  style={s.timeInput}
-                  value={draft.periodTimes[idx]?.end ?? ''}
-                  onChangeText={v => setTime(idx, 'end', v)}
-                  placeholder="10:30"
-                  placeholderTextColor="#C7C7CC"
-                  keyboardType="numbers-and-punctuation"
-                  maxLength={5}
-                />
+                <TouchableOpacity
+                  style={s.timeBtn}
+                  onPress={() => openPicker(idx, 'end')}
+                  activeOpacity={0.7}
+                >
+                  <Text style={s.timeBtnText}>
+                    {globalDraft.periodTimes[idx]?.end || '──:──'}
+                  </Text>
+                </TouchableOpacity>
               </View>
             ))}
           </View>
@@ -180,6 +375,14 @@ export function TimetableSettingsScreen() {
 
         </ScrollView>
       </KeyboardAvoidingView>
+
+      {/* 時間ピッカーモーダル */}
+      <TimePickerModal
+        visible={editingField !== null}
+        value={pickerValue}
+        onConfirm={handleTimeConfirm}
+        onClose={closePicker}
+      />
 
       {/* 削除確認モーダル */}
       <Modal visible={confirmVisible} transparent animationType="fade">
@@ -216,15 +419,128 @@ export function TimetableSettingsScreen() {
   );
 }
 
+// ─── スクロールカラムスタイル ─────────────────────────────
+
+const ps = StyleSheet.create({
+  column: {
+    width: 80,
+    height: PICKER_H,
+    overflow: 'hidden',
+  },
+  item: {
+    height: ITEM_H,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  itemText: {
+    fontSize: 22,
+    color: '#1C1C1E',
+    fontWeight: '400',
+  },
+  highlight: {
+    position: 'absolute',
+    top: PAD,
+    height: ITEM_H,
+    left: 6,
+    right: 6,
+    borderTopWidth: StyleSheet.hairlineWidth,
+    borderBottomWidth: StyleSheet.hairlineWidth,
+    borderColor: '#C6C6C8',
+    borderRadius: 4,
+  },
+});
+
+// ─── 時間ピッカーモーダルスタイル ────────────────────────
+
+const pm = StyleSheet.create({
+  backdrop: {
+    flex: 1,
+    backgroundColor: 'rgba(0,0,0,0.4)',
+    justifyContent: 'flex-end',
+  },
+  sheet: {
+    backgroundColor: '#F2F2F7',
+    borderTopLeftRadius: 20,
+    borderTopRightRadius: 20,
+    paddingBottom: 40,
+  },
+  header: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingHorizontal: 20,
+    paddingVertical: 14,
+    borderBottomWidth: StyleSheet.hairlineWidth,
+    borderBottomColor: '#C6C6C8',
+  },
+  title: {
+    fontSize: 17,
+    fontWeight: '600',
+    color: '#1C1C1E',
+  },
+  cancel: {
+    fontSize: 17,
+    color: '#8E8E93',
+  },
+  done: {
+    fontSize: 17,
+    color: '#007AFF',
+    fontWeight: '600',
+  },
+  pickerRow: {
+    flexDirection: 'row',
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingVertical: 12,
+    gap: 4,
+  },
+  colon: {
+    fontSize: 28,
+    fontWeight: '600',
+    color: '#1C1C1E',
+    marginHorizontal: 4,
+    marginBottom: 4,
+  },
+});
+
+// ─── メイン画面スタイル ───────────────────────────────────
+
 const s = StyleSheet.create({
   container: { flex: 1, backgroundColor: '#F2F2F7' },
   scroll: { padding: 16, gap: 4, paddingBottom: 40 },
 
-  sectionLabel: {
+  sectionHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    marginTop: 8,
+    marginBottom: 4,
+  },
+  sectionIconWrap: {
+    width: 24,
+    height: 24,
+    borderRadius: 6,
+    backgroundColor: '#EFF6FF',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  sectionHeaderText: {
+    fontSize: 15,
+    fontWeight: '700',
+    color: '#1C1C1E',
+  },
+  sectionNote: {
+    fontSize: 12,
+    color: '#8E8E93',
+    marginBottom: 10,
+    marginLeft: 2,
+  },
+
+  fieldLabel: {
     fontSize: 13,
     color: '#6C6C70',
     fontWeight: '500',
-    marginTop: 16,
+    marginTop: 12,
     marginBottom: 6,
     marginLeft: 4,
     textTransform: 'uppercase',
@@ -253,9 +569,18 @@ const s = StyleSheet.create({
   timeRow: { flexDirection: 'row', alignItems: 'center', paddingVertical: 10, gap: 8 },
   timeRowBorder: { borderBottomWidth: 0.5, borderBottomColor: '#E5E5EA' },
   timeLabel: { width: 32, fontSize: 15, color: '#1C1C1E', fontWeight: '500' },
-  timeInput: {
-    flex: 1, backgroundColor: '#F2F2F7', borderRadius: 8,
-    paddingHorizontal: 10, paddingVertical: 7, fontSize: 15, color: '#1C1C1E', textAlign: 'center',
+  timeBtn: {
+    flex: 1,
+    backgroundColor: '#F2F2F7',
+    borderRadius: 8,
+    paddingVertical: 8,
+    alignItems: 'center',
+  },
+  timeBtnText: {
+    fontSize: 16,
+    fontWeight: '500',
+    color: '#007AFF',
+    letterSpacing: 0.5,
   },
   timeSep: { fontSize: 14, color: '#8E8E93' },
 
@@ -265,6 +590,8 @@ const s = StyleSheet.create({
   },
   saveBtnText: { color: '#FFFFFF', fontSize: 16, fontWeight: '600' },
 });
+
+// ─── 削除確認モーダルスタイル ─────────────────────────────
 
 const c = StyleSheet.create({
   overlay: {
