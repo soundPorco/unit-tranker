@@ -3,6 +3,7 @@ import {
   View, Text, TextInput, TouchableOpacity, StyleSheet,
   ScrollView, Alert, ActivityIndicator, Modal, Pressable,
 } from 'react-native';
+import { Calendar } from 'react-native-calendars';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRoute, RouteProp } from '@react-navigation/native';
 import { Ionicons } from '@expo/vector-icons';
@@ -385,17 +386,22 @@ export function ClassDetailScreen() {
       {/* 出席追加モーダル */}
       <Modal visible={showAddAtt} transparent animationType="slide">
         <Pressable style={s.overlay} onPress={() => setShowAddAtt(false)}>
-          <Pressable style={s.sheet} onPress={e => e.stopPropagation()}>
+          <Pressable style={s.attSheet} onPress={e => e.stopPropagation()}>
             <View style={s.sheetHandle} />
             <Text style={s.sheetTitle}>出席を記録</Text>
-            <Text style={s.sheetLabel}>日付（YYYY-MM-DD）</Text>
-            <TextInput
-              style={s.sheetInput}
-              value={attDate}
-              onChangeText={setAttDate}
-              placeholder={today}
-              placeholderTextColor="#C7C7CC"
-              keyboardType="numbers-and-punctuation"
+            <Calendar
+              current={attDate}
+              maxDate={today}
+              onDayPress={(day: { dateString: string }) => setAttDate(day.dateString)}
+              markedDates={{
+                [attDate]: { selected: true, selectedColor: '#007AFF' },
+              }}
+              theme={{
+                todayTextColor: '#007AFF',
+                arrowColor: '#007AFF',
+                selectedDayBackgroundColor: '#007AFF',
+              }}
+              style={s.calendar}
             />
             <Text style={s.sheetLabel}>状態</Text>
             <AttendanceButton selected={attStatus} onSelect={setAttStatus} />
@@ -553,6 +559,18 @@ const s = StyleSheet.create({
     padding: 20,
     paddingBottom: 36,
     gap: 10,
+  },
+  attSheet: {
+    backgroundColor: '#FFFFFF',
+    borderTopLeftRadius: 20,
+    borderTopRightRadius: 20,
+    padding: 20,
+    paddingBottom: 36,
+    gap: 10,
+  },
+  calendar: {
+    borderRadius: 12,
+    overflow: 'hidden',
   },
   sheetHandle: {
     width: 36, height: 4, borderRadius: 2,
