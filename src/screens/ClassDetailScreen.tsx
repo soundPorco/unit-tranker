@@ -115,7 +115,6 @@ export function ClassDetailScreen() {
     setShowAddAtt(false);
   };
 
-  const todayRecord = records.find(r => r.date === today);
 
   // ステータスカラー
   const attColor = attStats.rate >= 80 ? '#34C759' : attStats.rate >= 60 ? '#FF9500' : '#FF3B30';
@@ -231,22 +230,14 @@ export function ClassDetailScreen() {
       {/* タブコンテンツ */}
       {activeTab === 'attendance' && (
         <ScrollView contentContainerStyle={s.tabContent} showsVerticalScrollIndicator={false}>
-          {/* 今日の出席 */}
-          <Text style={s.sectionLabel}>今日の出席</Text>
-          <View style={s.card}>
-            <AttendanceButton
-              selected={todayRecord?.status}
-              onSelect={(status) => upsertAttendance(today, status)}
-            />
-          </View>
+          <TouchableOpacity onPress={() => setShowAddAtt(true)} style={s.registerBtn}>
+            <Ionicons name="add-circle-outline" size={18} color="#FFFFFF" />
+            <Text style={s.registerBtnText}>出席を登録する</Text>
+          </TouchableOpacity>
 
           {/* 出席記録一覧 */}
           <View style={s.listHeader}>
             <Text style={s.sectionLabel}>記録一覧</Text>
-            <TouchableOpacity onPress={() => setShowAddAtt(true)} style={s.addBtn}>
-              <Ionicons name="add" size={16} color="#007AFF" />
-              <Text style={s.addBtnText}>追加</Text>
-            </TouchableOpacity>
           </View>
 
           <View style={s.card}>
@@ -504,6 +495,16 @@ const s = StyleSheet.create({
   },
   listRowBorder: { borderBottomWidth: 0.5, borderBottomColor: '#E5E5EA' },
   statusDot: { width: 8, height: 8, borderRadius: 4 },
+  registerBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 6,
+    backgroundColor: '#007AFF',
+    borderRadius: 12,
+    paddingVertical: 14,
+  },
+  registerBtnText: { color: '#FFFFFF', fontSize: 16, fontWeight: '600' },
   listSession: { fontSize: 12, color: '#8E8E93', fontWeight: '500', width: 40 },
   listDate: { flex: 1, fontSize: 15, color: '#1C1C1E' },
   listStatus: { fontSize: 14, fontWeight: '600' },
