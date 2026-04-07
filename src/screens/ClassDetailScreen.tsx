@@ -31,6 +31,12 @@ type Tab = 'attendance' | 'assignment' | 'note';
 
 const today = new Date().toISOString().slice(0, 10);
 
+const DAY_LABELS = ['日', '月', '火', '水', '木', '金', '土'];
+function formatDate(iso: string) {
+  const d = new Date(iso);
+  return `${d.getMonth() + 1}月${d.getDate()}日(${DAY_LABELS[d.getDay()]})`;
+}
+
 // 出席率のリング
 function RingGauge({ rate, color }: { rate: number; color: string }) {
   const label = rate === 0 ? '—' : `${rate}%`;
@@ -85,6 +91,7 @@ export function ClassDetailScreen() {
   const [showAddAtt, setShowAddAtt] = useState(false);
   const [attDate, setAttDate] = useState(today);
   const [attStatus, setAttStatus] = useState<AttendanceStatus>('present');
+  const [showCalendar, setShowCalendar] = useState(false);
 
   useEffect(() => {
     supabase.from('classes').select('*').eq('id', classId).single().then(({ data }) => {
@@ -245,32 +252,47 @@ export function ClassDetailScreen() {
             {records.length === 0 ? (
               <Text style={s.emptyText}>出席記録がありません</Text>
             ) : (
-              records.map((r, idx) => {
-                const statusConf = {
-                  present:   { label: '出席', color: '#34C759' },
-                  late:      { label: '遅刻', color: '#FF9500' },
-                  absent:    { label: '欠席', color: '#FF3B30' },
-                  cancelled: { label: '休講', color: '#8E8E93' },
-                }[r.status];
-                const sessionNum = records.length - idx;
-                return (
-                  <View key={r.id} style={[s.listRow, idx < records.length - 1 && s.listRowBorder]}>
-                    <View style={[s.statusDot, { backgroundColor: statusConf.color }]} />
-                    <Text style={s.listSession}>第{sessionNum}回</Text>
-                    <Text style={s.listDate}>{r.date}</Text>
-                    <Text style={[s.listStatus, { color: statusConf.color }]}>{statusConf.label}</Text>
-                    <TouchableOpacity
-                      onPress={() => Alert.alert('削除', `${r.date} の出席記録を削除しますか？`, [
-                        { text: 'キャンセル', style: 'cancel' },
-                        { text: '削除', style: 'destructive', onPress: () => deleteAttendance(r.id) },
-                      ])}
-                      hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
-                    >
-                      <Ionicons name="trash-outline" size={16} color="#C7C7CC" />
-                    </TouchableOpacity>
-                  </View>
-                );
-              })
+              (() => {
+                let lastYear: number | null = null;
+                return records.map((r, idx) => {
+                  const statusConf = {
+                    present:   { label: '出席', color: '#34C759' },
+                    late:      { label: '遅刻', color: '#FF9500' },
+                    absent:    { label: '欠席', color: '#FF3B30' },
+                    cancelled: { label: '休講', color: '#8E8E93' },
+                  }[r.status];
+                  const sessionNum = records.length - idx;
+                  const year = new Date(r.date).getFullYear();
+                  const showYearDivider = year !== lastYear;
+                  lastYear = year;
+                  return (
+                    <React.Fragment key={r.id}>
+                      {showYearDivider && (
+                        <View style={s.yearDivider}>
+                          <View style={s.yearDividerLine} />
+                          <Text style={s.yearDividerText}>{year}年</Text>
+                          <View style={s.yearDividerLine} />
+                        </View>
+                      )}
+                      <View style={[s.listRow, idx < records.length - 1 && s.listRowBorder]}>
+                        <View style={[s.statusDot, { backgroundColor: statusConf.color }]} />
+                        <Text style={s.listSession}>第{sessionNum}回</Text>
+                        <Text style={s.listDate}>{formatDate(r.date)}</Text>
+                        <Text style={[s.listStatus, { color: statusConf.color }]}>{statusConf.label}</Text>
+                        <TouchableOpacity
+                          onPress={() => Alert.alert('削除', `${r.date} の出席記録を削除しますか？`, [
+                            { text: 'キャンセル', style: 'cancel' },
+                            { text: '削除', style: 'destructive', onPress: () => deleteAttendance(r.id) },
+                          ])}
+                          hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+                        >
+                          <Ionicons name="trash-outline" size={16} color="#C7C7CC" />
+                        </TouchableOpacity>
+                      </View>
+                    </React.Fragment>
+                  );
+                });
+              })()
             )}
           </View>
         </ScrollView>
@@ -389,20 +411,38 @@ export function ClassDetailScreen() {
           <Pressable style={s.attSheet} onPress={e => e.stopPropagation()}>
             <View style={s.sheetHandle} />
             <Text style={s.sheetTitle}>出席を記録</Text>
-            <Calendar
-              current={attDate}
-              maxDate={today}
-              onDayPress={(day: { dateString: string }) => setAttDate(day.dateString)}
-              markedDates={{
-                [attDate]: { selected: true, selectedColor: '#007AFF' },
-              }}
-              theme={{
-                todayTextColor: '#007AFF',
-                arrowColor: '#007AFF',
-                selectedDayBackgroundColor: '#007AFF',
-              }}
-              style={s.calendar}
-            />
+            <Text style={s.sheetLabel}>日付</Text>
+            <TouchableOpacity
+              style={s.datePicker}
+              onPress={() => setShowCalendar(v => !v)}
+            >
+              <Ionicons name="calendar-outline" size={16} color="#007AFF" />
+              <Text style={s.datePickerText}>{formatDate(attDate)}</Text>
+              <Ionicons
+                name={showCalendar ? 'chevron-up' : 'chevron-down'}
+                size={14}
+                color="#8E8E93"
+              />
+            </TouchableOpacity>
+            {showCalendar && (
+              <Calendar
+                current={attDate}
+                maxDate={today}
+                onDayPress={(day: { dateString: string }) => {
+                  setAttDate(day.dateString);
+                  setShowCalendar(false);
+                }}
+                markedDates={{
+                  [attDate]: { selected: true, selectedColor: '#007AFF' },
+                }}
+                theme={{
+                  todayTextColor: '#007AFF',
+                  arrowColor: '#007AFF',
+                  selectedDayBackgroundColor: '#007AFF',
+                }}
+                style={s.calendar}
+              />
+            )}
             <Text style={s.sheetLabel}>状態</Text>
             <AttendanceButton selected={attStatus} onSelect={setAttStatus} />
             <TouchableOpacity style={s.sheetConfirmBtn} onPress={handleAddAttendance}>
@@ -511,6 +551,14 @@ const s = StyleSheet.create({
     paddingVertical: 14,
   },
   registerBtnText: { color: '#FFFFFF', fontSize: 16, fontWeight: '600' },
+  yearDivider: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingVertical: 8,
+    gap: 8,
+  },
+  yearDividerLine: { flex: 1, height: 0.5, backgroundColor: '#E5E5EA' },
+  yearDividerText: { fontSize: 12, color: '#8E8E93', fontWeight: '600' },
   listSession: { fontSize: 12, color: '#8E8E93', fontWeight: '500', width: 40 },
   listDate: { flex: 1, fontSize: 15, color: '#1C1C1E' },
   listStatus: { fontSize: 14, fontWeight: '600' },
@@ -560,6 +608,15 @@ const s = StyleSheet.create({
     paddingBottom: 36,
     gap: 10,
   },
+  datePicker: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    backgroundColor: '#F2F2F7',
+    borderRadius: 10,
+    padding: 12,
+  },
+  datePickerText: { flex: 1, fontSize: 15, color: '#1C1C1E' },
   attSheet: {
     backgroundColor: '#FFFFFF',
     borderTopLeftRadius: 20,
