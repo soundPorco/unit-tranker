@@ -11,7 +11,7 @@ import { useAttendance } from '../hooks/useAttendance';
 import { useAssignments } from '../hooks/useAssignments';
 import { supabase } from '../lib/supabase';
 import { AttendanceButton } from '../components/AttendanceButton';
-import { GradeStackParamList, AttendanceStatus, Note, Class, ClassType, ExamType } from '../types';
+import { GradeStackParamList, Attendance, AttendanceStatus, Note, Class, ClassType, ExamType } from '../types';
 
 const CLASS_TYPE_LABEL: Record<ClassType, string> = {
   required:          '必修',
@@ -92,6 +92,7 @@ export function ClassDetailScreen() {
   const [attDate, setAttDate] = useState(today);
   const [attStatus, setAttStatus] = useState<AttendanceStatus>('present');
   const [showCalendar, setShowCalendar] = useState(false);
+  const [editingRecord, setEditingRecord] = useState<Attendance | null>(null);
 
   useEffect(() => {
     supabase.from('classes').select('*').eq('id', classId).single().then(({ data }) => {
@@ -118,8 +119,20 @@ export function ClassDetailScreen() {
     setNewTitle(''); setNewDue(today); setShowAddAsg(false);
   };
 
+  const openEditAttendance = (r: Attendance) => {
+    setEditingRecord(r);
+    setAttDate(r.date);
+    setAttStatus(r.status);
+    setShowCalendar(false);
+    setShowAddAtt(true);
+  };
+
   const handleAddAttendance = async () => {
+    if (editingRecord && editingRecord.date !== attDate) {
+      await deleteAttendance(editingRecord.id);
+    }
     await upsertAttendance(attDate, attStatus);
+    setEditingRecord(null);
     setShowAddAtt(false);
   };
 
@@ -238,7 +251,7 @@ export function ClassDetailScreen() {
       {/* タブコンテンツ */}
       {activeTab === 'attendance' && (
         <ScrollView contentContainerStyle={s.tabContent} showsVerticalScrollIndicator={false}>
-          <TouchableOpacity onPress={() => setShowAddAtt(true)} style={s.registerBtn}>
+          <TouchableOpacity onPress={() => { setEditingRecord(null); setAttDate(today); setAttStatus('present'); setShowCalendar(false); setShowAddAtt(true); }} style={s.registerBtn}>
             <Ionicons name="add-circle-outline" size={18} color="#FFFFFF" />
             <Text style={s.registerBtnText}>出席を登録する</Text>
           </TouchableOpacity>
@@ -277,6 +290,12 @@ export function ClassDetailScreen() {
                         <Text style={s.listSession}>第{sessionNum}回</Text>
                         <Text style={s.listDate}>{formatDate(r.date)}</Text>
                         <Text style={[s.listStatus, { color: statusConf.color }]}>{statusConf.label}</Text>
+                        <TouchableOpacity
+                          onPress={() => openEditAttendance(r)}
+                          hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+                        >
+                          <Ionicons name="pencil-outline" size={16} color="#C7C7CC" />
+                        </TouchableOpacity>
                         <TouchableOpacity
                           onPress={() => Alert.alert('削除', `${r.date} の出席記録を削除しますか？`, [
                             { text: 'キャンセル', style: 'cancel' },
@@ -405,10 +424,10 @@ export function ClassDetailScreen() {
 
       {/* 出席追加モーダル */}
       <Modal visible={showAddAtt} transparent animationType="slide">
-        <Pressable style={s.overlay} onPress={() => setShowAddAtt(false)}>
+        <Pressable style={s.overlay} onPress={() => { setShowAddAtt(false); setEditingRecord(null); }}>
           <Pressable style={s.attSheet} onPress={e => e.stopPropagation()}>
             <View style={s.sheetHandle} />
-            <Text style={s.sheetTitle}>出席を記録</Text>
+            <Text style={s.sheetTitle}>{editingRecord ? '出席を編集' : '出席を記録'}</Text>
             <Text style={s.sheetLabel}>日付</Text>
             <TouchableOpacity
               style={s.datePicker}
