@@ -285,27 +285,17 @@ export function ClassDetailScreen() {
                           <Text style={s.yearDividerText}>{year}年</Text>
                         </View>
                       )}
-                      <View style={[s.listRow, idx < records.length - 1 && s.listRowBorder]}>
+                      <TouchableOpacity
+                        style={[s.listRow, idx < records.length - 1 && s.listRowBorder]}
+                        onPress={() => openEditAttendance(r)}
+                        activeOpacity={0.6}
+                      >
                         <View style={[s.statusDot, { backgroundColor: statusConf.color }]} />
                         <Text style={s.listSession}>第{sessionNum}回</Text>
                         <Text style={s.listDate}>{formatDate(r.date)}</Text>
                         <Text style={[s.listStatus, { color: statusConf.color }]}>{statusConf.label}</Text>
-                        <TouchableOpacity
-                          onPress={() => openEditAttendance(r)}
-                          hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
-                        >
-                          <Ionicons name="pencil-outline" size={16} color="#C7C7CC" />
-                        </TouchableOpacity>
-                        <TouchableOpacity
-                          onPress={() => Alert.alert('削除', `${r.date} の出席記録を削除しますか？`, [
-                            { text: 'キャンセル', style: 'cancel' },
-                            { text: '削除', style: 'destructive', onPress: () => deleteAttendance(r.id) },
-                          ])}
-                          hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
-                        >
-                          <Ionicons name="trash-outline" size={16} color="#C7C7CC" />
-                        </TouchableOpacity>
-                      </View>
+                        <Ionicons name="chevron-forward" size={14} color="#C7C7CC" />
+                      </TouchableOpacity>
                     </React.Fragment>
                   );
                 });
@@ -463,8 +453,24 @@ export function ClassDetailScreen() {
             <Text style={s.sheetLabel}>状態</Text>
             <AttendanceButton selected={attStatus} onSelect={setAttStatus} />
             <TouchableOpacity style={s.sheetConfirmBtn} onPress={handleAddAttendance}>
-              <Text style={s.sheetConfirmText}>記録</Text>
+              <Text style={s.sheetConfirmText}>{editingRecord ? '保存' : '記録'}</Text>
             </TouchableOpacity>
+            {editingRecord && (
+              <TouchableOpacity
+                style={s.sheetDeleteBtn}
+                onPress={() => Alert.alert('削除', `${formatDate(editingRecord.date)} の出席記録を削除しますか？`, [
+                  { text: 'キャンセル', style: 'cancel' },
+                  { text: '削除', style: 'destructive', onPress: async () => {
+                    await deleteAttendance(editingRecord.id);
+                    setEditingRecord(null);
+                    setShowAddAtt(false);
+                  }},
+                ])}
+              >
+                <Ionicons name="trash-outline" size={16} color="#FF3B30" />
+                <Text style={s.sheetDeleteText}>この記録を削除</Text>
+              </TouchableOpacity>
+            )}
           </Pressable>
         </Pressable>
       </Modal>
@@ -669,6 +675,14 @@ const s = StyleSheet.create({
     marginTop: 6,
   },
   sheetConfirmText: { color: '#FFFFFF', fontSize: 16, fontWeight: '600' },
+  sheetDeleteBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 6,
+    paddingVertical: 12,
+  },
+  sheetDeleteText: { color: '#FF3B30', fontSize: 15, fontWeight: '500' },
 
   // 科目情報カード
   infoCard: {
