@@ -269,9 +269,7 @@ export function ClassDetailScreen() {
                     <React.Fragment key={r.id}>
                       {showYearDivider && (
                         <View style={s.yearDivider}>
-                          <View style={s.yearDividerLine} />
                           <Text style={s.yearDividerText}>{year}年</Text>
-                          <View style={s.yearDividerLine} />
                         </View>
                       )}
                       <View style={[s.listRow, idx < records.length - 1 && s.listRowBorder]}>
@@ -552,13 +550,14 @@ const s = StyleSheet.create({
   },
   registerBtnText: { color: '#FFFFFF', fontSize: 16, fontWeight: '600' },
   yearDivider: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingVertical: 8,
-    gap: 8,
+    marginHorizontal: -14,
+    paddingVertical: 13,
+    paddingHorizontal: 16,
+    backgroundColor: '#F2F2F7',
+    borderBottomWidth: 0.5,
+    borderBottomColor: '#E5E5EA',
   },
-  yearDividerLine: { flex: 1, height: 0.5, backgroundColor: '#E5E5EA' },
-  yearDividerText: { fontSize: 12, color: '#8E8E93', fontWeight: '600' },
+  yearDividerText: { fontSize: 16, color: '#3C3C43', fontWeight: '700', letterSpacing: 0.5 },
   listSession: { fontSize: 12, color: '#8E8E93', fontWeight: '500', width: 40 },
   listDate: { flex: 1, fontSize: 15, color: '#1C1C1E' },
   listStatus: { fontSize: 14, fontWeight: '600' },
