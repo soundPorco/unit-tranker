@@ -14,9 +14,10 @@ const BUTTONS: {
   color: string;
   icon: keyof typeof Ionicons.glyphMap;
 }[] = [
-  { status: 'present', label: '出席', color: '#34C759', icon: 'checkmark-circle' },
-  { status: 'late',    label: '遅刻', color: '#FF9500', icon: 'time'             },
-  { status: 'absent',  label: '欠席', color: '#FF3B30', icon: 'close-circle'     },
+  { status: 'present',   label: '出席', color: '#34C759', icon: 'checkmark-circle' },
+  { status: 'late',      label: '遅刻', color: '#FF9500', icon: 'time'             },
+  { status: 'absent',    label: '欠席', color: '#FF3B30', icon: 'close-circle'     },
+  { status: 'cancelled', label: '休講', color: '#8E8E93', icon: 'ban'              },
 ];
 
 export function AttendanceButton({ selected, onSelect }: Props) {

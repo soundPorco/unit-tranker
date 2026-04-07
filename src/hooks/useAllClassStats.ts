@@ -25,10 +25,11 @@ export function useAllClassStats(classIds: string[]) {
       const attRecords = (attRes.data ?? []).filter(r => r.class_id === id);
       const asgRecords = (asgRes.data ?? []).filter(r => r.class_id === id);
 
-      const present  = attRecords.filter(r => r.status === 'present').length;
-      const late     = attRecords.filter(r => r.status === 'late').length;
-      const attRate  = attRecords.length === 0 ? 0
-        : Math.round(((present + late * 0.5) / attRecords.length) * 100);
+      const counted  = attRecords.filter(r => r.status !== 'cancelled');
+      const present  = counted.filter(r => r.status === 'present').length;
+      const late     = counted.filter(r => r.status === 'late').length;
+      const attRate  = counted.length === 0 ? 0
+        : Math.round(((present + late * 0.5) / counted.length) * 100);
 
       const submitted = asgRecords.filter(r => r.is_submitted).length;
       const asgRate   = asgRecords.length === 0 ? 0

@@ -29,17 +29,25 @@ export function useAttendance(classId: string) {
     return error;
   };
 
+  const deleteAttendance = async (id: string) => {
+    const { error } = await supabase.from('attendance').delete().eq('id', id);
+    if (!error) await fetch();
+    return error;
+  };
+
+  const counted = records.filter(r => r.status !== 'cancelled');
   const stats = {
-    total: records.length,
+    total: counted.length,
     present: records.filter(r => r.status === 'present').length,
     absent: records.filter(r => r.status === 'absent').length,
     late: records.filter(r => r.status === 'late').length,
-    rate: records.length === 0 ? 0 : Math.round(
-      ((records.filter(r => r.status === 'present').length +
-        records.filter(r => r.status === 'late').length * 0.5) /
-        records.length) * 100
+    cancelled: records.filter(r => r.status === 'cancelled').length,
+    rate: counted.length === 0 ? 0 : Math.round(
+      ((counted.filter(r => r.status === 'present').length +
+        counted.filter(r => r.status === 'late').length * 0.5) /
+        counted.length) * 100
     ),
   };
 
-  return { records, loading, refetch: fetch, upsertAttendance, stats };
+  return { records, loading, refetch: fetch, upsertAttendance, deleteAttendance, stats };
 }

@@ -1,6 +1,6 @@
 export type DayOfWeek = 0 | 1 | 2 | 3 | 4 | 5 | 6; // 月〜日
 export type Period = 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8;
-export type AttendanceStatus = 'present' | 'absent' | 'late';
+export type AttendanceStatus = 'present' | 'absent' | 'late' | 'cancelled';
 export type EvaluationType = 'attendance' | 'assignment' | 'exam' | 'balanced';
 export type ClassType = 'required' | 'elective_required' | 'elective';
 export type ExamType = 'written' | 'report' | 'oral' | 'none';

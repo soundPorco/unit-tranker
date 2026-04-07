@@ -70,7 +70,7 @@ export function ClassDetailScreen() {
   const { classId, className } = route.params;
 
   const [activeTab, setActiveTab] = useState<Tab>('attendance');
-  const { records, loading: attLoading, upsertAttendance, stats: attStats } = useAttendance(classId);
+  const { records, loading: attLoading, upsertAttendance, deleteAttendance, stats: attStats } = useAttendance(classId);
   const { assignments, loading: asgLoading, addAssignment, toggleSubmitted, deleteAssignment, stats: asgStats } = useAssignments(classId);
 
   const [classInfo, setClassInfo] = useState<Class | null>(null);
@@ -255,15 +255,27 @@ export function ClassDetailScreen() {
             ) : (
               records.map((r, idx) => {
                 const statusConf = {
-                  present: { label: '出席', color: '#34C759' },
-                  late:    { label: '遅刻', color: '#FF9500' },
-                  absent:  { label: '欠席', color: '#FF3B30' },
+                  present:   { label: '出席', color: '#34C759' },
+                  late:      { label: '遅刻', color: '#FF9500' },
+                  absent:    { label: '欠席', color: '#FF3B30' },
+                  cancelled: { label: '休講', color: '#8E8E93' },
                 }[r.status];
+                const sessionNum = records.length - idx;
                 return (
                   <View key={r.id} style={[s.listRow, idx < records.length - 1 && s.listRowBorder]}>
                     <View style={[s.statusDot, { backgroundColor: statusConf.color }]} />
+                    <Text style={s.listSession}>第{sessionNum}回</Text>
                     <Text style={s.listDate}>{r.date}</Text>
                     <Text style={[s.listStatus, { color: statusConf.color }]}>{statusConf.label}</Text>
+                    <TouchableOpacity
+                      onPress={() => Alert.alert('削除', `${r.date} の出席記録を削除しますか？`, [
+                        { text: 'キャンセル', style: 'cancel' },
+                        { text: '削除', style: 'destructive', onPress: () => deleteAttendance(r.id) },
+                      ])}
+                      hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+                    >
+                      <Ionicons name="trash-outline" size={16} color="#C7C7CC" />
+                    </TouchableOpacity>
                   </View>
                 );
               })
@@ -492,6 +504,7 @@ const s = StyleSheet.create({
   },
   listRowBorder: { borderBottomWidth: 0.5, borderBottomColor: '#E5E5EA' },
   statusDot: { width: 8, height: 8, borderRadius: 4 },
+  listSession: { fontSize: 12, color: '#8E8E93', fontWeight: '500', width: 40 },
   listDate: { flex: 1, fontSize: 15, color: '#1C1C1E' },
   listStatus: { fontSize: 14, fontWeight: '600' },
 
