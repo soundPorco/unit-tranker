@@ -11,20 +11,23 @@ interface Props {
 const BUTTONS: {
   status: AttendanceStatus;
   label: string;
-  color: string;
   icon: keyof typeof Ionicons.glyphMap;
+  filled: boolean;
 }[] = [
-  { status: 'present',   label: '出席', color: '#34C759', icon: 'checkmark-circle' },
-  { status: 'late',      label: '遅刻', color: '#FF9500', icon: 'time'             },
-  { status: 'absent',    label: '欠席', color: '#FF3B30', icon: 'close-circle'     },
-  { status: 'cancelled', label: '休講', color: '#8E8E93', icon: 'ban'              },
+  { status: 'present',   label: '出席', icon: 'checkmark-circle', filled: true  },
+  { status: 'late',      label: '遅刻', icon: 'time',             filled: false },
+  { status: 'absent',    label: '欠席', icon: 'close-circle',     filled: false },
+  { status: 'cancelled', label: '休講', icon: 'ban',              filled: false },
 ];
 
 export function AttendanceButton({ selected, onSelect }: Props) {
   return (
     <View style={s.row}>
-      {BUTTONS.map(({ status, label, color, icon }) => {
+      {BUTTONS.map(({ status, label, icon, filled }) => {
         const isSelected = selected === status;
+        const activeBg    = filled ? '#007AFF' : 'transparent';
+        const activeBorder = filled ? '#007AFF' : '#6C6C70';
+        const activeText  = filled ? '#FFFFFF'  : '#6C6C70';
         return (
           <TouchableOpacity
             key={status}
@@ -32,7 +35,7 @@ export function AttendanceButton({ selected, onSelect }: Props) {
             style={[
               s.btn,
               isSelected
-                ? { backgroundColor: color, borderColor: color }
+                ? { backgroundColor: activeBg, borderColor: activeBorder }
                 : { backgroundColor: '#F2F2F7', borderColor: '#F2F2F7' },
             ]}
             onPress={() => onSelect(status)}
@@ -40,9 +43,9 @@ export function AttendanceButton({ selected, onSelect }: Props) {
             <Ionicons
               name={icon}
               size={18}
-              color={isSelected ? '#FFFFFF' : color}
+              color={isSelected ? activeText : '#8E8E93'}
             />
-            <Text style={[s.label, { color: isSelected ? '#FFFFFF' : color }]}>
+            <Text style={[s.label, { color: isSelected ? activeText : '#8E8E93' }]}>
               {label}
             </Text>
           </TouchableOpacity>
@@ -65,10 +68,10 @@ const s = StyleSheet.create({
     gap: 5,
     borderWidth: 1.5,
     borderRadius: 10,
-    paddingVertical: 10,
+    paddingVertical: 13,
   },
   label: {
-    fontSize: 14,
+    fontSize: 15,
     fontWeight: '600',
   },
 });

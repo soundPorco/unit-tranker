@@ -580,12 +580,12 @@ const s = StyleSheet.create({
   statusChip: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 3,
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-    borderRadius: 20,
+    gap: 4,
+    paddingHorizontal: 14,
+    paddingVertical: 8,
+    borderRadius: 10,
   },
-  statusChipText: { fontSize: 14, fontWeight: '600' },
+  statusChipText: { fontSize: 15, fontWeight: '600' },
   registerBtn: {
     flexDirection: 'row',
     alignItems: 'center',
