@@ -6,30 +6,16 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
 import { useClasses } from '../hooks/useClasses';
-import { TimetableStackParamList, EvaluationType, ClassType, ExamType } from '../types';
+import { TimetableStackParamList, ClassType } from '../types';
 
 type Route = RouteProp<TimetableStackParamList, 'ClassForm'>;
 
 const DAYS = ['月', '火', '水', '木', '金', '土', '日'];
 
-const EVAL_OPTIONS: { value: EvaluationType; label: string }[] = [
-  { value: 'balanced',   label: '総合'     },
-  { value: 'attendance', label: '出席重視' },
-  { value: 'assignment', label: '課題重視' },
-  { value: 'exam',       label: '試験重視' },
-];
-
 const CLASS_TYPE_OPTIONS: { value: ClassType; label: string }[] = [
   { value: 'required',          label: '必修'     },
   { value: 'elective_required', label: '選択必修' },
   { value: 'elective',          label: '選択'     },
-];
-
-const EXAM_TYPE_OPTIONS: { value: ExamType; label: string }[] = [
-  { value: 'written', label: '筆記'   },
-  { value: 'report',  label: 'レポート' },
-  { value: 'oral',    label: '口頭'   },
-  { value: 'none',    label: 'なし'   },
 ];
 
 // ラベル付き入力カードの行
@@ -76,11 +62,9 @@ export function ClassFormScreen() {
   const [name,       setName]       = useState(classData?.name ?? '');
   const [teacher,    setTeacher]    = useState(classData?.teacher ?? '');
   const [room,       setRoom]       = useState(classData?.room ?? '');
-  const [credits,    setCredits]    = useState(classData?.credits?.toString() ?? '');
+  const [credits,    setCredits]    = useState(classData?.credits?.toString() ?? '2');
   const [classType,  setClassType]  = useState<ClassType | null>(classData?.class_type ?? null);
-  const [evalType,   setEvalType]   = useState<EvaluationType>(classData?.evaluation_type ?? 'balanced');
   const [examDate,   setExamDate]   = useState(classData?.exam_date ?? '');
-  const [examType,   setExamType]   = useState<ExamType | null>(classData?.exam_type ?? null);
   const [memo,       setMemo]       = useState(classData?.memo ?? '');
   const [saving,     setSaving]     = useState(false);
 
@@ -103,9 +87,9 @@ export function ClassFormScreen() {
       class_type:       classType,
       day_of_week:      currentDay,
       period:           currentPeriod,
-      evaluation_type:  evalType,
+      evaluation_type:  'balanced' as const,
       exam_date:        examDate.trim() || null,
-      exam_type:        examType,
+      exam_type:        null,
       memo:             memo.trim() || null,
     };
     const error = isEdit
@@ -200,15 +184,6 @@ export function ClassFormScreen() {
           {/* ─── 評価 ─── */}
           <Text style={s.sectionLabel}>評価</Text>
           <View style={s.card}>
-            <View style={s.vertRow}>
-              <Text style={s.rowLabel}>評価タイプ</Text>
-              <SegmentPicker
-                options={EVAL_OPTIONS}
-                value={evalType}
-                onChange={setEvalType}
-              />
-            </View>
-            <View style={s.divider} />
             <FormRow label="試験日">
               <TextInput
                 style={s.textInput}
@@ -220,15 +195,6 @@ export function ClassFormScreen() {
                 maxLength={10}
               />
             </FormRow>
-            <View style={s.divider} />
-            <View style={s.vertRow}>
-              <Text style={s.rowLabel}>試験形式</Text>
-              <SegmentPicker
-                options={EXAM_TYPE_OPTIONS}
-                value={examType}
-                onChange={setExamType}
-              />
-            </View>
           </View>
 
           {/* ─── メモ ─── */}
