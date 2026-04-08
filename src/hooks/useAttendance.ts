@@ -19,10 +19,10 @@ export function useAttendance(classId: string) {
 
   useEffect(() => { fetch(); }, [fetch]);
 
-  const upsertAttendance = async (date: string, status: AttendanceStatus) => {
+  const upsertAttendance = async (date: string, status: AttendanceStatus, memo?: string) => {
     const { data: { user } } = await supabase.auth.getUser();
     const { error } = await supabase.from('attendance').upsert(
-      { class_id: classId, user_id: user?.id ?? null, date, status },
+      { class_id: classId, user_id: user?.id ?? null, date, status, memo: memo?.trim() || null },
       { onConflict: 'class_id,date' }
     );
     if (!error) await fetch();

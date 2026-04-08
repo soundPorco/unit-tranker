@@ -91,6 +91,7 @@ export function ClassDetailScreen() {
   const [showAddAtt, setShowAddAtt] = useState(false);
   const [attDate, setAttDate] = useState(today);
   const [attStatus, setAttStatus] = useState<AttendanceStatus>('present');
+  const [attMemo, setAttMemo] = useState('');
   const [showCalendar, setShowCalendar] = useState(false);
   const [editingRecord, setEditingRecord] = useState<Attendance | null>(null);
 
@@ -123,6 +124,7 @@ export function ClassDetailScreen() {
     setEditingRecord(r);
     setAttDate(r.date);
     setAttStatus(r.status);
+    setAttMemo(r.memo ?? '');
     setShowCalendar(false);
     setShowAddAtt(true);
   };
@@ -131,8 +133,9 @@ export function ClassDetailScreen() {
     if (editingRecord && editingRecord.date !== attDate) {
       await deleteAttendance(editingRecord.id);
     }
-    await upsertAttendance(attDate, attStatus);
+    await upsertAttendance(attDate, attStatus, attMemo);
     setEditingRecord(null);
+    setAttMemo('');
     setShowAddAtt(false);
   };
 
@@ -251,7 +254,7 @@ export function ClassDetailScreen() {
       {/* タブコンテンツ */}
       {activeTab === 'attendance' && (
         <ScrollView contentContainerStyle={s.tabContent} showsVerticalScrollIndicator={false}>
-          <TouchableOpacity onPress={() => { setEditingRecord(null); setAttDate(today); setAttStatus('present'); setShowCalendar(false); setShowAddAtt(true); }} style={s.registerBtn}>
+          <TouchableOpacity onPress={() => { setEditingRecord(null); setAttDate(today); setAttStatus('present'); setAttMemo(''); setShowCalendar(false); setShowAddAtt(true); }} style={s.registerBtn}>
             <Ionicons name="add-circle-outline" size={18} color="#FFFFFF" />
             <Text style={s.registerBtnText}>出席を登録する</Text>
           </TouchableOpacity>
@@ -291,7 +294,10 @@ export function ClassDetailScreen() {
                         activeOpacity={0.6}
                       >
                         <Text style={s.listSession}>第{sessionNum}回</Text>
-                        <Text style={s.listDate}>{formatDate(r.date)}</Text>
+                        <View style={s.listDateCol}>
+                          <Text style={s.listDate}>{formatDate(r.date)}</Text>
+                          {r.memo ? <Text style={s.listMemo} numberOfLines={1}>{r.memo}</Text> : null}
+                        </View>
                         <View style={[
                           s.statusChip,
                           statusConf.filled
@@ -422,7 +428,7 @@ export function ClassDetailScreen() {
 
       {/* 出席追加モーダル */}
       <Modal visible={showAddAtt} transparent animationType="slide">
-        <Pressable style={s.overlay} onPress={() => { setShowAddAtt(false); setEditingRecord(null); }}>
+        <Pressable style={s.overlay} onPress={() => { setShowAddAtt(false); setEditingRecord(null); setAttMemo(''); }}>
           <Pressable style={s.attSheet} onPress={e => e.stopPropagation()}>
             <View style={s.sheetHandle} />
             <Text style={s.sheetTitle}>{editingRecord ? '出席を編集' : '出席を記録'}</Text>
@@ -460,6 +466,16 @@ export function ClassDetailScreen() {
             )}
             <Text style={s.sheetLabel}>状態</Text>
             <AttendanceButton selected={attStatus} onSelect={setAttStatus} />
+            <Text style={s.sheetLabel}>メモ（任意）</Text>
+            <TextInput
+              style={[s.sheetInput, s.attMemoInput]}
+              value={attMemo}
+              onChangeText={setAttMemo}
+              placeholder="例：資料配布あり、小テストあり..."
+              placeholderTextColor="#C7C7CC"
+              multiline
+              textAlignVertical="top"
+            />
             <TouchableOpacity style={s.sheetConfirmBtn} onPress={handleAddAttendance}>
               <Text style={s.sheetConfirmText}>{editingRecord ? '保存' : '記録'}</Text>
             </TouchableOpacity>
@@ -606,7 +622,9 @@ const s = StyleSheet.create({
   },
   yearDividerText: { fontSize: 16, color: '#3C3C43', fontWeight: '700', letterSpacing: 0.5 },
   listSession: { fontSize: 12, color: '#8E8E93', fontWeight: '500', width: 40 },
-  listDate: { flex: 1, fontSize: 15, color: '#1C1C1E' },
+  listDateCol: { flex: 1, gap: 2 },
+  listDate: { fontSize: 15, color: '#1C1C1E' },
+  listMemo: { fontSize: 12, color: '#8E8E93' },
   listStatus: { fontSize: 14, fontWeight: '600' },
 
   emptyText: { textAlign: 'center', color: '#C7C7CC', fontSize: 14, paddingVertical: 20 },
@@ -705,6 +723,7 @@ const s = StyleSheet.create({
     paddingVertical: 12,
   },
   sheetDeleteText: { color: '#FF3B30', fontSize: 15, fontWeight: '500' },
+  attMemoInput: { minHeight: 72, paddingTop: 12 },
 
   // 科目情報カード
   infoCard: {

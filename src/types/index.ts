@@ -49,6 +49,7 @@ export interface Attendance {
   user_id: string;
   date: string;
   status: AttendanceStatus;
+  memo: string | null;
   created_at: string;
 }
 
