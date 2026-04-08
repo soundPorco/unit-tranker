@@ -270,8 +270,8 @@ export function ClassDetailScreen() {
                 return records.map((r, idx) => {
                   const statusConf = {
                     present:   { label: '出席', color: '#34C759' },
-                    late:      { label: '遅刻', color: '#FF9500' },
-                    absent:    { label: '欠席', color: '#FF3B30' },
+                    late:      { label: '遅刻', color: '#8E8E93' },
+                    absent:    { label: '欠席', color: '#8E8E93' },
                     cancelled: { label: '休講', color: '#8E8E93' },
                   }[r.status];
                   const sessionNum = records.length - idx;
@@ -292,10 +292,10 @@ export function ClassDetailScreen() {
                       >
                         <Text style={s.listSession}>第{sessionNum}回</Text>
                         <Text style={s.listDate}>{formatDate(r.date)}</Text>
-                        <View style={[s.statusBadge, { backgroundColor: statusConf.color + '1A' }]}>
-                          <Text style={[s.statusBadgeText, { color: statusConf.color }]}>{statusConf.label}</Text>
+                        <View style={[s.statusChip, { backgroundColor: statusConf.color + '1A' }]}>
+                          <Text style={[s.statusChipText, { color: statusConf.color }]}>{statusConf.label}</Text>
+                          <Ionicons name="chevron-forward" size={13} color={statusConf.color + '99'} />
                         </View>
-                        <Ionicons name="chevron-forward" size={14} color="#C7C7CC" />
                       </TouchableOpacity>
                     </React.Fragment>
                   );
@@ -570,6 +570,15 @@ const s = StyleSheet.create({
     borderRadius: 20,
   },
   statusBadgeText: { fontSize: 12, fontWeight: '600' },
+  statusChip: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 3,
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 20,
+  },
+  statusChipText: { fontSize: 14, fontWeight: '600' },
   registerBtn: {
     flexDirection: 'row',
     alignItems: 'center',
