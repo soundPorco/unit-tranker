@@ -290,10 +290,11 @@ export function ClassDetailScreen() {
                         onPress={() => openEditAttendance(r)}
                         activeOpacity={0.6}
                       >
-                        <View style={[s.statusDot, { backgroundColor: statusConf.color }]} />
                         <Text style={s.listSession}>第{sessionNum}回</Text>
                         <Text style={s.listDate}>{formatDate(r.date)}</Text>
-                        <Text style={[s.listStatus, { color: statusConf.color }]}>{statusConf.label}</Text>
+                        <View style={[s.statusBadge, { backgroundColor: statusConf.color + '1A' }]}>
+                          <Text style={[s.statusBadgeText, { color: statusConf.color }]}>{statusConf.label}</Text>
+                        </View>
                         <Ionicons name="chevron-forward" size={14} color="#C7C7CC" />
                       </TouchableOpacity>
                     </React.Fragment>
@@ -563,7 +564,12 @@ const s = StyleSheet.create({
     gap: 10,
   },
   listRowBorder: { borderBottomWidth: 0.5, borderBottomColor: '#E5E5EA' },
-  statusDot: { width: 8, height: 8, borderRadius: 4 },
+  statusBadge: {
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+    borderRadius: 20,
+  },
+  statusBadgeText: { fontSize: 12, fontWeight: '600' },
   registerBtn: {
     flexDirection: 'row',
     alignItems: 'center',
