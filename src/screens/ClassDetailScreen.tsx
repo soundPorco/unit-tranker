@@ -1,8 +1,11 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import {
   View, Text, TextInput, TouchableOpacity, StyleSheet,
   ScrollView, Alert, ActivityIndicator, Modal, Pressable,
+  Animated, Keyboard, Platform,
 } from 'react-native';
+
+const AnimatedPressable = Animated.createAnimatedComponent(Pressable);
 import { Calendar } from 'react-native-calendars';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRoute, RouteProp } from '@react-navigation/native';
@@ -92,6 +95,27 @@ export function ClassDetailScreen() {
   const [attDate, setAttDate] = useState(today);
   const [attStatus, setAttStatus] = useState<AttendanceStatus>('present');
   const [attMemo, setAttMemo] = useState('');
+
+  const kbOffset = useRef(new Animated.Value(0)).current;
+  useEffect(() => {
+    const showEvent = Platform.OS === 'ios' ? 'keyboardWillShow' : 'keyboardDidShow';
+    const hideEvent = Platform.OS === 'ios' ? 'keyboardWillHide' : 'keyboardDidHide';
+    const onShow = Keyboard.addListener(showEvent, e => {
+      Animated.timing(kbOffset, {
+        toValue: e.endCoordinates.height,
+        duration: e.duration ?? 250,
+        useNativeDriver: false,
+      }).start();
+    });
+    const onHide = Keyboard.addListener(hideEvent, e => {
+      Animated.timing(kbOffset, {
+        toValue: 0,
+        duration: e.duration ?? 250,
+        useNativeDriver: false,
+      }).start();
+    });
+    return () => { onShow.remove(); onHide.remove(); };
+  }, [kbOffset]);
   const [showCalendar, setShowCalendar] = useState(false);
   const [editingRecord, setEditingRecord] = useState<Attendance | null>(null);
 
@@ -428,75 +452,82 @@ export function ClassDetailScreen() {
 
       {/* 出席追加モーダル */}
       <Modal visible={showAddAtt} transparent animationType="slide">
-        <Pressable style={s.overlay} onPress={() => { setShowAddAtt(false); setEditingRecord(null); setAttMemo(''); }}>
-          <Pressable style={s.attSheet} onPress={e => e.stopPropagation()}>
-            <View style={s.sheetHandle} />
-            <Text style={s.sheetTitle}>{editingRecord ? '出席を編集' : '出席を記録'}</Text>
-            <Text style={s.sheetLabel}>日付</Text>
-            <TouchableOpacity
-              style={s.datePicker}
-              onPress={() => setShowCalendar(v => !v)}
-            >
-              <Ionicons name="calendar-outline" size={16} color="#007AFF" />
-              <Text style={s.datePickerText}>{formatDate(attDate)}</Text>
-              <Ionicons
-                name={showCalendar ? 'chevron-up' : 'chevron-down'}
-                size={14}
-                color="#8E8E93"
-              />
-            </TouchableOpacity>
-            {showCalendar && (
-              <Calendar
-                current={attDate}
-                maxDate={today}
-                onDayPress={(day: { dateString: string }) => {
-                  setAttDate(day.dateString);
-                  setShowCalendar(false);
-                }}
-                markedDates={{
-                  [attDate]: { selected: true, selectedColor: '#007AFF' },
-                }}
-                theme={{
-                  todayTextColor: '#007AFF',
-                  arrowColor: '#007AFF',
-                  selectedDayBackgroundColor: '#007AFF',
-                }}
-                style={s.calendar}
-              />
-            )}
-            <Text style={s.sheetLabel}>状態</Text>
-            <AttendanceButton selected={attStatus} onSelect={setAttStatus} />
-            <Text style={s.sheetLabel}>メモ（任意）</Text>
-            <TextInput
-              style={[s.sheetInput, s.attMemoInput]}
-              value={attMemo}
-              onChangeText={setAttMemo}
-              placeholder="例：資料配布あり、小テストあり..."
-              placeholderTextColor="#C7C7CC"
-              multiline
-              textAlignVertical="top"
-            />
-            <TouchableOpacity style={s.sheetConfirmBtn} onPress={handleAddAttendance}>
-              <Text style={s.sheetConfirmText}>{editingRecord ? '保存' : '記録'}</Text>
-            </TouchableOpacity>
-            {editingRecord && (
-              <TouchableOpacity
-                style={s.sheetDeleteBtn}
-                onPress={() => Alert.alert('削除', `${formatDate(editingRecord.date)} の出席記録を削除しますか？`, [
-                  { text: 'キャンセル', style: 'cancel' },
-                  { text: '削除', style: 'destructive', onPress: async () => {
-                    await deleteAttendance(editingRecord.id);
-                    setEditingRecord(null);
-                    setShowAddAtt(false);
-                  }},
-                ])}
+          <AnimatedPressable style={[s.overlay, { paddingBottom: kbOffset }]} onPress={() => { setShowAddAtt(false); setEditingRecord(null); setAttMemo(''); }}>
+            <Pressable style={s.attSheet} onPress={e => e.stopPropagation()}>
+              <View style={s.sheetHandle} />
+              <ScrollView
+                bounces={false}
+                keyboardShouldPersistTaps="handled"
+                showsVerticalScrollIndicator={false}
+                contentContainerStyle={s.attSheetScroll}
               >
-                <Ionicons name="trash-outline" size={16} color="#FF3B30" />
-                <Text style={s.sheetDeleteText}>この記録を削除</Text>
-              </TouchableOpacity>
-            )}
-          </Pressable>
-        </Pressable>
+                <Text style={s.sheetTitle}>{editingRecord ? '出席を編集' : '出席を記録'}</Text>
+                <Text style={s.sheetLabel}>日付</Text>
+                <TouchableOpacity
+                  style={s.datePicker}
+                  onPress={() => setShowCalendar(v => !v)}
+                >
+                  <Ionicons name="calendar-outline" size={16} color="#007AFF" />
+                  <Text style={s.datePickerText}>{formatDate(attDate)}</Text>
+                  <Ionicons
+                    name={showCalendar ? 'chevron-up' : 'chevron-down'}
+                    size={14}
+                    color="#8E8E93"
+                  />
+                </TouchableOpacity>
+                {showCalendar && (
+                  <Calendar
+                    current={attDate}
+                    maxDate={today}
+                    onDayPress={(day: { dateString: string }) => {
+                      setAttDate(day.dateString);
+                      setShowCalendar(false);
+                    }}
+                    markedDates={{
+                      [attDate]: { selected: true, selectedColor: '#007AFF' },
+                    }}
+                    theme={{
+                      todayTextColor: '#007AFF',
+                      arrowColor: '#007AFF',
+                      selectedDayBackgroundColor: '#007AFF',
+                    }}
+                    style={s.calendar}
+                  />
+                )}
+                <Text style={s.sheetLabel}>状態</Text>
+                <AttendanceButton selected={attStatus} onSelect={setAttStatus} />
+                <Text style={s.sheetLabel}>メモ（任意）</Text>
+                <TextInput
+                  style={[s.sheetInput, s.attMemoInput]}
+                  value={attMemo}
+                  onChangeText={setAttMemo}
+                  placeholder="例：資料配布あり、小テストあり..."
+                  placeholderTextColor="#C7C7CC"
+                  multiline
+                  textAlignVertical="top"
+                />
+                <TouchableOpacity style={s.sheetConfirmBtn} onPress={handleAddAttendance}>
+                  <Text style={s.sheetConfirmText}>{editingRecord ? '保存' : '記録'}</Text>
+                </TouchableOpacity>
+                {editingRecord && (
+                  <TouchableOpacity
+                    style={s.sheetDeleteBtn}
+                    onPress={() => Alert.alert('削除', `${formatDate(editingRecord.date)} の出席記録を削除しますか？`, [
+                      { text: 'キャンセル', style: 'cancel' },
+                      { text: '削除', style: 'destructive', onPress: async () => {
+                        await deleteAttendance(editingRecord.id);
+                        setEditingRecord(null);
+                        setShowAddAtt(false);
+                      }},
+                    ])}
+                  >
+                    <Ionicons name="trash-outline" size={16} color="#FF3B30" />
+                    <Text style={s.sheetDeleteText}>この記録を削除</Text>
+                  </TouchableOpacity>
+                )}
+              </ScrollView>
+            </Pressable>
+          </AnimatedPressable>
       </Modal>
     </SafeAreaView>
   );
@@ -724,6 +755,7 @@ const s = StyleSheet.create({
   },
   sheetDeleteText: { color: '#FF3B30', fontSize: 15, fontWeight: '500' },
   attMemoInput: { minHeight: 72, paddingTop: 12 },
+  attSheetScroll: { gap: 10, paddingBottom: 16 },
 
   // 科目情報カード
   infoCard: {
