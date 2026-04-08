@@ -5,8 +5,16 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
+import { Ionicons } from '@expo/vector-icons';
+import { Calendar } from 'react-native-calendars';
 import { useClasses } from '../hooks/useClasses';
 import { TimetableStackParamList, ClassType } from '../types';
+
+const DAY_LABELS = ['日', '月', '火', '水', '木', '金', '土'];
+function formatDate(iso: string) {
+  const d = new Date(iso);
+  return `${d.getFullYear()}年${d.getMonth() + 1}月${d.getDate()}日(${DAY_LABELS[d.getDay()]})`;
+}
 
 type Route = RouteProp<TimetableStackParamList, 'ClassForm'>;
 
@@ -64,9 +72,10 @@ export function ClassFormScreen() {
   const [room,       setRoom]       = useState(classData?.room ?? '');
   const [credits,    setCredits]    = useState(classData?.credits?.toString() ?? '2');
   const [classType,  setClassType]  = useState<ClassType | null>(classData?.class_type ?? null);
-  const [examDate,   setExamDate]   = useState(classData?.exam_date ?? '');
-  const [memo,       setMemo]       = useState(classData?.memo ?? '');
-  const [saving,     setSaving]     = useState(false);
+  const [examDate,        setExamDate]        = useState(classData?.exam_date ?? '');
+  const [showExamCalendar, setShowExamCalendar] = useState(false);
+  const [memo,            setMemo]            = useState(classData?.memo ?? '');
+  const [saving,          setSaving]          = useState(false);
 
   const isEdit = !!classData;
   const currentDay    = classData?.day_of_week ?? day ?? 0;
@@ -184,17 +193,50 @@ export function ClassFormScreen() {
           {/* ─── 評価 ─── */}
           <Text style={s.sectionLabel}>評価</Text>
           <View style={s.card}>
-            <FormRow label="試験日">
-              <TextInput
-                style={s.textInput}
-                value={examDate}
-                onChangeText={setExamDate}
-                placeholder="例：2026-07-20"
-                placeholderTextColor="#C7C7CC"
-                keyboardType="numbers-and-punctuation"
-                maxLength={10}
+            <View style={s.row}>
+              <Text style={s.rowLabel}>試験日</Text>
+              <View style={s.rowRight}>
+                <View style={s.datePickerRow}>
+                  <TouchableOpacity
+                    style={s.datePicker}
+                    onPress={() => setShowExamCalendar(v => !v)}
+                  >
+                    <Ionicons name="calendar-outline" size={16} color="#007AFF" />
+                    <Text style={[s.datePickerText, !examDate && s.datePickerPlaceholder]}>
+                      {examDate ? formatDate(examDate) : '日付を選択'}
+                    </Text>
+                    <Ionicons
+                      name={showExamCalendar ? 'chevron-up' : 'chevron-down'}
+                      size={14}
+                      color="#8E8E93"
+                    />
+                  </TouchableOpacity>
+                  {examDate ? (
+                    <TouchableOpacity
+                      onPress={() => { setExamDate(''); setShowExamCalendar(false); }}
+                      hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+                    >
+                      <Ionicons name="close-circle" size={24} color="#C7C7CC" />
+                    </TouchableOpacity>
+                  ) : null}
+                </View>
+              </View>
+            </View>
+            {showExamCalendar && (
+              <Calendar
+                current={examDate || undefined}
+                onDayPress={(day: { dateString: string }) => {
+                  setExamDate(day.dateString);
+                  setShowExamCalendar(false);
+                }}
+                markedDates={examDate ? { [examDate]: { selected: true, selectedColor: '#007AFF' } } : {}}
+                theme={{
+                  arrowColor: '#007AFF',
+                  selectedDayBackgroundColor: '#007AFF',
+                }}
+                style={s.calendar}
               />
-            </FormRow>
+            )}
           </View>
 
           {/* ─── メモ ─── */}
@@ -321,4 +363,21 @@ const s = StyleSheet.create({
 
   deleteBtn: { alignItems: 'center', paddingVertical: 12 },
   deleteBtnText: { color: '#FF3B30', fontSize: 15 },
+
+  datePickerRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'flex-end',
+    gap: 8,
+  },
+  datePicker: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+  },
+  datePickerText: { fontSize: 15, color: '#1C1C1E' },
+  datePickerPlaceholder: { color: '#C7C7CC' },
+
+  calendar: { borderRadius: 12, overflow: 'hidden', marginBottom: 8 },
+
 });
