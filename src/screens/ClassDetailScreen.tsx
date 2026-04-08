@@ -269,10 +269,10 @@ export function ClassDetailScreen() {
                 let lastYear: number | null = null;
                 return records.map((r, idx) => {
                   const statusConf = {
-                    present:   { label: '出席', color: '#34C759' },
-                    late:      { label: '遅刻', color: '#8E8E93' },
-                    absent:    { label: '欠席', color: '#8E8E93' },
-                    cancelled: { label: '休講', color: '#8E8E93' },
+                    present:   { label: '出席', filled: true  },
+                    late:      { label: '遅刻', filled: false },
+                    absent:    { label: '欠席', filled: false },
+                    cancelled: { label: '休講', filled: false },
                   }[r.status];
                   const sessionNum = records.length - idx;
                   const year = new Date(r.date).getFullYear();
@@ -292,9 +292,16 @@ export function ClassDetailScreen() {
                       >
                         <Text style={s.listSession}>第{sessionNum}回</Text>
                         <Text style={s.listDate}>{formatDate(r.date)}</Text>
-                        <View style={[s.statusChip, { backgroundColor: statusConf.color + '1A' }]}>
-                          <Text style={[s.statusChipText, { color: statusConf.color }]}>{statusConf.label}</Text>
-                          <Ionicons name="chevron-forward" size={13} color={statusConf.color + '99'} />
+                        <View style={[
+                          s.statusChip,
+                          statusConf.filled
+                            ? { backgroundColor: '#007AFF' }
+                            : { backgroundColor: 'transparent', borderWidth: 1.5, borderColor: '#6C6C70' },
+                        ]}>
+                          <Text style={[s.statusChipText, { color: statusConf.filled ? '#FFFFFF' : '#6C6C70' }]}>
+                            {statusConf.label}
+                          </Text>
+                          <Ionicons name="chevron-forward" size={13} color={statusConf.filled ? '#FFFFFF' : '#6C6C70'} />
                         </View>
                       </TouchableOpacity>
                     </React.Fragment>
