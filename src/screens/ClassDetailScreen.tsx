@@ -81,7 +81,7 @@ function AttendanceBarChart({ stats, totalRecords }: { stats: AttBarStats; total
       {/* セパレータ */}
       <View style={bc.separator} />
       {/* 横棒グラフ */}
-      <Text style={bc.title}>出席内訳</Text>
+
       {ATT_BAR_ITEMS.map(item => {
         const ratio = totalRecords > 0 ? stats[item.key] / totalRecords : 0;
         return (
@@ -106,32 +106,32 @@ function AttendanceBarChart({ stats, totalRecords }: { stats: AttBarStats; total
 }
 const bc = StyleSheet.create({
   container: {
-    paddingHorizontal: 14,
-    paddingVertical: 12,
-    gap: 8,
+    paddingHorizontal: 16,
+    paddingVertical: 20,
+    gap: 14,
   },
   title: { fontSize: 12, fontWeight: '600', color: '#8E8E93', textTransform: 'uppercase', letterSpacing: 0.4, marginBottom: 2 },
-  row: { flexDirection: 'row', alignItems: 'center', gap: 8 },
-  rowLabel: { fontSize: 12, color: '#6C6C70', width: 28, textAlign: 'right' },
+  row: { flexDirection: 'row', alignItems: 'center', gap: 10 },
+  rowLabel: { fontSize: 13, color: '#6C6C70', width: 30, textAlign: 'right' },
   track: {
     flex: 1,
-    height: 8,
-    borderRadius: 4,
+    height: 10,
+    borderRadius: 5,
     backgroundColor: '#F2F2F7',
     overflow: 'hidden',
   },
-  bar: { height: 8, borderRadius: 4 },
-  rowCount: { fontSize: 13, fontWeight: '700', width: 38, textAlign: 'right' },
+  bar: { height: 10, borderRadius: 5 },
+  rowCount: { fontSize: 14, fontWeight: '700', width: 40, textAlign: 'right' },
   rowCountBlue: { color: '#007AFF' },
   rowCountMono: { color: '#8E8E93' },
   legendLabel: { fontSize: 12, color: '#6C6C70' },
   legendCount: { fontSize: 13, fontWeight: '700' },
-  countRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-around' },
-  countBlock: { flex: 1, alignItems: 'center', gap: 2 },
-  countNum: { fontSize: 26, fontWeight: '700' },
+  countRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-around', paddingVertical: 4 },
+  countBlock: { flex: 1, alignItems: 'center', gap: 6 },
+  countNum: { fontSize: 28, fontWeight: '700' },
   countLbl: { fontSize: 13, color: '#8E8E93' },
-  countDivider: { width: 0.5, height: 36, backgroundColor: '#E5E5EA' },
-  separator: { height: 0.5, backgroundColor: '#E5E5EA', marginHorizontal: -14 },
+  countDivider: { width: 0.5, height: 44, backgroundColor: '#E5E5EA' },
+  separator: { height: 0.5, backgroundColor: '#E5E5EA', marginHorizontal: -16 },
 });
 
 // 出席率のリング
@@ -361,89 +361,76 @@ export function ClassDetailScreen() {
 
       {/* タブコンテンツ */}
       {activeTab === 'attendance' && (
-        <View style={s.attTabContainer}>
-          <ScrollView contentContainerStyle={s.tabContent} showsVerticalScrollIndicator={false}>
-            {/* 出席情報 */}
-            <View style={s.listHeader}>
-              <Text style={s.sectionLabel}>出席情報</Text>
-            </View>
+        <ScrollView contentContainerStyle={s.tabContent} showsVerticalScrollIndicator={false}>
+          <View style={s.attInfoCard}>
+            <AttendanceBarChart
+              stats={attStats}
+              totalRecords={records.length}
+            />
 
-            <View style={s.attInfoCard}>
-              <AttendanceBarChart
-                stats={attStats}
-                totalRecords={records.length}
-              />
+            <View style={s.attInfoSeparator} />
 
-              <View style={s.attInfoSeparator} />
-
-              {/* 直近の記録 */}
-              <View style={s.attInfoSection}>
-                <Text style={s.attInfoSectionLabel}>直近の記録</Text>
-                {records.length === 0 ? (
-                  <Text style={s.emptyText}>出席記録がありません</Text>
-                ) : (() => {
-                  const r = records[0];
-                  const statusConf = {
-                    present:   { label: '出席', filled: true  },
-                    late:      { label: '遅刻', filled: false },
-                    absent:    { label: '欠席', filled: false },
-                    cancelled: { label: '休講', filled: false },
-                  }[r.status];
-                  return (
-                    <TouchableOpacity
-                      style={s.listRow}
-                      onPress={() => openEditAttendance(r)}
-                      activeOpacity={0.6}
-                    >
-                      <Text style={s.listSession}>第{records.length}回</Text>
-                      <View style={s.listDateCol}>
-                        <Text style={s.listDate}>{formatDate(r.date)}</Text>
-                        {r.memo ? <Text style={s.listMemo} numberOfLines={1}>{r.memo}</Text> : null}
-                      </View>
-                      <View style={[
-                        s.statusChip,
-                        statusConf.filled
-                          ? { backgroundColor: '#007AFF' }
-                          : { backgroundColor: 'transparent', borderWidth: 1.5, borderColor: '#6C6C70' },
-                      ]}>
-                        <Text style={[s.statusChipText, { color: statusConf.filled ? '#FFFFFF' : '#6C6C70' }]}>
-                          {statusConf.label}
-                        </Text>
-                        <Ionicons name="chevron-forward" size={13} color={statusConf.filled ? '#FFFFFF' : '#6C6C70'} />
-                      </View>
-                    </TouchableOpacity>
-                  );
-                })()}
-              </View>
-
-              {/* 出席一覧ボタン */}
-              {records.length > 0 && (
-                <>
-                  <View style={s.attInfoSeparator} />
+            {/* 直近の記録 */}
+            <View style={s.attInfoSection}>
+              <Text style={s.attInfoSectionLabel}>直近の記録</Text>
+              {records.length === 0 ? (
+                <Text style={s.emptyText}>出席記録がありません</Text>
+              ) : (() => {
+                const r = records[0];
+                const statusConf = {
+                  present:   { label: '出席', filled: true  },
+                  late:      { label: '遅刻', filled: false },
+                  absent:    { label: '欠席', filled: false },
+                  cancelled: { label: '休講', filled: false },
+                }[r.status];
+                return (
                   <TouchableOpacity
-                    style={s.listAllRow}
-                    onPress={() => navigation.navigate('AttendanceList', { classId, className })}
+                    style={s.listRow}
+                    onPress={() => openEditAttendance(r)}
+                    activeOpacity={0.6}
                   >
-                    <Ionicons name="list-outline" size={16} color="#007AFF" />
-                    <Text style={s.listAllBtnText}>出席一覧を見る（{records.length}件）</Text>
-                    <Ionicons name="chevron-forward" size={14} color="#007AFF" />
+                    <Text style={s.listSession}>第{records.length}回</Text>
+                    <View style={s.listDateCol}>
+                      <Text style={s.listDate}>{formatDate(r.date)}</Text>
+                      {r.memo ? <Text style={s.listMemo} numberOfLines={1}>{r.memo}</Text> : null}
+                    </View>
+                    <View style={[
+                      s.statusChip,
+                      statusConf.filled
+                        ? { backgroundColor: '#007AFF' }
+                        : { backgroundColor: 'transparent', borderWidth: 1.5, borderColor: '#6C6C70' },
+                    ]}>
+                      <Text style={[s.statusChipText, { color: statusConf.filled ? '#FFFFFF' : '#6C6C70' }]}>
+                        {statusConf.label}
+                      </Text>
+                      <Ionicons name="chevron-forward" size={13} color={statusConf.filled ? '#FFFFFF' : '#6C6C70'} />
+                    </View>
                   </TouchableOpacity>
-                </>
+                );
+              })()}
+
+              {/* 出席一覧ピルボタン */}
+              {records.length > 0 && (
+                <TouchableOpacity
+                  style={s.listAllPill}
+                  onPress={() => navigation.navigate('AttendanceList', { classId, className })}
+                  activeOpacity={0.7}
+                >
+                  <Text style={s.listAllPillText}>一覧を見る（{records.length}件）</Text>
+                  <Ionicons name="chevron-forward" size={12} color="#6C6C70" />
+                </TouchableOpacity>
               )}
             </View>
-          </ScrollView>
-
-          {/* 固定フッター：出席登録ボタン */}
-          <View style={s.registerBtnFooter}>
-            <TouchableOpacity
-              onPress={() => { setEditingRecord(null); setAttDate(today); setAttStatus('present'); setAttMemo(''); setShowCalendar(false); setShowAddAtt(true); }}
-              style={s.registerBtn}
-            >
-              <Ionicons name="add-circle-outline" size={18} color="#FFFFFF" />
-              <Text style={s.registerBtnText}>出席を登録する</Text>
-            </TouchableOpacity>
           </View>
-        </View>
+
+          <TouchableOpacity
+            onPress={() => { setEditingRecord(null); setAttDate(today); setAttStatus('present'); setAttMemo(''); setShowCalendar(false); setShowAddAtt(true); }}
+            style={s.registerBtn}
+          >
+            <Ionicons name="add-circle-outline" size={18} color="#FFFFFF" />
+            <Text style={s.registerBtnText}>出席を登録する</Text>
+          </TouchableOpacity>
+        </ScrollView>
       )}
 
       {activeTab === 'assignment' && (
@@ -680,7 +667,7 @@ const s = StyleSheet.create({
   tabLabelActive: { color: '#007AFF', fontWeight: '600' },
 
   // コンテンツ
-  tabContent: { padding: 16, gap: 8, paddingBottom: 40 },
+  tabContent: { padding: 16, gap: 14, paddingBottom: 40 },
 
   sectionLabel: {
     fontSize: 13,
@@ -717,8 +704,8 @@ const s = StyleSheet.create({
   listRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingVertical: 12,
-    gap: 10,
+    paddingVertical: 14,
+    gap: 12,
   },
   listRowBorder: { borderBottomWidth: 0.5, borderBottomColor: '#E5E5EA' },
   statusBadge: {
@@ -755,10 +742,10 @@ const s = StyleSheet.create({
     borderBottomColor: '#E5E5EA',
   },
   yearDividerText: { fontSize: 16, color: '#3C3C43', fontWeight: '700', letterSpacing: 0.5 },
-  listSession: { fontSize: 12, color: '#8E8E93', fontWeight: '500', width: 40 },
-  listDateCol: { flex: 1, gap: 2 },
-  listDate: { fontSize: 15, color: '#1C1C1E' },
-  listMemo: { fontSize: 12, color: '#8E8E93' },
+  listSession: { fontSize: 13, color: '#8E8E93', fontWeight: '500', width: 44 },
+  listDateCol: { flex: 1, gap: 3 },
+  listDate: { fontSize: 16, color: '#1C1C1E' },
+  listMemo: { fontSize: 13, color: '#8E8E93' },
   listStatus: { fontSize: 14, fontWeight: '600' },
 
   emptyText: { textAlign: 'center', color: '#C7C7CC', fontSize: 14, paddingVertical: 20 },
@@ -770,28 +757,40 @@ const s = StyleSheet.create({
     borderRadius: 12,
     overflow: 'hidden',
   },
-  attInfoSeparator: { height: 0.5, backgroundColor: '#E5E5EA', marginHorizontal: 14 },
-  attInfoSection: { paddingHorizontal: 14, paddingTop: 12, paddingBottom: 4 },
+  attInfoSeparator: { height: 0.5, backgroundColor: '#E5E5EA', marginHorizontal: 16 },
+  attInfoSection: { paddingHorizontal: 16, paddingTop: 16, paddingBottom: 8 },
   attInfoSectionLabel: {
     fontSize: 12,
     fontWeight: '600',
     color: '#8E8E93',
     textTransform: 'uppercase',
     letterSpacing: 0.4,
-    marginBottom: 4,
+    marginBottom: 0,
   },
   listAllRow: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 8,
-    paddingHorizontal: 14,
-    paddingVertical: 14,
+    paddingHorizontal: 16,
+    paddingVertical: 16,
   },
-  listAllBtnText: { flex: 1, fontSize: 15, color: '#007AFF', fontWeight: '500' },
+  listAllBtnText: { flex: 1, fontSize: 15, color: '#3C3C43', fontWeight: '500' },
+  listAllPill: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    alignSelf: 'flex-end',
+    gap: 3,
+    backgroundColor: '#F2F2F7',
+    borderRadius: 20,
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    marginBottom: 4,
+  },
+  listAllPillText: { fontSize: 12, color: '#6C6C70', fontWeight: '500' },
   registerBtnFooter: {
     paddingHorizontal: 16,
     paddingTop: 10,
-    paddingBottom: 16,
+    paddingBottom: 0,
     backgroundColor: '#F2F2F7',
     borderTopWidth: 0.5,
     borderTopColor: '#E5E5EA',
