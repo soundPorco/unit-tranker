@@ -40,6 +40,73 @@ function formatDate(iso: string) {
   return `${d.getMonth() + 1}月${d.getDate()}日(${DAY_LABELS[d.getDay()]})`;
 }
 
+// 出席内訳 横棒グラフ
+const ATT_BAR_ITEMS = [
+  { key: 'present',   label: '出席', color: '#007AFF', mono: false },
+  { key: 'late',      label: '遅刻', color: '#AEAEB2', mono: true  },
+  { key: 'absent',    label: '欠席', color: '#8E8E93', mono: true  },
+  { key: 'cancelled', label: '休講', color: '#C7C7CC', mono: true  },
+] as const;
+
+type AttBarKey = typeof ATT_BAR_ITEMS[number]['key'];
+type AttBarStats = Record<AttBarKey, number>;
+
+function AttendanceBarChart({ stats, totalRecords }: { stats: AttBarStats; totalRecords: number }) {
+  if (totalRecords === 0) return null;
+  return (
+    <View style={bc.container}>
+      <Text style={bc.title}>出席内訳</Text>
+      {ATT_BAR_ITEMS.map(item => {
+        const ratio = totalRecords > 0 ? item.key === 'cancelled'
+          ? stats[item.key] / totalRecords
+          : stats[item.key] / totalRecords
+          : 0;
+        return (
+          <View key={item.key} style={bc.row}>
+            <Text style={bc.rowLabel}>{item.label}</Text>
+            <View style={bc.track}>
+              <View
+                style={[
+                  bc.bar,
+                  { width: `${ratio * 100}%`, backgroundColor: item.color },
+                ]}
+              />
+            </View>
+            <Text style={[bc.rowCount, item.mono ? bc.rowCountMono : bc.rowCountBlue]}>
+              {stats[item.key]}
+            </Text>
+          </View>
+        );
+      })}
+    </View>
+  );
+}
+const bc = StyleSheet.create({
+  container: {
+    backgroundColor: '#FFFFFF',
+    borderRadius: 12,
+    paddingHorizontal: 14,
+    paddingVertical: 12,
+    gap: 8,
+  },
+  title: { fontSize: 12, fontWeight: '600', color: '#8E8E93', textTransform: 'uppercase', letterSpacing: 0.4, marginBottom: 2 },
+  row: { flexDirection: 'row', alignItems: 'center', gap: 8 },
+  rowLabel: { fontSize: 12, color: '#6C6C70', width: 28, textAlign: 'right' },
+  track: {
+    flex: 1,
+    height: 8,
+    borderRadius: 4,
+    backgroundColor: '#F2F2F7',
+    overflow: 'hidden',
+  },
+  bar: { height: 8, borderRadius: 4 },
+  rowCount: { fontSize: 13, fontWeight: '700', width: 24, textAlign: 'right' },
+  rowCountBlue: { color: '#007AFF' },
+  rowCountMono: { color: '#8E8E93' },
+  legendLabel: { fontSize: 12, color: '#6C6C70' },
+  legendCount: { fontSize: 13, fontWeight: '700' },
+});
+
 // 出席率のリング
 function RingGauge({ rate, color }: { rate: number; color: string }) {
   const label = rate === 0 ? '—' : `${rate}%`;
@@ -278,6 +345,11 @@ export function ClassDetailScreen() {
       {/* タブコンテンツ */}
       {activeTab === 'attendance' && (
         <ScrollView contentContainerStyle={s.tabContent} showsVerticalScrollIndicator={false}>
+          <AttendanceBarChart
+            stats={attStats}
+            totalRecords={records.length}
+          />
+
           <TouchableOpacity onPress={() => { setEditingRecord(null); setAttDate(today); setAttStatus('present'); setAttMemo(''); setShowCalendar(false); setShowAddAtt(true); }} style={s.registerBtn}>
             <Ionicons name="add-circle-outline" size={18} color="#FFFFFF" />
             <Text style={s.registerBtnText}>出席を登録する</Text>
