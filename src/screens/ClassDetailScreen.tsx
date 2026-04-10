@@ -55,12 +55,34 @@ function AttendanceBarChart({ stats, totalRecords }: { stats: AttBarStats; total
   if (totalRecords === 0) return null;
   return (
     <View style={bc.container}>
+      {/* カウント行 */}
+      <View style={bc.countRow}>
+        <View style={bc.countBlock}>
+          <Text style={[bc.countNum, bc.rowCountBlue]}>{stats.present}</Text>
+          <Text style={bc.countLbl}>出席</Text>
+        </View>
+        <View style={bc.countDivider} />
+        <View style={bc.countBlock}>
+          <Text style={[bc.countNum, bc.rowCountMono]}>{stats.late}</Text>
+          <Text style={bc.countLbl}>遅刻</Text>
+        </View>
+        <View style={bc.countDivider} />
+        <View style={bc.countBlock}>
+          <Text style={[bc.countNum, bc.rowCountMono]}>{stats.absent}</Text>
+          <Text style={bc.countLbl}>欠席</Text>
+        </View>
+        <View style={bc.countDivider} />
+        <View style={bc.countBlock}>
+          <Text style={[bc.countNum, bc.rowCountMono]}>{stats.cancelled}</Text>
+          <Text style={bc.countLbl}>休講</Text>
+        </View>
+      </View>
+      {/* セパレータ */}
+      <View style={bc.separator} />
+      {/* 横棒グラフ */}
       <Text style={bc.title}>出席内訳</Text>
       {ATT_BAR_ITEMS.map(item => {
-        const ratio = totalRecords > 0 ? item.key === 'cancelled'
-          ? stats[item.key] / totalRecords
-          : stats[item.key] / totalRecords
-          : 0;
+        const ratio = totalRecords > 0 ? stats[item.key] / totalRecords : 0;
         return (
           <View key={item.key} style={bc.row}>
             <Text style={bc.rowLabel}>{item.label}</Text>
@@ -73,7 +95,7 @@ function AttendanceBarChart({ stats, totalRecords }: { stats: AttBarStats; total
               />
             </View>
             <Text style={[bc.rowCount, item.mono ? bc.rowCountMono : bc.rowCountBlue]}>
-              {stats[item.key]}
+              {Math.round(stats[item.key] / totalRecords * 100)}%
             </Text>
           </View>
         );
@@ -100,11 +122,17 @@ const bc = StyleSheet.create({
     overflow: 'hidden',
   },
   bar: { height: 8, borderRadius: 4 },
-  rowCount: { fontSize: 13, fontWeight: '700', width: 24, textAlign: 'right' },
+  rowCount: { fontSize: 13, fontWeight: '700', width: 38, textAlign: 'right' },
   rowCountBlue: { color: '#007AFF' },
   rowCountMono: { color: '#8E8E93' },
   legendLabel: { fontSize: 12, color: '#6C6C70' },
   legendCount: { fontSize: 13, fontWeight: '700' },
+  countRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-around' },
+  countBlock: { flex: 1, alignItems: 'center', gap: 2 },
+  countNum: { fontSize: 20, fontWeight: '700' },
+  countLbl: { fontSize: 11, color: '#8E8E93' },
+  countDivider: { width: 0.5, height: 28, backgroundColor: '#E5E5EA' },
+  separator: { height: 0.5, backgroundColor: '#E5E5EA', marginHorizontal: -14 },
 });
 
 // 出席率のリング
@@ -261,21 +289,6 @@ export function ClassDetailScreen() {
           <View style={s.statBlock}>
             <Text style={[s.statNum, { color: asgColor }]}>{asgStats.rate}%</Text>
             <Text style={s.statLbl}>課題提出率</Text>
-          </View>
-          <View style={s.statDivider} />
-          <View style={s.statBlock}>
-            <Text style={s.statNum}>{attStats.present}</Text>
-            <Text style={s.statLbl}>出席</Text>
-          </View>
-          <View style={s.statDivider} />
-          <View style={s.statBlock}>
-            <Text style={[s.statNum, { color: '#FF3B30' }]}>{attStats.absent}</Text>
-            <Text style={s.statLbl}>欠席</Text>
-          </View>
-          <View style={s.statDivider} />
-          <View style={s.statBlock}>
-            <Text style={[s.statNum, { color: '#FF9500' }]}>{attStats.late}</Text>
-            <Text style={s.statLbl}>遅刻</Text>
           </View>
         </View>
       </View>
