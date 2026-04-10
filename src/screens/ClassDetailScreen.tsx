@@ -8,7 +8,8 @@ import {
 const AnimatedPressable = Animated.createAnimatedComponent(Pressable);
 import { Calendar } from 'react-native-calendars';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { useRoute, RouteProp } from '@react-navigation/native';
+import { useRoute, RouteProp, useNavigation } from '@react-navigation/native';
+import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { Ionicons } from '@expo/vector-icons';
 import { useAttendance } from '../hooks/useAttendance';
 import { useAssignments } from '../hooks/useAssignments';
@@ -129,9 +130,9 @@ const bc = StyleSheet.create({
   legendCount: { fontSize: 13, fontWeight: '700' },
   countRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-around' },
   countBlock: { flex: 1, alignItems: 'center', gap: 2 },
-  countNum: { fontSize: 20, fontWeight: '700' },
-  countLbl: { fontSize: 11, color: '#8E8E93' },
-  countDivider: { width: 0.5, height: 28, backgroundColor: '#E5E5EA' },
+  countNum: { fontSize: 26, fontWeight: '700' },
+  countLbl: { fontSize: 13, color: '#8E8E93' },
+  countDivider: { width: 0.5, height: 36, backgroundColor: '#E5E5EA' },
   separator: { height: 0.5, backgroundColor: '#E5E5EA', marginHorizontal: -14 },
 });
 
@@ -173,6 +174,7 @@ const ring = StyleSheet.create({
 export function ClassDetailScreen() {
   const route = useRoute<Route>();
   const { classId, className } = route.params;
+  const navigation = useNavigation<NativeStackNavigationProp<GradeStackParamList>>();
 
   const [activeTab, setActiveTab] = useState<Tab>('attendance');
   const { records, loading: attLoading, upsertAttendance, deleteAttendance, stats: attStats } = useAttendance(classId);
@@ -252,7 +254,11 @@ export function ClassDetailScreen() {
     if (editingRecord && editingRecord.date !== attDate) {
       await deleteAttendance(editingRecord.id);
     }
-    await upsertAttendance(attDate, attStatus, attMemo);
+    const error = await upsertAttendance(attDate, attStatus, attMemo);
+    if (error) {
+      Alert.alert('保存失敗', '出席記録の保存に失敗しました。');
+      return;
+    }
     setEditingRecord(null);
     setAttMemo('');
     setShowAddAtt(false);
@@ -368,63 +374,60 @@ export function ClassDetailScreen() {
             <Text style={s.registerBtnText}>出席を登録する</Text>
           </TouchableOpacity>
 
-          {/* 出席記録一覧 */}
+          {/* 直近の記録 */}
           <View style={s.listHeader}>
-            <Text style={s.sectionLabel}>記録一覧</Text>
+            <Text style={s.sectionLabel}>直近の記録</Text>
           </View>
 
           <View style={s.card}>
             {records.length === 0 ? (
               <Text style={s.emptyText}>出席記録がありません</Text>
-            ) : (
-              (() => {
-                let lastYear: number | null = null;
-                return records.map((r, idx) => {
-                  const statusConf = {
-                    present:   { label: '出席', filled: true  },
-                    late:      { label: '遅刻', filled: false },
-                    absent:    { label: '欠席', filled: false },
-                    cancelled: { label: '休講', filled: false },
-                  }[r.status];
-                  const sessionNum = records.length - idx;
-                  const year = new Date(r.date).getFullYear();
-                  const showYearDivider = year !== lastYear;
-                  lastYear = year;
-                  return (
-                    <React.Fragment key={r.id}>
-                      {showYearDivider && (
-                        <View style={s.yearDivider}>
-                          <Text style={s.yearDividerText}>{year}年</Text>
-                        </View>
-                      )}
-                      <TouchableOpacity
-                        style={[s.listRow, idx < records.length - 1 && s.listRowBorder]}
-                        onPress={() => openEditAttendance(r)}
-                        activeOpacity={0.6}
-                      >
-                        <Text style={s.listSession}>第{sessionNum}回</Text>
-                        <View style={s.listDateCol}>
-                          <Text style={s.listDate}>{formatDate(r.date)}</Text>
-                          {r.memo ? <Text style={s.listMemo} numberOfLines={1}>{r.memo}</Text> : null}
-                        </View>
-                        <View style={[
-                          s.statusChip,
-                          statusConf.filled
-                            ? { backgroundColor: '#007AFF' }
-                            : { backgroundColor: 'transparent', borderWidth: 1.5, borderColor: '#6C6C70' },
-                        ]}>
-                          <Text style={[s.statusChipText, { color: statusConf.filled ? '#FFFFFF' : '#6C6C70' }]}>
-                            {statusConf.label}
-                          </Text>
-                          <Ionicons name="chevron-forward" size={13} color={statusConf.filled ? '#FFFFFF' : '#6C6C70'} />
-                        </View>
-                      </TouchableOpacity>
-                    </React.Fragment>
-                  );
-                });
-              })()
-            )}
+            ) : (() => {
+              const r = records[0];
+              const statusConf = {
+                present:   { label: '出席', filled: true  },
+                late:      { label: '遅刻', filled: false },
+                absent:    { label: '欠席', filled: false },
+                cancelled: { label: '休講', filled: false },
+              }[r.status];
+              return (
+                <TouchableOpacity
+                  style={s.listRow}
+                  onPress={() => openEditAttendance(r)}
+                  activeOpacity={0.6}
+                >
+                  <Text style={s.listSession}>第{records.length}回</Text>
+                  <View style={s.listDateCol}>
+                    <Text style={s.listDate}>{formatDate(r.date)}</Text>
+                    {r.memo ? <Text style={s.listMemo} numberOfLines={1}>{r.memo}</Text> : null}
+                  </View>
+                  <View style={[
+                    s.statusChip,
+                    statusConf.filled
+                      ? { backgroundColor: '#007AFF' }
+                      : { backgroundColor: 'transparent', borderWidth: 1.5, borderColor: '#6C6C70' },
+                  ]}>
+                    <Text style={[s.statusChipText, { color: statusConf.filled ? '#FFFFFF' : '#6C6C70' }]}>
+                      {statusConf.label}
+                    </Text>
+                    <Ionicons name="chevron-forward" size={13} color={statusConf.filled ? '#FFFFFF' : '#6C6C70'} />
+                  </View>
+                </TouchableOpacity>
+              );
+            })()}
           </View>
+
+          {/* 出席一覧ボタン */}
+          {records.length > 0 && (
+            <TouchableOpacity
+              style={s.listAllBtn}
+              onPress={() => navigation.navigate('AttendanceList', { classId, className })}
+            >
+              <Ionicons name="list-outline" size={16} color="#007AFF" />
+              <Text style={s.listAllBtnText}>出席一覧を見る（{records.length}件）</Text>
+              <Ionicons name="chevron-forward" size={14} color="#007AFF" />
+            </TouchableOpacity>
+          )}
         </ScrollView>
       )}
 
@@ -744,6 +747,16 @@ const s = StyleSheet.create({
   listStatus: { fontSize: 14, fontWeight: '600' },
 
   emptyText: { textAlign: 'center', color: '#C7C7CC', fontSize: 14, paddingVertical: 20 },
+  listAllBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    backgroundColor: '#E8F1FF',
+    borderRadius: 12,
+    paddingVertical: 13,
+    paddingHorizontal: 16,
+  },
+  listAllBtnText: { flex: 1, fontSize: 15, color: '#007AFF', fontWeight: '500' },
 
   // 課題
   checkbox: {
