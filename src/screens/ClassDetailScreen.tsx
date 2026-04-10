@@ -106,8 +106,6 @@ function AttendanceBarChart({ stats, totalRecords }: { stats: AttBarStats; total
 }
 const bc = StyleSheet.create({
   container: {
-    backgroundColor: '#FFFFFF',
-    borderRadius: 12,
     paddingHorizontal: 14,
     paddingVertical: 12,
     gap: 8,
@@ -363,72 +361,89 @@ export function ClassDetailScreen() {
 
       {/* タブコンテンツ */}
       {activeTab === 'attendance' && (
-        <ScrollView contentContainerStyle={s.tabContent} showsVerticalScrollIndicator={false}>
-          <AttendanceBarChart
-            stats={attStats}
-            totalRecords={records.length}
-          />
+        <View style={s.attTabContainer}>
+          <ScrollView contentContainerStyle={s.tabContent} showsVerticalScrollIndicator={false}>
+            {/* 出席情報 */}
+            <View style={s.listHeader}>
+              <Text style={s.sectionLabel}>出席情報</Text>
+            </View>
 
-          <TouchableOpacity onPress={() => { setEditingRecord(null); setAttDate(today); setAttStatus('present'); setAttMemo(''); setShowCalendar(false); setShowAddAtt(true); }} style={s.registerBtn}>
-            <Ionicons name="add-circle-outline" size={18} color="#FFFFFF" />
-            <Text style={s.registerBtnText}>出席を登録する</Text>
-          </TouchableOpacity>
+            <View style={s.attInfoCard}>
+              <AttendanceBarChart
+                stats={attStats}
+                totalRecords={records.length}
+              />
 
-          {/* 直近の記録 */}
-          <View style={s.listHeader}>
-            <Text style={s.sectionLabel}>直近の記録</Text>
-          </View>
+              <View style={s.attInfoSeparator} />
 
-          <View style={s.card}>
-            {records.length === 0 ? (
-              <Text style={s.emptyText}>出席記録がありません</Text>
-            ) : (() => {
-              const r = records[0];
-              const statusConf = {
-                present:   { label: '出席', filled: true  },
-                late:      { label: '遅刻', filled: false },
-                absent:    { label: '欠席', filled: false },
-                cancelled: { label: '休講', filled: false },
-              }[r.status];
-              return (
-                <TouchableOpacity
-                  style={s.listRow}
-                  onPress={() => openEditAttendance(r)}
-                  activeOpacity={0.6}
-                >
-                  <Text style={s.listSession}>第{records.length}回</Text>
-                  <View style={s.listDateCol}>
-                    <Text style={s.listDate}>{formatDate(r.date)}</Text>
-                    {r.memo ? <Text style={s.listMemo} numberOfLines={1}>{r.memo}</Text> : null}
-                  </View>
-                  <View style={[
-                    s.statusChip,
-                    statusConf.filled
-                      ? { backgroundColor: '#007AFF' }
-                      : { backgroundColor: 'transparent', borderWidth: 1.5, borderColor: '#6C6C70' },
-                  ]}>
-                    <Text style={[s.statusChipText, { color: statusConf.filled ? '#FFFFFF' : '#6C6C70' }]}>
-                      {statusConf.label}
-                    </Text>
-                    <Ionicons name="chevron-forward" size={13} color={statusConf.filled ? '#FFFFFF' : '#6C6C70'} />
-                  </View>
-                </TouchableOpacity>
-              );
-            })()}
-          </View>
+              {/* 直近の記録 */}
+              <View style={s.attInfoSection}>
+                <Text style={s.attInfoSectionLabel}>直近の記録</Text>
+                {records.length === 0 ? (
+                  <Text style={s.emptyText}>出席記録がありません</Text>
+                ) : (() => {
+                  const r = records[0];
+                  const statusConf = {
+                    present:   { label: '出席', filled: true  },
+                    late:      { label: '遅刻', filled: false },
+                    absent:    { label: '欠席', filled: false },
+                    cancelled: { label: '休講', filled: false },
+                  }[r.status];
+                  return (
+                    <TouchableOpacity
+                      style={s.listRow}
+                      onPress={() => openEditAttendance(r)}
+                      activeOpacity={0.6}
+                    >
+                      <Text style={s.listSession}>第{records.length}回</Text>
+                      <View style={s.listDateCol}>
+                        <Text style={s.listDate}>{formatDate(r.date)}</Text>
+                        {r.memo ? <Text style={s.listMemo} numberOfLines={1}>{r.memo}</Text> : null}
+                      </View>
+                      <View style={[
+                        s.statusChip,
+                        statusConf.filled
+                          ? { backgroundColor: '#007AFF' }
+                          : { backgroundColor: 'transparent', borderWidth: 1.5, borderColor: '#6C6C70' },
+                      ]}>
+                        <Text style={[s.statusChipText, { color: statusConf.filled ? '#FFFFFF' : '#6C6C70' }]}>
+                          {statusConf.label}
+                        </Text>
+                        <Ionicons name="chevron-forward" size={13} color={statusConf.filled ? '#FFFFFF' : '#6C6C70'} />
+                      </View>
+                    </TouchableOpacity>
+                  );
+                })()}
+              </View>
 
-          {/* 出席一覧ボタン */}
-          {records.length > 0 && (
+              {/* 出席一覧ボタン */}
+              {records.length > 0 && (
+                <>
+                  <View style={s.attInfoSeparator} />
+                  <TouchableOpacity
+                    style={s.listAllRow}
+                    onPress={() => navigation.navigate('AttendanceList', { classId, className })}
+                  >
+                    <Ionicons name="list-outline" size={16} color="#007AFF" />
+                    <Text style={s.listAllBtnText}>出席一覧を見る（{records.length}件）</Text>
+                    <Ionicons name="chevron-forward" size={14} color="#007AFF" />
+                  </TouchableOpacity>
+                </>
+              )}
+            </View>
+          </ScrollView>
+
+          {/* 固定フッター：出席登録ボタン */}
+          <View style={s.registerBtnFooter}>
             <TouchableOpacity
-              style={s.listAllBtn}
-              onPress={() => navigation.navigate('AttendanceList', { classId, className })}
+              onPress={() => { setEditingRecord(null); setAttDate(today); setAttStatus('present'); setAttMemo(''); setShowCalendar(false); setShowAddAtt(true); }}
+              style={s.registerBtn}
             >
-              <Ionicons name="list-outline" size={16} color="#007AFF" />
-              <Text style={s.listAllBtnText}>出席一覧を見る（{records.length}件）</Text>
-              <Ionicons name="chevron-forward" size={14} color="#007AFF" />
+              <Ionicons name="add-circle-outline" size={18} color="#FFFFFF" />
+              <Text style={s.registerBtnText}>出席を登録する</Text>
             </TouchableOpacity>
-          )}
-        </ScrollView>
+          </View>
+        </View>
       )}
 
       {activeTab === 'assignment' && (
@@ -747,16 +762,40 @@ const s = StyleSheet.create({
   listStatus: { fontSize: 14, fontWeight: '600' },
 
   emptyText: { textAlign: 'center', color: '#C7C7CC', fontSize: 14, paddingVertical: 20 },
-  listAllBtn: {
+
+  // 出席タブ
+  attTabContainer: { flex: 1 },
+  attInfoCard: {
+    backgroundColor: '#FFFFFF',
+    borderRadius: 12,
+    overflow: 'hidden',
+  },
+  attInfoSeparator: { height: 0.5, backgroundColor: '#E5E5EA', marginHorizontal: 14 },
+  attInfoSection: { paddingHorizontal: 14, paddingTop: 12, paddingBottom: 4 },
+  attInfoSectionLabel: {
+    fontSize: 12,
+    fontWeight: '600',
+    color: '#8E8E93',
+    textTransform: 'uppercase',
+    letterSpacing: 0.4,
+    marginBottom: 4,
+  },
+  listAllRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 6,
-    backgroundColor: '#E8F1FF',
-    borderRadius: 12,
-    paddingVertical: 13,
-    paddingHorizontal: 16,
+    gap: 8,
+    paddingHorizontal: 14,
+    paddingVertical: 14,
   },
   listAllBtnText: { flex: 1, fontSize: 15, color: '#007AFF', fontWeight: '500' },
+  registerBtnFooter: {
+    paddingHorizontal: 16,
+    paddingTop: 10,
+    paddingBottom: 16,
+    backgroundColor: '#F2F2F7',
+    borderTopWidth: 0.5,
+    borderTopColor: '#E5E5EA',
+  },
 
   // 課題
   checkbox: {
