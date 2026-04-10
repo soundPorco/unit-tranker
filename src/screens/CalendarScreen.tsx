@@ -42,7 +42,7 @@ export function CalendarScreen() {
 
   if (loading) {
     return (
-      <SafeAreaView style={s.container}>
+      <SafeAreaView style={s.container} edges={['top']}>
         <ActivityIndicator color="#007AFF" style={{ flex: 1 }} />
       </SafeAreaView>
     );

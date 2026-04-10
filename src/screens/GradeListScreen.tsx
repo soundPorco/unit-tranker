@@ -40,7 +40,7 @@ export function GradeListScreen() {
 
   if (loading) {
     return (
-      <SafeAreaView style={styles.container}>
+      <SafeAreaView style={styles.container} edges={['top']}>
         <ActivityIndicator color="#007AFF" style={{ flex: 1 }} />
       </SafeAreaView>
     );
