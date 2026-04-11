@@ -185,6 +185,7 @@ export function ClassDetailScreen() {
   const [showAddAsg, setShowAddAsg] = useState(false);
   const [newTitle, setNewTitle] = useState('');
   const [newDue, setNewDue] = useState(today);
+  const [showAsgCalendar, setShowAsgCalendar] = useState(false);
 
   const [showAddAtt, setShowAddAtt] = useState(false);
   const [attDate, setAttDate] = useState(today);
@@ -511,33 +512,62 @@ export function ClassDetailScreen() {
 
       {/* 課題追加モーダル */}
       <Modal visible={showAddAsg} transparent animationType="slide">
-        <Pressable style={s.overlay} onPress={() => setShowAddAsg(false)}>
-          <Pressable style={s.sheet} onPress={e => e.stopPropagation()}>
+        <AnimatedPressable style={[s.overlay, { paddingBottom: kbOffset }]} onPress={() => { setShowAddAsg(false); setShowAsgCalendar(false); }}>
+          <Pressable style={s.attSheet} onPress={e => e.stopPropagation()}>
             <View style={s.sheetHandle} />
-            <Text style={s.sheetTitle}>課題を追加</Text>
-            <Text style={s.sheetLabel}>タイトル</Text>
-            <TextInput
-              style={s.sheetInput}
-              value={newTitle}
-              onChangeText={setNewTitle}
-              placeholder="例：レポート第3回"
-              placeholderTextColor="#C7C7CC"
-              autoFocus
-            />
-            <Text style={s.sheetLabel}>締切日（YYYY-MM-DD）</Text>
-            <TextInput
-              style={s.sheetInput}
-              value={newDue}
-              onChangeText={setNewDue}
-              placeholder={today}
-              placeholderTextColor="#C7C7CC"
-              keyboardType="numbers-and-punctuation"
-            />
-            <TouchableOpacity style={s.sheetConfirmBtn} onPress={handleAddAssignment}>
-              <Text style={s.sheetConfirmText}>追加</Text>
-            </TouchableOpacity>
+            <ScrollView
+              bounces={false}
+              keyboardShouldPersistTaps="handled"
+              showsVerticalScrollIndicator={false}
+              contentContainerStyle={s.attSheetScroll}
+            >
+              <Text style={s.sheetTitle}>課題を追加</Text>
+              <Text style={s.sheetLabel}>タイトル</Text>
+              <TextInput
+                style={s.sheetInput}
+                value={newTitle}
+                onChangeText={setNewTitle}
+                placeholder="例：レポート第3回"
+                placeholderTextColor="#C7C7CC"
+                autoFocus
+              />
+              <Text style={s.sheetLabel}>締切日</Text>
+              <TouchableOpacity
+                style={s.datePicker}
+                onPress={() => setShowAsgCalendar(v => !v)}
+              >
+                <Ionicons name="calendar-outline" size={16} color="#007AFF" />
+                <Text style={s.datePickerText}>{formatDate(newDue)}</Text>
+                <Ionicons
+                  name={showAsgCalendar ? 'chevron-up' : 'chevron-down'}
+                  size={14}
+                  color="#8E8E93"
+                />
+              </TouchableOpacity>
+              {showAsgCalendar && (
+                <Calendar
+                  current={newDue}
+                  onDayPress={(day: { dateString: string }) => {
+                    setNewDue(day.dateString);
+                    setShowAsgCalendar(false);
+                  }}
+                  markedDates={{
+                    [newDue]: { selected: true, selectedColor: '#007AFF' },
+                  }}
+                  theme={{
+                    todayTextColor: '#007AFF',
+                    arrowColor: '#007AFF',
+                    selectedDayBackgroundColor: '#007AFF',
+                  }}
+                  style={s.calendar}
+                />
+              )}
+              <TouchableOpacity style={s.sheetConfirmBtn} onPress={handleAddAssignment}>
+                <Text style={s.sheetConfirmText}>追加</Text>
+              </TouchableOpacity>
+            </ScrollView>
           </Pressable>
-        </Pressable>
+        </AnimatedPressable>
       </Modal>
 
       {/* 出席追加モーダル */}
