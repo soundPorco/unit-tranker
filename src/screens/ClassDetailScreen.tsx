@@ -7,7 +7,7 @@ import {
 
 const AnimatedPressable = Animated.createAnimatedComponent(Pressable);
 import { Calendar } from 'react-native-calendars';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { View as SafeAreaView } from 'react-native';
 import { useRoute, RouteProp, useNavigation } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { Ionicons } from '@expo/vector-icons';
@@ -282,7 +282,7 @@ export function ClassDetailScreen() {
   ];
 
   return (
-    <SafeAreaView style={s.container} edges={['bottom']}>
+    <SafeAreaView style={s.container}>
       {/* サマリーカード */}
       <View style={s.summary}>
         <View style={s.summaryLeft}>
@@ -361,7 +361,7 @@ export function ClassDetailScreen() {
 
       {/* タブコンテンツ */}
       {activeTab === 'attendance' && (
-        <ScrollView contentContainerStyle={s.tabContent} showsVerticalScrollIndicator={false}>
+        <ScrollView contentContainerStyle={s.tabContent} showsVerticalScrollIndicator={false} automaticallyAdjustContentInsets={false}>
           <View style={s.attInfoCard}>
             <AttendanceBarChart
               stats={attStats}
@@ -434,7 +434,7 @@ export function ClassDetailScreen() {
       )}
 
       {activeTab === 'assignment' && (
-        <ScrollView contentContainerStyle={s.tabContent} showsVerticalScrollIndicator={false}>
+        <ScrollView contentContainerStyle={s.tabContent} showsVerticalScrollIndicator={false} automaticallyAdjustContentInsets={false}>
           <View style={s.listHeader}>
             <Text style={s.sectionLabel}>課題一覧 ({asgStats.submitted}/{asgStats.total})</Text>
             <TouchableOpacity onPress={() => setShowAddAsg(true)} style={s.addBtn}>
@@ -485,7 +485,7 @@ export function ClassDetailScreen() {
       )}
 
       {activeTab === 'note' && (
-        <ScrollView contentContainerStyle={s.tabContent} showsVerticalScrollIndicator={false}>
+        <ScrollView contentContainerStyle={s.tabContent} showsVerticalScrollIndicator={false} automaticallyAdjustContentInsets={false}>
           <Text style={s.sectionLabel}>メモ</Text>
           <View style={s.card}>
             <TextInput
