@@ -59,7 +59,6 @@ export interface Assignment {
   user_id: string;
   title: string;
   due_date: string | null;
-  due_time: string | null;
   is_submitted: boolean;
   memo: string | null;
   created_at: string;

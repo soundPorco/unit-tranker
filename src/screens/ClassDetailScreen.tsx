@@ -188,9 +188,6 @@ export function ClassDetailScreen() {
   const [newDue, setNewDue] = useState(today);
   const [newMemo, setNewMemo] = useState('');
   const [showAsgCalendar, setShowAsgCalendar] = useState(false);
-  const [newTimeEnabled, setNewTimeEnabled] = useState(false);
-  const [newHour, setNewHour] = useState(23);
-  const [newMinute, setNewMinute] = useState(59);
 
   const [showAddAtt, setShowAddAtt] = useState(false);
   const [attDate, setAttDate] = useState(today);
@@ -241,11 +238,8 @@ export function ClassDetailScreen() {
 
   const handleAddAssignment = async () => {
     if (!newTitle.trim()) { Alert.alert('エラー', 'タイトルを入力してください'); return; }
-    const due_time = newTimeEnabled
-      ? `${String(newHour).padStart(2, '0')}:${String(newMinute).padStart(2, '0')}`
-      : undefined;
-    await addAssignment({ title: newTitle.trim(), due_date: newDueEnabled ? newDue : undefined, due_time, memo: newMemo.trim() || undefined, class_id: classId });
-    setNewTitle(''); setNewDueEnabled(false); setNewDue(today); setNewMemo(''); setNewTimeEnabled(false); setNewHour(23); setNewMinute(59); setShowAddAsg(false);
+    await addAssignment({ title: newTitle.trim(), due_date: newDueEnabled ? newDue : undefined, memo: newMemo.trim() || undefined, class_id: classId });
+    setNewTitle(''); setNewDueEnabled(false); setNewDue(today); setNewMemo(''); setShowAddAsg(false);
   };
 
   const openEditAttendance = (r: Attendance) => {
@@ -520,7 +514,7 @@ export function ClassDetailScreen() {
 
       {/* 課題追加モーダル */}
       <Modal visible={showAddAsg} transparent animationType="slide">
-        <AnimatedPressable style={[s.overlay, { paddingBottom: kbOffset }]} onPress={() => { setShowAddAsg(false); setNewDueEnabled(false); setShowAsgCalendar(false); setNewTimeEnabled(false); setNewMemo(''); }}>
+        <AnimatedPressable style={[s.overlay, { paddingBottom: kbOffset }]} onPress={() => { setShowAddAsg(false); setNewDueEnabled(false); setShowAsgCalendar(false); setNewMemo(''); }}>
           <Pressable style={s.attSheet} onPress={e => e.stopPropagation()}>
             <View style={s.sheetHandle} />
             <ScrollView
@@ -589,46 +583,6 @@ export function ClassDetailScreen() {
                   }}
                   style={s.calendar}
                 />
-              )}
-              <Text style={s.sheetLabel}>締切時間（任意）</Text>
-              <TouchableOpacity
-                style={s.datePicker}
-                onPress={() => setNewTimeEnabled(v => !v)}
-              >
-                <Ionicons name="time-outline" size={16} color="#007AFF" />
-                <Text style={s.datePickerText}>
-                  {newTimeEnabled
-                    ? `${String(newHour).padStart(2, '0')}:${String(newMinute).padStart(2, '0')}`
-                    : '設定しない'}
-                </Text>
-                <Ionicons
-                  name={newTimeEnabled ? 'chevron-up' : 'chevron-down'}
-                  size={14}
-                  color="#8E8E93"
-                />
-              </TouchableOpacity>
-              {newTimeEnabled && (
-                <View style={s.timePicker}>
-                  <View style={s.timeUnit}>
-                    <TouchableOpacity onPress={() => setNewHour(h => (h + 1) % 24)} style={s.timeBtn}>
-                      <Ionicons name="chevron-up" size={20} color="#007AFF" />
-                    </TouchableOpacity>
-                    <Text style={s.timeValue}>{String(newHour).padStart(2, '0')}</Text>
-                    <TouchableOpacity onPress={() => setNewHour(h => (h - 1 + 24) % 24)} style={s.timeBtn}>
-                      <Ionicons name="chevron-down" size={20} color="#007AFF" />
-                    </TouchableOpacity>
-                  </View>
-                  <Text style={s.timeColon}>:</Text>
-                  <View style={s.timeUnit}>
-                    <TouchableOpacity onPress={() => setNewMinute(m => (m + 1) % 60)} style={s.timeBtn}>
-                      <Ionicons name="chevron-up" size={20} color="#007AFF" />
-                    </TouchableOpacity>
-                    <Text style={s.timeValue}>{String(newMinute).padStart(2, '0')}</Text>
-                    <TouchableOpacity onPress={() => setNewMinute(m => (m - 1 + 60) % 60)} style={s.timeBtn}>
-                      <Ionicons name="chevron-down" size={20} color="#007AFF" />
-                    </TouchableOpacity>
-                  </View>
-                </View>
               )}
               <Text style={s.sheetLabel}>メモ（任意）</Text>
               <TextInput
@@ -1001,19 +955,6 @@ const s = StyleSheet.create({
   attMemoInput: { minHeight: 72, paddingTop: 12 },
   attSheetScroll: { gap: 10, paddingBottom: 16 },
 
-  timePicker: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    backgroundColor: '#F2F2F7',
-    borderRadius: 10,
-    paddingVertical: 8,
-    gap: 16,
-  },
-  timeUnit: { alignItems: 'center', gap: 4 },
-  timeBtn: { padding: 6 },
-  timeValue: { fontSize: 28, fontWeight: '600', color: '#1C1C1E', minWidth: 44, textAlign: 'center' },
-  timeColon: { fontSize: 28, fontWeight: '600', color: '#1C1C1E', marginBottom: 4 },
 
   // 科目情報カード
   infoCard: {
