@@ -5,7 +5,7 @@ export interface AssignmentWithClass {
   id: string;
   class_id: string;
   title: string;
-  due_date: string;
+  due_date: string | null;
   is_submitted: boolean;
   created_at: string;
   classes: {

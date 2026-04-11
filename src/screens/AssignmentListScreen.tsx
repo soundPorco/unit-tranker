@@ -35,6 +35,8 @@ function groupAssignments(list: AssignmentWithClass[]): {
   for (const a of list) {
     if (a.is_submitted) {
       doneList.push(a);
+    } else if (!a.due_date) {
+      laterList.push(a);
     } else if (a.due_date < today) {
       overdue.push(a);
     } else if (a.due_date === today) {
@@ -79,8 +81,8 @@ export function AssignmentListScreen() {
 
   const sections = useMemo(() => groupAssignments(filtered), [filtered]);
 
-  const pendingCount = assignments.filter(a => !a.is_submitted && a.due_date >= today).length;
-  const overdueCount = assignments.filter(a => !a.is_submitted && a.due_date < today).length;
+  const pendingCount = assignments.filter(a => !a.is_submitted && (!a.due_date || a.due_date >= today)).length;
+  const overdueCount = assignments.filter(a => !a.is_submitted && !!a.due_date && a.due_date < today).length;
 
   const handleDelete = (item: AssignmentWithClass) => {
     Alert.alert('削除', `「${item.title}」を削除しますか？`, [
@@ -190,16 +192,18 @@ export function AssignmentListScreen() {
                       </View>
                     )}
                     {/* 締切日 */}
-                    <View style={s.dueDateRow}>
-                      <Ionicons
-                        name="time-outline"
-                        size={11}
-                        color={URGENCY_COLOR[section.urgency]}
-                      />
-                      <Text style={[s.dueDate, { color: URGENCY_COLOR[section.urgency] }]}>
-                        {item.due_date}
-                      </Text>
-                    </View>
+                    {item.due_date && (
+                      <View style={s.dueDateRow}>
+                        <Ionicons
+                          name="time-outline"
+                          size={11}
+                          color={URGENCY_COLOR[section.urgency]}
+                        />
+                        <Text style={[s.dueDate, { color: URGENCY_COLOR[section.urgency] }]}>
+                          {item.due_date}
+                        </Text>
+                      </View>
+                    )}
                   </View>
                 </View>
 

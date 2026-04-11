@@ -20,6 +20,7 @@ export function CalendarScreen() {
   // 課題日付 → カレンダーマーキング
   const markedDates: Record<string, any> = {};
   assignments.forEach(a => {
+    if (!a.due_date) return;
     const existing = markedDates[a.due_date];
     markedDates[a.due_date] = {
       dots: [
@@ -136,7 +137,7 @@ export function CalendarScreen() {
 }
 
 function AssignmentRow({ item, isLast }: { item: Assignment; isLast: boolean }) {
-  const isOverdue = !item.is_submitted && item.due_date < today;
+  const isOverdue = !item.is_submitted && !!item.due_date && item.due_date < today;
 
   return (
     <View style={[s.row, !isLast && s.rowBorder]}>

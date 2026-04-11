@@ -17,7 +17,7 @@ export function useAssignments(classId?: string) {
 
   useEffect(() => { fetch(); }, [fetch]);
 
-  const addAssignment = async (input: { title: string; due_date: string; due_time?: string; memo?: string; class_id?: string }) => {
+  const addAssignment = async (input: { title: string; due_date?: string; due_time?: string; memo?: string; class_id?: string }) => {
     const { data: { user } } = await supabase.auth.getUser();
     const { error } = await supabase.from('assignments').insert({
       ...input,

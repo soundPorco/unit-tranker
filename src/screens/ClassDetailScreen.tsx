@@ -184,6 +184,7 @@ export function ClassDetailScreen() {
 
   const [showAddAsg, setShowAddAsg] = useState(false);
   const [newTitle, setNewTitle] = useState('');
+  const [newDueEnabled, setNewDueEnabled] = useState(false);
   const [newDue, setNewDue] = useState(today);
   const [newMemo, setNewMemo] = useState('');
   const [showAsgCalendar, setShowAsgCalendar] = useState(false);
@@ -243,8 +244,8 @@ export function ClassDetailScreen() {
     const due_time = newTimeEnabled
       ? `${String(newHour).padStart(2, '0')}:${String(newMinute).padStart(2, '0')}`
       : undefined;
-    await addAssignment({ title: newTitle.trim(), due_date: newDue, due_time, memo: newMemo.trim() || undefined, class_id: classId });
-    setNewTitle(''); setNewDue(today); setNewMemo(''); setNewTimeEnabled(false); setNewHour(23); setNewMinute(59); setShowAddAsg(false);
+    await addAssignment({ title: newTitle.trim(), due_date: newDueEnabled ? newDue : undefined, due_time, memo: newMemo.trim() || undefined, class_id: classId });
+    setNewTitle(''); setNewDueEnabled(false); setNewDue(today); setNewMemo(''); setNewTimeEnabled(false); setNewHour(23); setNewMinute(59); setShowAddAsg(false);
   };
 
   const openEditAttendance = (r: Attendance) => {
@@ -519,7 +520,7 @@ export function ClassDetailScreen() {
 
       {/* 課題追加モーダル */}
       <Modal visible={showAddAsg} transparent animationType="slide">
-        <AnimatedPressable style={[s.overlay, { paddingBottom: kbOffset }]} onPress={() => { setShowAddAsg(false); setShowAsgCalendar(false); setNewMemo(''); }}>
+        <AnimatedPressable style={[s.overlay, { paddingBottom: kbOffset }]} onPress={() => { setShowAddAsg(false); setNewDueEnabled(false); setShowAsgCalendar(false); setNewTimeEnabled(false); setNewMemo(''); }}>
           <Pressable style={s.attSheet} onPress={e => e.stopPropagation()}>
             <View style={s.sheetHandle} />
             <ScrollView
@@ -537,20 +538,41 @@ export function ClassDetailScreen() {
                 placeholder="例：レポート第3回"
                 placeholderTextColor="#C7C7CC"
               />
-              <Text style={s.sheetLabel}>締切日</Text>
+              <Text style={s.sheetLabel}>締切日（任意）</Text>
               <TouchableOpacity
                 style={s.datePicker}
-                onPress={() => setShowAsgCalendar(v => !v)}
+                onPress={() => {
+                  if (!newDueEnabled) {
+                    setNewDueEnabled(true);
+                    setShowAsgCalendar(true);
+                  } else {
+                    setShowAsgCalendar(v => !v);
+                  }
+                }}
               >
                 <Ionicons name="calendar-outline" size={16} color="#007AFF" />
-                <Text style={s.datePickerText}>{formatDate(newDue)}</Text>
-                <Ionicons
-                  name={showAsgCalendar ? 'chevron-up' : 'chevron-down'}
-                  size={14}
-                  color="#8E8E93"
-                />
+                <Text style={s.datePickerText}>
+                  {newDueEnabled ? formatDate(newDue) : '設定しない'}
+                </Text>
+                {newDueEnabled ? (
+                  <>
+                    <Ionicons
+                      name={showAsgCalendar ? 'chevron-up' : 'chevron-down'}
+                      size={14}
+                      color="#8E8E93"
+                    />
+                    <TouchableOpacity
+                      onPress={() => { setNewDueEnabled(false); setShowAsgCalendar(false); }}
+                      hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+                    >
+                      <Ionicons name="close-circle" size={16} color="#C7C7CC" />
+                    </TouchableOpacity>
+                  </>
+                ) : (
+                  <Ionicons name="chevron-down" size={14} color="#8E8E93" />
+                )}
               </TouchableOpacity>
-              {showAsgCalendar && (
+              {newDueEnabled && showAsgCalendar && (
                 <Calendar
                   current={newDue}
                   onDayPress={(day: { dateString: string }) => {
