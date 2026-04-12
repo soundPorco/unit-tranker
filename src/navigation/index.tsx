@@ -12,6 +12,7 @@ import { AssignmentListScreen } from '../screens/AssignmentListScreen';
 import { GradeListScreen } from '../screens/GradeListScreen';
 import { ClassDetailScreen } from '../screens/ClassDetailScreen';
 import { AttendanceListScreen } from '../screens/AttendanceListScreen';
+import { ClassAssignmentListScreen } from '../screens/ClassAssignmentListScreen';
 import { SettingsScreen } from '../screens/SettingsScreen';
 
 import { RootTabParamList, TimetableStackParamList, GradeStackParamList } from '../types';
@@ -57,6 +58,15 @@ function GradeNavigator() {
         component={AttendanceListScreen}
         options={{
           title: '出席一覧',
+          headerTintColor: '#007AFF',
+          headerStyle: { backgroundColor: '#F2F2F7' },
+        }}
+      />
+      <GradeStack.Screen
+        name="AssignmentList"
+        component={ClassAssignmentListScreen}
+        options={{
+          title: '課題一覧',
           headerTintColor: '#007AFF',
           headerStyle: { backgroundColor: '#F2F2F7' },
         }}

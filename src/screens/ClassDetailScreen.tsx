@@ -469,61 +469,71 @@ export function ClassDetailScreen() {
             )}
           </View>
 
-          {/* 課題リスト */}
-          <Text style={s.sectionLabel}>課題一覧</Text>
-          <View style={s.card}>
-            {assignments.length === 0 ? (
-              <View style={s.asgEmptyContainer}>
-                <Ionicons name="document-text-outline" size={36} color="#C7C7CC" />
-                <Text style={s.emptyText}>課題が登録されていません</Text>
-              </View>
-            ) : (
-              assignments.map((item, idx) => {
-                const isOverdue = !item.is_submitted && !!item.due_date && item.due_date < today;
-                const isToday = !item.is_submitted && item.due_date === today;
-                const dueColor = item.is_submitted ? '#8E8E93' : isOverdue ? '#FF3B30' : isToday ? '#007AFF' : '#8E8E93';
-                return (
-                  <View key={item.id} style={[s.listRow, idx < assignments.length - 1 && s.listRowBorder]}>
-                    <TouchableOpacity
-                      style={[s.checkbox, item.is_submitted && s.checkboxDone]}
-                      onPress={() => toggleSubmitted(item.id, item.is_submitted)}
-                    >
-                      {item.is_submitted && (
-                        <Ionicons name="checkmark" size={13} color="#fff" />
-                      )}
-                    </TouchableOpacity>
-                    <View style={s.asgInfo}>
-                      <Text style={[s.asgTitle, item.is_submitted && s.strikethrough]} numberOfLines={2}>
-                        {item.title}
-                      </Text>
-                      {item.due_date ? (
-                        <View style={s.asgDueRow}>
-                          <Ionicons name="time-outline" size={11} color={dueColor} />
-                          <Text style={[s.asgDue, { color: dueColor }]}>
-                            {isOverdue ? '期限切れ · ' : isToday ? '今日 · ' : ''}{item.due_date}
-                          </Text>
-                        </View>
-                      ) : (
-                        <Text style={s.asgNoDue}>締切なし</Text>
-                      )}
-                      {item.memo ? (
-                        <Text style={s.asgMemo} numberOfLines={1}>{item.memo}</Text>
-                      ) : null}
-                    </View>
-                    <TouchableOpacity
-                      onPress={() => Alert.alert('削除', `「${item.title}」を削除しますか？`, [
-                        { text: 'キャンセル', style: 'cancel' },
-                        { text: '削除', style: 'destructive', onPress: () => deleteAssignment(item.id) },
-                      ])}
-                      hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
-                    >
-                      <Ionicons name="trash-outline" size={16} color="#C7C7CC" />
-                    </TouchableOpacity>
+          {/* 課題リスト（未提出のみ） */}
+          <Text style={s.sectionLabel}>未提出の課題</Text>
+          {(() => {
+            const pending = assignments.filter(a => !a.is_submitted);
+            return (
+              <View style={s.card}>
+                {pending.length === 0 ? (
+                  <View style={s.asgEmptyContainer}>
+                    <Ionicons name="checkmark-circle-outline" size={36} color="#C7C7CC" />
+                    <Text style={s.emptyText}>未提出の課題はありません</Text>
                   </View>
-                );
-              })
-            )}
-          </View>
+                ) : (
+                  pending.map((item, idx) => {
+                    const isOverdue = !!item.due_date && item.due_date < today;
+                    const isToday = item.due_date === today;
+                    const dueColor = isOverdue ? '#FF3B30' : isToday ? '#007AFF' : '#8E8E93';
+                    return (
+                      <View key={item.id} style={[s.listRow, idx < pending.length - 1 && s.listRowBorder]}>
+                        <TouchableOpacity
+                          style={s.checkbox}
+                          onPress={() => toggleSubmitted(item.id, item.is_submitted)}
+                        >
+                        </TouchableOpacity>
+                        <View style={s.asgInfo}>
+                          <Text style={s.asgTitle} numberOfLines={2}>{item.title}</Text>
+                          {item.due_date ? (
+                            <View style={s.asgDueRow}>
+                              <Ionicons name="time-outline" size={11} color={dueColor} />
+                              <Text style={[s.asgDue, { color: dueColor }]}>
+                                {isOverdue ? '期限切れ · ' : isToday ? '今日 · ' : ''}{item.due_date}
+                              </Text>
+                            </View>
+                          ) : (
+                            <Text style={s.asgNoDue}>締切なし</Text>
+                          )}
+                          {item.memo ? (
+                            <Text style={s.asgMemo} numberOfLines={1}>{item.memo}</Text>
+                          ) : null}
+                        </View>
+                        <TouchableOpacity
+                          onPress={() => Alert.alert('削除', `「${item.title}」を削除しますか？`, [
+                            { text: 'キャンセル', style: 'cancel' },
+                            { text: '削除', style: 'destructive', onPress: () => deleteAssignment(item.id) },
+                          ])}
+                          hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+                        >
+                          <Ionicons name="trash-outline" size={16} color="#C7C7CC" />
+                        </TouchableOpacity>
+                      </View>
+                    );
+                  })
+                )}
+                {assignments.length > 0 && (
+                  <TouchableOpacity
+                    style={s.listAllPill}
+                    onPress={() => navigation.navigate('AssignmentList', { classId, className })}
+                    activeOpacity={0.7}
+                  >
+                    <Text style={s.listAllPillText}>一覧を見る（{assignments.length}件）</Text>
+                    <Ionicons name="chevron-forward" size={12} color="#6C6C70" />
+                  </TouchableOpacity>
+                )}
+              </View>
+            );
+          })()}
 
           {/* 追加ボタン */}
           <TouchableOpacity
