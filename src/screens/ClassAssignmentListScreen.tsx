@@ -157,7 +157,7 @@ export function ClassAssignmentListScreen() {
                       activeOpacity={0.6}
                     >
                       <View style={s.itemBody}>
-                        <Text style={[s.itemTitle, item.is_submitted && s.strikethrough]} numberOfLines={2}>
+                        <Text style={[s.itemTitle, item.is_submitted && s.itemTitleDone]} numberOfLines={2}>
                           {item.title}
                         </Text>
                         {item.due_date ? (
@@ -338,6 +338,7 @@ const s = StyleSheet.create({
 
   itemBody: { flex: 1, gap: 4 },
   itemTitle: { fontSize: 15, fontWeight: '500', color: '#1C1C1E', lineHeight: 20 },
+  itemTitleDone: { color: '#8E8E93' },
   strikethrough: { textDecorationLine: 'line-through', color: '#C7C7CC' },
 
   dueDateRow: { flexDirection: 'row', alignItems: 'center', gap: 4 },
