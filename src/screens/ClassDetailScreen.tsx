@@ -438,20 +438,50 @@ export function ClassDetailScreen() {
 
       {activeTab === 'assignment' && (
         <ScrollView contentContainerStyle={s.tabContent} showsVerticalScrollIndicator={false} automaticallyAdjustContentInsets={false}>
-          <View style={s.listHeader}>
-            <Text style={s.sectionLabel}>課題一覧 ({asgStats.submitted}/{asgStats.total})</Text>
-            <TouchableOpacity onPress={() => setShowAddAsg(true)} style={s.addBtn}>
-              <Ionicons name="add" size={16} color="#007AFF" />
-              <Text style={s.addBtnText}>追加</Text>
-            </TouchableOpacity>
+          {/* サマリーカード */}
+          <View style={s.asgSummaryCard}>
+            <View style={s.asgSummaryRow}>
+              <View style={s.asgSummaryBlock}>
+                <Text style={[s.asgSummaryNum, { color: '#007AFF' }]}>{asgStats.submitted}</Text>
+                <Text style={s.asgSummaryLbl}>提出済み</Text>
+              </View>
+              <View style={s.asgSummaryDivider} />
+              <View style={s.asgSummaryBlock}>
+                <Text style={[s.asgSummaryNum, { color: '#1C1C1E' }]}>{asgStats.total - asgStats.submitted}</Text>
+                <Text style={s.asgSummaryLbl}>未提出</Text>
+              </View>
+              <View style={s.asgSummaryDivider} />
+              <View style={s.asgSummaryBlock}>
+                <Text style={s.asgSummaryNum}>{asgStats.total}</Text>
+                <Text style={s.asgSummaryLbl}>合計</Text>
+              </View>
+            </View>
+            {asgStats.total > 0 && (
+              <>
+                <View style={s.asgSummarySep} />
+                <View style={s.asgProgressRow}>
+                  <View style={s.asgProgressTrack}>
+                    <View style={[s.asgProgressFill, { width: `${asgStats.rate}%` as any, backgroundColor: '#007AFF' }]} />
+                  </View>
+                  <Text style={[s.asgProgressLabel, { color: '#007AFF' }]}>{asgStats.rate}%</Text>
+                </View>
+              </>
+            )}
           </View>
 
+          {/* 課題リスト */}
+          <Text style={s.sectionLabel}>課題一覧</Text>
           <View style={s.card}>
             {assignments.length === 0 ? (
-              <Text style={s.emptyText}>課題が登録されていません</Text>
+              <View style={s.asgEmptyContainer}>
+                <Ionicons name="document-text-outline" size={36} color="#C7C7CC" />
+                <Text style={s.emptyText}>課題が登録されていません</Text>
+              </View>
             ) : (
               assignments.map((item, idx) => {
-                const isOverdue = !item.is_submitted && item.due_date < today;
+                const isOverdue = !item.is_submitted && !!item.due_date && item.due_date < today;
+                const isToday = !item.is_submitted && item.due_date === today;
+                const dueColor = item.is_submitted ? '#8E8E93' : isOverdue ? '#FF3B30' : isToday ? '#007AFF' : '#8E8E93';
                 return (
                   <View key={item.id} style={[s.listRow, idx < assignments.length - 1 && s.listRowBorder]}>
                     <TouchableOpacity
@@ -463,12 +493,22 @@ export function ClassDetailScreen() {
                       )}
                     </TouchableOpacity>
                     <View style={s.asgInfo}>
-                      <Text style={[s.asgTitle, item.is_submitted && s.strikethrough]} numberOfLines={1}>
+                      <Text style={[s.asgTitle, item.is_submitted && s.strikethrough]} numberOfLines={2}>
                         {item.title}
                       </Text>
-                      <Text style={[s.asgDue, isOverdue && { color: '#FF3B30' }]}>
-                        {isOverdue ? '期限切れ · ' : ''}{item.due_date}
-                      </Text>
+                      {item.due_date ? (
+                        <View style={s.asgDueRow}>
+                          <Ionicons name="time-outline" size={11} color={dueColor} />
+                          <Text style={[s.asgDue, { color: dueColor }]}>
+                            {isOverdue ? '期限切れ · ' : isToday ? '今日 · ' : ''}{item.due_date}
+                          </Text>
+                        </View>
+                      ) : (
+                        <Text style={s.asgNoDue}>締切なし</Text>
+                      )}
+                      {item.memo ? (
+                        <Text style={s.asgMemo} numberOfLines={1}>{item.memo}</Text>
+                      ) : null}
                     </View>
                     <TouchableOpacity
                       onPress={() => Alert.alert('削除', `「${item.title}」を削除しますか？`, [
@@ -484,6 +524,15 @@ export function ClassDetailScreen() {
               })
             )}
           </View>
+
+          {/* 追加ボタン */}
+          <TouchableOpacity
+            onPress={() => setShowAddAsg(true)}
+            style={s.registerBtn}
+          >
+            <Ionicons name="add-circle-outline" size={18} color="#FFFFFF" />
+            <Text style={s.registerBtnText}>課題を追加する</Text>
+          </TouchableOpacity>
         </ScrollView>
       )}
 
@@ -858,17 +907,57 @@ const s = StyleSheet.create({
     borderTopColor: '#E5E5EA',
   },
 
+  // 課題サマリーカード
+  asgSummaryCard: {
+    backgroundColor: '#FFFFFF',
+    borderRadius: 12,
+    overflow: 'hidden',
+    paddingHorizontal: 16,
+    paddingVertical: 20,
+    gap: 14,
+  },
+  asgSummaryRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-around',
+  },
+  asgSummaryBlock: { flex: 1, alignItems: 'center', gap: 4 },
+  asgSummaryNum: { fontSize: 28, fontWeight: '700', color: '#1C1C1E' },
+  asgSummaryLbl: { fontSize: 12, color: '#8E8E93' },
+  asgSummaryDivider: { width: 0.5, height: 44, backgroundColor: '#E5E5EA' },
+  asgSummarySep: { height: 0.5, backgroundColor: '#E5E5EA', marginHorizontal: -16 },
+  asgProgressRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 10,
+    paddingTop: 2,
+  },
+  asgProgressTrack: {
+    flex: 1, height: 6, borderRadius: 3,
+    backgroundColor: '#E5E5EA', overflow: 'hidden',
+  },
+  asgProgressFill: { height: 6, borderRadius: 3 },
+  asgProgressLabel: { fontSize: 13, fontWeight: '700', width: 36, textAlign: 'right' },
+  asgEmptyContainer: {
+    alignItems: 'center',
+    paddingVertical: 24,
+    gap: 8,
+  },
+  asgDueRow: { flexDirection: 'row', alignItems: 'center', gap: 4, marginTop: 3 },
+  asgNoDue: { fontSize: 12, color: '#C7C7CC', marginTop: 3 },
+  asgMemo: { fontSize: 12, color: '#8E8E93', marginTop: 2 },
+
   // 課題
   checkbox: {
-    width: 22, height: 22, borderRadius: 11,
+    width: 24, height: 24, borderRadius: 12,
     borderWidth: 2, borderColor: '#C7C7CC',
     alignItems: 'center', justifyContent: 'center',
   },
-  checkboxDone: { backgroundColor: '#34C759', borderColor: '#34C759' },
+  checkboxDone: { backgroundColor: '#007AFF', borderColor: '#007AFF' },
   asgInfo: { flex: 1 },
   asgTitle: { fontSize: 15, color: '#1C1C1E', fontWeight: '500' },
   strikethrough: { textDecorationLine: 'line-through', color: '#C7C7CC' },
-  asgDue: { fontSize: 12, color: '#8E8E93', marginTop: 2 },
+  asgDue: { fontSize: 12, fontWeight: '500' },
 
   // メモ
   noteInput: {
