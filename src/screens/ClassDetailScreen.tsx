@@ -472,7 +472,7 @@ export function ClassDetailScreen() {
           {/* 課題リスト（未提出のみ） */}
           <Text style={s.sectionLabel}>未提出の課題</Text>
           {(() => {
-            const pending = assignments.filter(a => !a.is_submitted);
+            const pending = assignments.filter(a => !a.is_submitted && (!a.due_date || a.due_date >= today));
             return (
               <View style={s.card}>
                 {pending.length === 0 ? (
