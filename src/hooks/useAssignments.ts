@@ -38,7 +38,7 @@ export function useAssignments(classId?: string) {
     return error;
   };
 
-  const updateAssignment = async (id: string, input: { title: string; due_date?: string | null; memo?: string | null }) => {
+  const updateAssignment = async (id: string, input: { title: string; due_date?: string | null; memo?: string | null; is_submitted?: boolean }) => {
     const { error } = await supabase.from('assignments').update(input).eq('id', id);
     if (!error) await fetch();
     return error;

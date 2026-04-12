@@ -63,6 +63,7 @@ export function ClassAssignmentListScreen() {
   const [editDueEnabled, setEditDueEnabled] = useState(false);
   const [editDue, setEditDue] = useState(today);
   const [editMemo, setEditMemo] = useState('');
+  const [editSubmitted, setEditSubmitted] = useState(false);
   const [showCalendar, setShowCalendar] = useState(false);
 
   const kbOffset = useRef(new Animated.Value(0)).current;
@@ -84,6 +85,7 @@ export function ClassAssignmentListScreen() {
     setEditDueEnabled(!!item.due_date);
     setEditDue(item.due_date ?? today);
     setEditMemo(item.memo ?? '');
+    setEditSubmitted(item.is_submitted);
     setShowCalendar(false);
   };
 
@@ -99,6 +101,7 @@ export function ClassAssignmentListScreen() {
       title: editTitle.trim(),
       due_date: editDueEnabled ? editDue : null,
       memo: editMemo.trim() || null,
+      is_submitted: editSubmitted,
     });
     closeEdit();
   };
@@ -246,6 +249,26 @@ export function ClassAssignmentListScreen() {
                 />
               )}
 
+              <Text style={s.sheetLabel}>ステータス</Text>
+              <View style={s.statusRow}>
+                {([false, true] as const).map(val => (
+                  <TouchableOpacity
+                    key={String(val)}
+                    style={[s.statusBtn, editSubmitted === val && s.statusBtnActive]}
+                    onPress={() => setEditSubmitted(val)}
+                  >
+                    <Ionicons
+                      name={val ? 'checkmark-circle' : 'ellipse-outline'}
+                      size={16}
+                      color={editSubmitted === val ? '#FFFFFF' : '#8E8E93'}
+                    />
+                    <Text style={[s.statusBtnText, editSubmitted === val && s.statusBtnTextActive]}>
+                      {val ? '提出済み' : '未提出'}
+                    </Text>
+                  </TouchableOpacity>
+                ))}
+              </View>
+
               <Text style={s.sheetLabel}>メモ（任意）</Text>
               <TextInput
                 style={[s.sheetInput, s.memoInput]}
@@ -369,6 +392,21 @@ const s = StyleSheet.create({
     marginTop: 6,
   },
   saveBtnText: { color: '#FFFFFF', fontSize: 16, fontWeight: '600' },
+  statusRow: { flexDirection: 'row', gap: 8 },
+  statusBtn: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 6,
+    paddingVertical: 10,
+    borderRadius: 10,
+    backgroundColor: '#F2F2F7',
+  },
+  statusBtnActive: { backgroundColor: '#007AFF' },
+  statusBtnText: { fontSize: 14, color: '#8E8E93', fontWeight: '500' },
+  statusBtnTextActive: { color: '#FFFFFF', fontWeight: '600' },
+
   deleteBtn: {
     flexDirection: 'row',
     alignItems: 'center',
