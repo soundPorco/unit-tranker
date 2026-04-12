@@ -38,6 +38,12 @@ export function useAssignments(classId?: string) {
     return error;
   };
 
+  const updateAssignment = async (id: string, input: { title: string; due_date?: string | null; memo?: string | null }) => {
+    const { error } = await supabase.from('assignments').update(input).eq('id', id);
+    if (!error) await fetch();
+    return error;
+  };
+
   const deleteAssignment = async (id: string) => {
     const { error } = await supabase.from('assignments').delete().eq('id', id);
     if (!error) await fetch();
@@ -52,5 +58,5 @@ export function useAssignments(classId?: string) {
     ),
   };
 
-  return { assignments, loading, refetch: fetch, addAssignment, toggleSubmitted, deleteAssignment, stats };
+  return { assignments, loading, refetch: fetch, addAssignment, toggleSubmitted, updateAssignment, deleteAssignment, stats };
 }
