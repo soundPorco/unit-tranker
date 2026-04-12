@@ -42,8 +42,8 @@ function buildSections(assignments: Assignment[]): Section[] {
   }
 
   return ([
-    { title: '期限切れ', color: '#FF3B30', dotColor: '#FF3B30', items: overdue   },
     { title: '未提出',   color: '#007AFF', dotColor: '#007AFF', items: pending   },
+    { title: '期限切れ', color: '#FF3B30', dotColor: '#FF3B30', items: overdue   },
     { title: '提出済み', color: '#8E8E93', dotColor: '#8E8E93', items: submitted },
   ]).filter(s => s.items.length > 0);
 }
@@ -52,7 +52,7 @@ export function ClassAssignmentListScreen() {
   const route = useRoute<Route>();
   const { classId } = route.params;
 
-  const { assignments, loading, toggleSubmitted, deleteAssignment } = useAssignments(classId);
+  const { assignments, loading, deleteAssignment } = useAssignments(classId);
 
   if (loading) {
     return (
@@ -91,16 +91,6 @@ export function ClassAssignmentListScreen() {
 
                   return (
                     <View key={item.id} style={[s.listRow, idx < section.items.length - 1 && s.listRowBorder]}>
-                      {/* チェックボックス */}
-                      <TouchableOpacity
-                        style={[s.checkbox, item.is_submitted && s.checkboxDone]}
-                        onPress={() => toggleSubmitted(item.id, item.is_submitted)}
-                      >
-                        {item.is_submitted && (
-                          <Ionicons name="checkmark" size={13} color="#fff" />
-                        )}
-                      </TouchableOpacity>
-
                       {/* コンテンツ */}
                       <View style={s.itemBody}>
                         <Text style={[s.itemTitle, item.is_submitted && s.strikethrough]} numberOfLines={2}>
