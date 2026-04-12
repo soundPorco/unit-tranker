@@ -19,14 +19,14 @@ export function useAssignments(classId?: string) {
 
   const addAssignment = async (input: { title: string; due_date?: string; memo?: string; class_id?: string }) => {
     const { data: { user } } = await supabase.auth.getUser();
-    const { error } = await supabase.from('assignments').insert({
+    const { data, error } = await supabase.from('assignments').insert({
       ...input,
       class_id: input.class_id ?? classId,
       user_id: user?.id ?? null,
       is_submitted: false,
-    });
+    }).select('id').single();
     if (!error) await fetch();
-    return error;
+    return { error, id: (data as { id: string } | null)?.id ?? null };
   };
 
   const toggleSubmitted = async (id: string, current: boolean) => {

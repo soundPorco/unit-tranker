@@ -14,6 +14,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { useAttendance } from '../hooks/useAttendance';
 import { useAssignments } from '../hooks/useAssignments';
 import { supabase } from '../lib/supabase';
+import { scheduleAssignmentNotification } from '../lib/notifications';
 import { AttendanceButton } from '../components/AttendanceButton';
 import { GradeStackParamList, Attendance, AttendanceStatus, Note, Class, ClassType, ExamType } from '../types';
 
@@ -187,6 +188,7 @@ export function ClassDetailScreen() {
   const [newDueEnabled, setNewDueEnabled] = useState(false);
   const [newDue, setNewDue] = useState(today);
   const [newMemo, setNewMemo] = useState('');
+  const [newNotify, setNewNotify] = useState(false);
   const [showAsgCalendar, setShowAsgCalendar] = useState(false);
 
   const [showAddAtt, setShowAddAtt] = useState(false);
@@ -238,8 +240,11 @@ export function ClassDetailScreen() {
 
   const handleAddAssignment = async () => {
     if (!newTitle.trim()) { Alert.alert('エラー', 'タイトルを入力してください'); return; }
-    await addAssignment({ title: newTitle.trim(), due_date: newDueEnabled ? newDue : undefined, memo: newMemo.trim() || undefined, class_id: classId });
-    setNewTitle(''); setNewDueEnabled(false); setNewDue(today); setNewMemo(''); setShowAddAsg(false);
+    const { error, id } = await addAssignment({ title: newTitle.trim(), due_date: newDueEnabled ? newDue : undefined, memo: newMemo.trim() || undefined, class_id: classId });
+    if (!error && id && newNotify && newDueEnabled) {
+      await scheduleAssignmentNotification(id, newTitle.trim(), newDue);
+    }
+    setNewTitle(''); setNewDueEnabled(false); setNewDue(today); setNewMemo(''); setNewNotify(false); setShowAddAsg(false);
   };
 
   const openEditAttendance = (r: Attendance) => {
@@ -653,6 +658,19 @@ export function ClassDetailScreen() {
                 multiline
                 textAlignVertical="top"
               />
+              {newDueEnabled && (
+                <TouchableOpacity
+                  style={s.notifyRow}
+                  onPress={() => setNewNotify(v => !v)}
+                  activeOpacity={0.7}
+                >
+                  <Ionicons name="notifications-outline" size={18} color={newNotify ? '#007AFF' : '#8E8E93'} />
+                  <Text style={[s.notifyLabel, newNotify && s.notifyLabelActive]}>締切日に通知する</Text>
+                  <View style={[s.toggle, newNotify && s.toggleActive]}>
+                    <View style={[s.toggleThumb, newNotify && s.toggleThumbActive]} />
+                  </View>
+                </TouchableOpacity>
+              )}
               <TouchableOpacity style={s.sheetConfirmBtn} onPress={handleAddAssignment}>
                 <Text style={s.sheetConfirmText}>追加</Text>
               </TouchableOpacity>
@@ -1054,6 +1072,31 @@ const s = StyleSheet.create({
   attMemoInput: { minHeight: 72, paddingTop: 12 },
   attSheetScroll: { gap: 10, paddingBottom: 16 },
 
+
+  // 通知トグル
+  notifyRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 10,
+    backgroundColor: '#F2F2F7',
+    borderRadius: 10,
+    padding: 12,
+  },
+  notifyLabel: { flex: 1, fontSize: 15, color: '#8E8E93' },
+  notifyLabelActive: { color: '#007AFF' },
+  toggle: {
+    width: 44, height: 26, borderRadius: 13,
+    backgroundColor: '#E5E5EA',
+    justifyContent: 'center',
+    paddingHorizontal: 2,
+  },
+  toggleActive: { backgroundColor: '#007AFF' },
+  toggleThumb: {
+    width: 22, height: 22, borderRadius: 11,
+    backgroundColor: '#FFFFFF',
+    shadowColor: '#000', shadowOpacity: 0.15, shadowRadius: 2, shadowOffset: { width: 0, height: 1 },
+  },
+  toggleThumbActive: { alignSelf: 'flex-end' },
 
   // 科目情報カード
   infoCard: {

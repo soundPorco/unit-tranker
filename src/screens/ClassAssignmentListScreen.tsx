@@ -9,6 +9,7 @@ import { useRoute, RouteProp } from '@react-navigation/native';
 import { Ionicons } from '@expo/vector-icons';
 import { Calendar } from 'react-native-calendars';
 import { useAssignments } from '../hooks/useAssignments';
+import { scheduleAssignmentNotification, cancelAssignmentNotification, hasAssignmentNotification } from '../lib/notifications';
 import { GradeStackParamList, Assignment } from '../types';
 
 const AnimatedPressable = Animated.createAnimatedComponent(Pressable);
@@ -64,6 +65,7 @@ export function ClassAssignmentListScreen() {
   const [editDue, setEditDue] = useState(today);
   const [editMemo, setEditMemo] = useState('');
   const [editSubmitted, setEditSubmitted] = useState(false);
+  const [editNotify, setEditNotify] = useState(false);
   const [showCalendar, setShowCalendar] = useState(false);
 
   const kbOffset = useRef(new Animated.Value(0)).current;
@@ -79,7 +81,7 @@ export function ClassAssignmentListScreen() {
     return () => { onShow.remove(); onHide.remove(); };
   }, [kbOffset]);
 
-  const openEdit = (item: Assignment) => {
+  const openEdit = async (item: Assignment) => {
     setEditing(item);
     setEditTitle(item.title);
     setEditDueEnabled(!!item.due_date);
@@ -87,6 +89,8 @@ export function ClassAssignmentListScreen() {
     setEditMemo(item.memo ?? '');
     setEditSubmitted(item.is_submitted);
     setShowCalendar(false);
+    const hasNotif = await hasAssignmentNotification(item.id);
+    setEditNotify(hasNotif);
   };
 
   const closeEdit = () => {
@@ -103,6 +107,11 @@ export function ClassAssignmentListScreen() {
       memo: editMemo.trim() || null,
       is_submitted: editSubmitted,
     });
+    if (editNotify && editDueEnabled) {
+      await scheduleAssignmentNotification(editing.id, editTitle.trim(), editDue);
+    } else {
+      await cancelAssignmentNotification(editing.id);
+    }
     closeEdit();
   };
 
@@ -280,6 +289,20 @@ export function ClassAssignmentListScreen() {
                 textAlignVertical="top"
               />
 
+              {editDueEnabled && (
+                <TouchableOpacity
+                  style={s.notifyRow}
+                  onPress={() => setEditNotify(v => !v)}
+                  activeOpacity={0.7}
+                >
+                  <Ionicons name="notifications-outline" size={18} color={editNotify ? '#007AFF' : '#8E8E93'} />
+                  <Text style={[s.notifyLabel, editNotify && s.notifyLabelActive]}>締切日に通知する</Text>
+                  <View style={[s.toggle, editNotify && s.toggleActive]}>
+                    <View style={[s.toggleThumb, editNotify && s.toggleThumbActive]} />
+                  </View>
+                </TouchableOpacity>
+              )}
+
               <TouchableOpacity style={s.saveBtn} onPress={handleSave}>
                 <Text style={s.saveBtnText}>保存</Text>
               </TouchableOpacity>
@@ -407,6 +430,30 @@ const s = StyleSheet.create({
   statusBtnActive: { backgroundColor: '#007AFF' },
   statusBtnText: { fontSize: 14, color: '#8E8E93', fontWeight: '500' },
   statusBtnTextActive: { color: '#FFFFFF', fontWeight: '600' },
+
+  notifyRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 10,
+    backgroundColor: '#F2F2F7',
+    borderRadius: 10,
+    padding: 12,
+  },
+  notifyLabel: { flex: 1, fontSize: 15, color: '#8E8E93' },
+  notifyLabelActive: { color: '#007AFF' },
+  toggle: {
+    width: 44, height: 26, borderRadius: 13,
+    backgroundColor: '#E5E5EA',
+    justifyContent: 'center',
+    paddingHorizontal: 2,
+  },
+  toggleActive: { backgroundColor: '#007AFF' },
+  toggleThumb: {
+    width: 22, height: 22, borderRadius: 11,
+    backgroundColor: '#FFFFFF',
+    shadowColor: '#000', shadowOpacity: 0.15, shadowRadius: 2, shadowOffset: { width: 0, height: 1 },
+  },
+  toggleThumbActive: { alignSelf: 'flex-end' },
 
   deleteBtn: {
     flexDirection: 'row',
