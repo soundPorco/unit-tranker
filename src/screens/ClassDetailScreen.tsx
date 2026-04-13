@@ -769,9 +769,9 @@ const s = StyleSheet.create({
   // サマリー
   summary: {
     backgroundColor: '#FFFFFF',
-    paddingHorizontal: 20,
-    paddingVertical: 16,
-    gap: 8,
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    gap: 6,
     borderBottomWidth: 0.5,
     borderBottomColor: '#E5E5EA',
   },
