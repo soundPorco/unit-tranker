@@ -47,11 +47,7 @@ function GradeNavigator() {
       <GradeStack.Screen
         name="ClassDetail"
         component={ClassDetailScreen}
-        options={({ route }) => ({
-          title: route.params.className,
-          headerTintColor: '#007AFF',
-          headerStyle: { backgroundColor: '#F2F2F7' },
-        })}
+        options={{ headerShown: false }}
       />
       <GradeStack.Screen
         name="AttendanceList"

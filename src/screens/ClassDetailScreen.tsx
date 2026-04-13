@@ -7,7 +7,7 @@ import {
 
 const AnimatedPressable = Animated.createAnimatedComponent(Pressable);
 import { Calendar } from 'react-native-calendars';
-import { View as SafeAreaView } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRoute, RouteProp, useNavigation } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { Ionicons } from '@expo/vector-icons';
@@ -262,24 +262,33 @@ export function ClassDetailScreen() {
   const DAY_LABELS_SHORT = ['月', '火', '水', '木', '金', '土', '日'];
 
   return (
-    <SafeAreaView style={s.container}>
+    <SafeAreaView style={s.container} edges={['top']}>
+      {/* カスタムヘッダー */}
+      <View style={s.customHeader}>
+        <TouchableOpacity onPress={() => navigation.goBack()} hitSlop={8} style={s.backButton}>
+          <Ionicons name="chevron-back" size={26} color="#007AFF" />
+        </TouchableOpacity>
+        <Text style={s.headerTitle} numberOfLines={1}>{className}</Text>
+        <View style={s.backButton} />
+      </View>
+
       {/* サマリーカード */}
       <View style={s.summary}>
-        <Text style={s.summaryClassName} numberOfLines={2}>{className}</Text>
         {classInfo && (
           <View style={s.summaryMeta}>
             {timetable && (
-              <View style={s.metaPill}>
-                <Text style={s.metaPillText}>{timetable.academicYear}年度 {timetable.semester}</Text>
+              <View style={s.metaFlag}>
+                <Text style={s.metaFlagText}>{timetable.academicYear}年度 {timetable.semester}</Text>
               </View>
             )}
-            <View style={s.metaPill}>
-              <Text style={s.metaPillText}>
+            <View style={s.metaFlag}>
+              <Text style={s.metaFlagText}>
                 {DAY_LABELS_SHORT[classInfo.day_of_week]}曜{classInfo.period}限
               </Text>
             </View>
           </View>
         )}
+        <Text style={s.summaryClassName} numberOfLines={2}>{className}</Text>
       </View>
 
       {/* 科目情報カード */}
@@ -742,6 +751,17 @@ export function ClassDetailScreen() {
 const s = StyleSheet.create({
   container: { flex: 1, backgroundColor: '#F2F2F7' },
 
+  // カスタムヘッダー
+  customHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#F2F2F7',
+    paddingHorizontal: 8,
+    paddingVertical: 8,
+  },
+  backButton: { width: 36, alignItems: 'center' },
+  headerTitle: { flex: 1, textAlign: 'center', fontSize: 18, fontWeight: '700', color: '#1C1C1E' },
+
   // サマリー
   summary: {
     backgroundColor: '#FFFFFF',
@@ -751,15 +771,15 @@ const s = StyleSheet.create({
     borderBottomWidth: 0.5,
     borderBottomColor: '#E5E5EA',
   },
-  summaryClassName: { fontSize: 22, fontWeight: '700', color: '#1C1C1E', letterSpacing: 0.2 },
+  summaryClassName: { fontSize: 22, fontWeight: '700', color: '#1C1C1E', letterSpacing: 0.2, textAlign: 'center' },
   summaryMeta: { flexDirection: 'row', gap: 6, flexWrap: 'wrap' },
-  metaPill: {
-    backgroundColor: '#F2F2F7',
-    borderRadius: 8,
-    paddingHorizontal: 10,
-    paddingVertical: 4,
+  metaFlag: {
+    backgroundColor: '#3C3C43',
+    borderRadius: 4,
+    paddingHorizontal: 8,
+    paddingVertical: 3,
   },
-  metaPillText: { fontSize: 13, fontWeight: '500', color: '#3C3C43' },
+  metaFlagText: { fontSize: 11, fontWeight: '600', color: '#FFFFFF', letterSpacing: 0.3 },
   statBlock: { alignItems: 'center', gap: 2 },
   statNum: { fontSize: 18, fontWeight: '700', color: '#1C1C1E' },
   statLbl: { fontSize: 10, color: '#8E8E93' },
