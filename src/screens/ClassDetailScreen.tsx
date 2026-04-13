@@ -262,15 +262,18 @@ export function ClassDetailScreen() {
   const DAY_LABELS_SHORT = ['月', '火', '水', '木', '金', '土', '日'];
 
   return (
-    <SafeAreaView style={s.container} edges={['top']}>
-      {/* カスタムヘッダー */}
-      <View style={s.customHeader}>
-        <TouchableOpacity onPress={() => navigation.goBack()} hitSlop={8} style={s.backButton}>
-          <Ionicons name="chevron-back" size={26} color="#007AFF" />
-        </TouchableOpacity>
-        <Text style={s.headerTitle} numberOfLines={1}>{className}</Text>
-        <View style={s.backButton} />
-      </View>
+    <SafeAreaView style={s.container} edges={['bottom', 'left', 'right']}>
+      {/* カスタムヘッダー（上部セーフエリアを含めて白） */}
+      <SafeAreaView edges={['top']} style={s.headerSafeArea}>
+        <View style={s.customHeader}>
+          <TouchableOpacity onPress={() => navigation.goBack()} hitSlop={8} style={s.backButton}>
+            <Ionicons name="chevron-back" size={26} color="#007AFF" />
+          </TouchableOpacity>
+          <Text style={s.headerTitle} numberOfLines={1}>{className}</Text>
+          <View style={s.backButton} />
+        </View>
+      </SafeAreaView>
+      <View style={s.headerDivider} />
 
       {/* サマリーカード */}
       <View style={s.summary}>
@@ -288,7 +291,6 @@ export function ClassDetailScreen() {
             </View>
           </View>
         )}
-        <Text style={s.summaryClassName} numberOfLines={2}>{className}</Text>
       </View>
 
       {/* 科目情報カード */}
@@ -752,15 +754,17 @@ const s = StyleSheet.create({
   container: { flex: 1, backgroundColor: '#F2F2F7' },
 
   // カスタムヘッダー
+  headerSafeArea: { backgroundColor: '#FFFFFF' },
   customHeader: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#F2F2F7',
+    backgroundColor: '#FFFFFF',
     paddingHorizontal: 8,
     paddingVertical: 8,
   },
   backButton: { width: 36, alignItems: 'center' },
-  headerTitle: { flex: 1, textAlign: 'center', fontSize: 18, fontWeight: '700', color: '#1C1C1E' },
+  headerTitle: { flex: 1, textAlign: 'center', fontSize: 21, fontWeight: '700', color: '#1C1C1E' },
+  headerDivider: { height: 0.5, backgroundColor: '#E5E5EA' },
 
   // サマリー
   summary: {
