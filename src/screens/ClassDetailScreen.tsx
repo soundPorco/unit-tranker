@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import {
   View, Text, TextInput, TouchableOpacity, StyleSheet,
   ScrollView, Alert, ActivityIndicator, Modal, Pressable,
-  Animated, Keyboard, Platform,
+  Animated, Keyboard, Platform, KeyboardAvoidingView,
 } from 'react-native';
 
 const AnimatedPressable = Animated.createAnimatedComponent(Pressable);
@@ -164,6 +164,17 @@ export function ClassDetailScreen() {
   const [attStatus, setAttStatus] = useState<AttendanceStatus>('present');
   const [attMemo, setAttMemo] = useState('');
 
+  const [showEditClass, setShowEditClass] = useState(false);
+  const [editName, setEditName] = useState('');
+  const [editTeacher, setEditTeacher] = useState('');
+  const [editRoom, setEditRoom] = useState('');
+  const [editCredits, setEditCredits] = useState('');
+  const [editClassType, setEditClassType] = useState<ClassType | null>(null);
+  const [editExamDate, setEditExamDate] = useState('');
+  const [editShowExamCalendar, setEditShowExamCalendar] = useState(false);
+  const [editMemo, setEditMemo] = useState('');
+  const [editSaving, setEditSaving] = useState(false);
+
   const kbOffset = useRef(new Animated.Value(0)).current;
   useEffect(() => {
     const showEvent = Platform.OS === 'ios' ? 'keyboardWillShow' : 'keyboardDidShow';
@@ -213,6 +224,62 @@ export function ClassDetailScreen() {
       await scheduleAssignmentNotification(id, newTitle.trim(), newDue);
     }
     setNewTitle(''); setNewDueEnabled(false); setNewDue(today); setNewMemo(''); setNewNotify(false); setShowAddAsg(false);
+  };
+
+  const openEditClass = () => {
+    if (!classInfo) return;
+    setEditName(classInfo.name);
+    setEditTeacher(classInfo.teacher ?? '');
+    setEditRoom(classInfo.room ?? '');
+    setEditCredits(classInfo.credits?.toString() ?? '');
+    setEditClassType(classInfo.class_type);
+    setEditExamDate(classInfo.exam_date ?? '');
+    setEditShowExamCalendar(false);
+    setEditMemo(classInfo.memo ?? '');
+    setShowEditClass(true);
+  };
+
+  const handleSaveClass = async () => {
+    if (!editName.trim()) { Alert.alert('エラー', '講義名を入力してください'); return; }
+    const creditsNum = editCredits.trim() ? parseInt(editCredits.trim(), 10) : null;
+    if (editCredits.trim() && (isNaN(creditsNum!) || creditsNum! < 1 || creditsNum! > 10)) {
+      Alert.alert('エラー', '単位数は1〜10の数値を入力してください'); return;
+    }
+    setEditSaving(true);
+    const { error } = await supabase.from('classes').update({
+      name:       editName.trim(),
+      teacher:    editTeacher.trim() || null,
+      room:       editRoom.trim() || null,
+      credits:    creditsNum,
+      class_type: editClassType,
+      exam_date:  editExamDate.trim() || null,
+      memo:       editMemo.trim() || null,
+    }).eq('id', classId);
+    setEditSaving(false);
+    if (error) { Alert.alert('エラー', error.message); return; }
+    setClassInfo(prev => prev ? {
+      ...prev,
+      name:       editName.trim(),
+      teacher:    editTeacher.trim() || null,
+      room:       editRoom.trim() || null,
+      credits:    creditsNum,
+      class_type: editClassType,
+      exam_date:  editExamDate.trim() || null,
+      memo:       editMemo.trim() || null,
+    } : prev);
+    setShowEditClass(false);
+  };
+
+  const handleDeleteClass = () => {
+    Alert.alert('削除確認', `「${classInfo?.name}」を削除しますか？`, [
+      { text: 'キャンセル', style: 'cancel' },
+      {
+        text: '削除', style: 'destructive', onPress: async () => {
+          await supabase.from('classes').delete().eq('id', classId);
+          navigation.goBack();
+        },
+      },
+    ]);
   };
 
   const openEditAttendance = (r: Attendance) => {
@@ -270,7 +337,13 @@ export function ClassDetailScreen() {
             <Ionicons name="chevron-back" size={26} color="#007AFF" />
           </TouchableOpacity>
           <Text style={s.headerTitle} numberOfLines={1}>{className}</Text>
-          <View style={s.backButton} />
+          <TouchableOpacity
+            onPress={openEditClass}
+            hitSlop={8}
+            style={s.backButton}
+          >
+            <Ionicons name="ellipsis-horizontal" size={22} color="#007AFF" />
+          </TouchableOpacity>
         </View>
       </SafeAreaView>
       <View style={s.headerDivider} />
@@ -665,6 +738,139 @@ export function ClassDetailScreen() {
             </ScrollView>
           </Pressable>
         </AnimatedPressable>
+      </Modal>
+
+      {/* 講義編集モーダル */}
+      <Modal visible={showEditClass} animationType="slide">
+        <SafeAreaView style={s.editContainer}>
+          <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : undefined} style={{ flex: 1 }}>
+            {/* 編集ヘッダー */}
+            <View style={s.editHeader}>
+              <TouchableOpacity onPress={() => setShowEditClass(false)} hitSlop={8}>
+                <Text style={s.editHeaderCancel}>キャンセル</Text>
+              </TouchableOpacity>
+              <Text style={s.editHeaderTitle}>講義を編集</Text>
+              <TouchableOpacity onPress={handleSaveClass} disabled={editSaving} hitSlop={8}>
+                <Text style={[s.editHeaderSave, editSaving && { opacity: 0.4 }]}>
+                  {editSaving ? '保存中' : '保存'}
+                </Text>
+              </TouchableOpacity>
+            </View>
+
+            <ScrollView contentContainerStyle={s.editScroll} showsVerticalScrollIndicator={false}>
+              {/* 曜日・限数バナー */}
+              {classInfo && (
+                <View style={s.editBanner}>
+                  <Text style={s.editBannerText}>
+                    {['月','火','水','木','金','土','日'][classInfo.day_of_week]}曜 {classInfo.period}限
+                  </Text>
+                </View>
+              )}
+
+              {/* 基本情報 */}
+              <Text style={s.editSectionLabel}>基本情報</Text>
+              <View style={s.editCard}>
+                <View style={s.editRow}>
+                  <Text style={s.editRowLabel}>講義名 *</Text>
+                  <TextInput style={s.editTextInput} value={editName} onChangeText={setEditName} placeholder="例：微分積分学" placeholderTextColor="#C7C7CC" />
+                </View>
+                <View style={s.editDivider} />
+                <View style={s.editRow}>
+                  <Text style={s.editRowLabel}>教員名</Text>
+                  <TextInput style={s.editTextInput} value={editTeacher} onChangeText={setEditTeacher} placeholder="例：山田 太郎" placeholderTextColor="#C7C7CC" />
+                </View>
+                <View style={s.editDivider} />
+                <View style={s.editRow}>
+                  <Text style={s.editRowLabel}>教室</Text>
+                  <TextInput style={s.editTextInput} value={editRoom} onChangeText={setEditRoom} placeholder="例：A棟 201号室" placeholderTextColor="#C7C7CC" />
+                </View>
+              </View>
+
+              {/* 単位・区分 */}
+              <Text style={s.editSectionLabel}>単位・区分</Text>
+              <View style={s.editCard}>
+                <View style={s.editRow}>
+                  <Text style={s.editRowLabel}>単位数</Text>
+                  <TextInput style={[s.editTextInput, { width: 60, flex: 0 }]} value={editCredits} onChangeText={setEditCredits} placeholder="2" placeholderTextColor="#C7C7CC" keyboardType="number-pad" maxLength={2} />
+                </View>
+                <View style={s.editDivider} />
+                <View style={s.editVertRow}>
+                  <Text style={s.editRowLabel}>区分</Text>
+                  <View style={s.editSegment}>
+                    {([
+                      { value: 'required', label: '必修' },
+                      { value: 'elective_required', label: '選択必修' },
+                      { value: 'elective', label: '選択' },
+                    ] as { value: ClassType; label: string }[]).map(opt => (
+                      <TouchableOpacity
+                        key={opt.value}
+                        style={[s.editSegItem, editClassType === opt.value && s.editSegItemActive]}
+                        onPress={() => setEditClassType(opt.value)}
+                      >
+                        <Text style={[s.editSegText, editClassType === opt.value && s.editSegTextActive]}>{opt.label}</Text>
+                      </TouchableOpacity>
+                    ))}
+                  </View>
+                </View>
+              </View>
+
+              {/* 評価 */}
+              <Text style={s.editSectionLabel}>評価</Text>
+              <View style={s.editCard}>
+                <View style={s.editRow}>
+                  <Text style={s.editRowLabel}>試験日</Text>
+                  <View style={{ flex: 1, alignItems: 'flex-end' }}>
+                    <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+                      <TouchableOpacity
+                        style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}
+                        onPress={() => setEditShowExamCalendar(v => !v)}
+                      >
+                        <Ionicons name="calendar-outline" size={16} color="#007AFF" />
+                        <Text style={[s.editTextInput, { flex: 0, textAlign: 'right' }, !editExamDate && { color: '#C7C7CC' }]}>
+                          {editExamDate ? formatDate(editExamDate) : '日付を選択'}
+                        </Text>
+                        <Ionicons name={editShowExamCalendar ? 'chevron-up' : 'chevron-down'} size={14} color="#8E8E93" />
+                      </TouchableOpacity>
+                      {editExamDate ? (
+                        <TouchableOpacity onPress={() => { setEditExamDate(''); setEditShowExamCalendar(false); }} hitSlop={8}>
+                          <Ionicons name="close-circle" size={24} color="#C7C7CC" />
+                        </TouchableOpacity>
+                      ) : null}
+                    </View>
+                  </View>
+                </View>
+                {editShowExamCalendar && (
+                  <Calendar
+                    current={editExamDate || undefined}
+                    onDayPress={(d: { dateString: string }) => { setEditExamDate(d.dateString); setEditShowExamCalendar(false); }}
+                    markedDates={editExamDate ? { [editExamDate]: { selected: true, selectedColor: '#007AFF' } } : {}}
+                    theme={{ arrowColor: '#007AFF', selectedDayBackgroundColor: '#007AFF' }}
+                    style={{ borderRadius: 12, overflow: 'hidden', marginBottom: 8 }}
+                  />
+                )}
+              </View>
+
+              {/* メモ */}
+              <Text style={s.editSectionLabel}>メモ</Text>
+              <View style={s.editCard}>
+                <TextInput
+                  style={s.editMemoInput}
+                  value={editMemo}
+                  onChangeText={setEditMemo}
+                  placeholder="評価基準や特記事項など"
+                  placeholderTextColor="#C7C7CC"
+                  multiline
+                  textAlignVertical="top"
+                />
+              </View>
+
+              {/* 削除ボタン */}
+              <TouchableOpacity style={s.editDeleteBtn} onPress={handleDeleteClass}>
+                <Text style={s.editDeleteText}>この講義を削除</Text>
+              </TouchableOpacity>
+            </ScrollView>
+          </KeyboardAvoidingView>
+        </SafeAreaView>
       </Modal>
 
       {/* 出席追加モーダル */}
@@ -1124,4 +1330,83 @@ const s = StyleSheet.create({
     paddingVertical: 4,
   },
   infoText: { fontSize: 12, color: '#3C3C43', fontWeight: '500' },
+
+  sheetConfirm: {
+    marginTop: 16,
+    backgroundColor: '#007AFF',
+    borderRadius: 12,
+    paddingVertical: 14,
+    alignItems: 'center',
+  },
+
+  // 講義編集フルスクリーンモーダル
+  editContainer: { flex: 1, backgroundColor: '#F2F2F7' },
+  editHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+    backgroundColor: '#FFFFFF',
+    borderBottomWidth: 0.5,
+    borderBottomColor: '#E5E5EA',
+  },
+  editHeaderCancel: { fontSize: 16, color: '#007AFF' },
+  editHeaderTitle: { fontSize: 17, fontWeight: '600', color: '#1C1C1E' },
+  editHeaderSave: { fontSize: 16, fontWeight: '600', color: '#007AFF' },
+  editScroll: { padding: 16, paddingBottom: 40 },
+  editBanner: {
+    backgroundColor: '#007AFF',
+    borderRadius: 12,
+    paddingVertical: 12,
+    alignItems: 'center',
+    marginBottom: 24,
+  },
+  editBannerText: { color: '#FFFFFF', fontWeight: '700', fontSize: 17 },
+  editSectionLabel: {
+    fontSize: 13,
+    fontWeight: '500',
+    color: '#6C6C70',
+    textTransform: 'uppercase',
+    letterSpacing: 0.4,
+    marginBottom: 6,
+    marginLeft: 4,
+  },
+  editCard: {
+    backgroundColor: '#FFFFFF',
+    borderRadius: 12,
+    paddingHorizontal: 14,
+    marginBottom: 24,
+    overflow: 'hidden',
+  },
+  editRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingVertical: 11,
+    gap: 10,
+  },
+  editVertRow: { paddingVertical: 12, gap: 10 },
+  editRowLabel: { fontSize: 15, color: '#1C1C1E', fontWeight: '400', width: 80 },
+  editTextInput: { fontSize: 15, color: '#1C1C1E', flex: 1, textAlign: 'right' },
+  editDivider: { height: 0.5, backgroundColor: '#E5E5EA' },
+  editSegment: { flexDirection: 'row', gap: 6 },
+  editSegItem: {
+    flex: 1,
+    paddingVertical: 7,
+    alignItems: 'center',
+    borderRadius: 8,
+    backgroundColor: '#F2F2F7',
+  },
+  editSegItemActive: { backgroundColor: '#007AFF' },
+  editSegText: { fontSize: 13, color: '#3C3C43', fontWeight: '500' },
+  editSegTextActive: { color: '#FFFFFF', fontWeight: '600' },
+  editMemoInput: {
+    fontSize: 15,
+    color: '#1C1C1E',
+    minHeight: 80,
+    paddingVertical: 12,
+    lineHeight: 22,
+  },
+  editDeleteBtn: { alignItems: 'center', paddingVertical: 12 },
+  editDeleteText: { color: '#FF3B30', fontSize: 15 },
 });
