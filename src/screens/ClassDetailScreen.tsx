@@ -136,40 +136,6 @@ const bc = StyleSheet.create({
   separator: { height: 0.5, backgroundColor: '#E5E5EA', marginHorizontal: -16 },
 });
 
-// 出席率のリング
-function RingGauge({ rate, color }: { rate: number; color: string }) {
-  const label = rate === 0 ? '—' : `${rate}%`;
-  return (
-    <View style={ring.container}>
-      <View style={[ring.track, { borderColor: '#E5E5EA' }]}>
-        <View style={[ring.fill, {
-          borderColor: color,
-          // 簡易的に回転でリング風を表現（右半分）
-          transform: [{ rotate: `${Math.min(rate / 100 * 360, 180)}deg` }],
-        }]} />
-      </View>
-      <View style={ring.center}>
-        <Text style={[ring.value, { color }]}>{label}</Text>
-        <Text style={ring.subLabel}>出席率</Text>
-      </View>
-    </View>
-  );
-}
-const ring = StyleSheet.create({
-  container: { width: 80, height: 80, alignItems: 'center', justifyContent: 'center' },
-  track: {
-    position: 'absolute', width: 80, height: 80, borderRadius: 40,
-    borderWidth: 6, borderColor: '#E5E5EA',
-  },
-  fill: {
-    position: 'absolute', width: 80, height: 80, borderRadius: 40,
-    borderWidth: 6, borderColor: '#007AFF',
-    borderLeftColor: 'transparent', borderBottomColor: 'transparent',
-  },
-  center: { alignItems: 'center' },
-  value: { fontSize: 16, fontWeight: '700' },
-  subLabel: { fontSize: 9, color: '#8E8E93', marginTop: 1 },
-});
 
 export function ClassDetailScreen() {
   const route = useRoute<Route>();
@@ -273,9 +239,6 @@ export function ClassDetailScreen() {
   };
 
 
-  // ステータスカラー
-  const attColor = attStats.rate >= 80 ? '#34C759' : attStats.rate >= 60 ? '#FF9500' : '#FF3B30';
-  const asgColor = asgStats.rate >= 80 ? '#34C759' : asgStats.rate >= 60 ? '#FF9500' : '#FF3B30';
 
   if (attLoading || asgLoading) {
     return (
@@ -291,8 +254,10 @@ export function ClassDetailScreen() {
     { key: 'note',       label: 'メモ',  icon: 'create-outline' },
   ];
 
-  const timetable = classInfo?.timetable_id
-    ? timetables.find(t => t.id === classInfo.timetable_id) ?? null
+  const timetable = classInfo
+    ? (timetables.find(t => t.id === classInfo.timetable_id)
+       ?? timetables.find(t => t.id === 'default')
+       ?? (timetables.length === 1 ? timetables[0] : null))
     : null;
   const DAY_LABELS_SHORT = ['月', '火', '水', '木', '金', '土', '日'];
 
@@ -300,26 +265,21 @@ export function ClassDetailScreen() {
     <SafeAreaView style={s.container}>
       {/* サマリーカード */}
       <View style={s.summary}>
-        <View style={s.summaryLeft}>
-          <Text style={s.summaryClassName} numberOfLines={2}>{className}</Text>
-          <RingGauge rate={attStats.rate} color={attColor} />
-        </View>
-        <View style={s.summaryStats}>
-          {classInfo && (
-            <View style={s.statBlock}>
-              {timetable && (
-                <Text style={s.timetableYear}>{timetable.academicYear}年度 {timetable.semester}</Text>
-              )}
-              <Text style={s.timetableSchedule}>
+        <Text style={s.summaryClassName} numberOfLines={2}>{className}</Text>
+        {classInfo && (
+          <View style={s.summaryMeta}>
+            {timetable && (
+              <View style={s.metaPill}>
+                <Text style={s.metaPillText}>{timetable.academicYear}年度 {timetable.semester}</Text>
+              </View>
+            )}
+            <View style={s.metaPill}>
+              <Text style={s.metaPillText}>
                 {DAY_LABELS_SHORT[classInfo.day_of_week]}曜{classInfo.period}限
               </Text>
             </View>
-          )}
-          <View style={s.statBlock}>
-            <Text style={[s.statNum, { color: asgColor }]}>{asgStats.rate}%</Text>
-            <Text style={s.statLbl}>課題提出率</Text>
           </View>
-        </View>
+        )}
       </View>
 
       {/* 科目情報カード */}
@@ -784,24 +744,26 @@ const s = StyleSheet.create({
 
   // サマリー
   summary: {
-    flexDirection: 'row',
-    alignItems: 'center',
     backgroundColor: '#FFFFFF',
     paddingHorizontal: 20,
     paddingVertical: 16,
-    gap: 16,
+    gap: 8,
     borderBottomWidth: 0.5,
     borderBottomColor: '#E5E5EA',
   },
-  summaryLeft: { alignItems: 'center', gap: 6 },
-  summaryClassName: { fontSize: 11, fontWeight: '600', color: '#8E8E93', textAlign: 'center', maxWidth: 80 },
-  summaryStats: { flex: 1, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-around' },
+  summaryClassName: { fontSize: 22, fontWeight: '700', color: '#1C1C1E', letterSpacing: 0.2 },
+  summaryMeta: { flexDirection: 'row', gap: 6, flexWrap: 'wrap' },
+  metaPill: {
+    backgroundColor: '#F2F2F7',
+    borderRadius: 8,
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+  },
+  metaPillText: { fontSize: 13, fontWeight: '500', color: '#3C3C43' },
   statBlock: { alignItems: 'center', gap: 2 },
   statNum: { fontSize: 18, fontWeight: '700', color: '#1C1C1E' },
   statLbl: { fontSize: 10, color: '#8E8E93' },
   statDivider: { width: 0.5, height: 28, backgroundColor: '#E5E5EA' },
-  timetableYear: { fontSize: 11, color: '#8E8E93', textAlign: 'center' },
-  timetableSchedule: { fontSize: 18, fontWeight: '700', color: '#1C1C1E', textAlign: 'center' },
 
   // タブバー
   tabBar: {
