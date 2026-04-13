@@ -13,6 +13,7 @@ import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { Ionicons } from '@expo/vector-icons';
 import { useAttendance } from '../hooks/useAttendance';
 import { useAssignments } from '../hooks/useAssignments';
+import { useTimetables } from '../hooks/useTimetables';
 import { supabase } from '../lib/supabase';
 import { scheduleAssignmentNotification } from '../lib/notifications';
 import { AttendanceButton } from '../components/AttendanceButton';
@@ -178,6 +179,7 @@ export function ClassDetailScreen() {
   const [activeTab, setActiveTab] = useState<Tab>('attendance');
   const { records, loading: attLoading, upsertAttendance, deleteAttendance, stats: attStats } = useAttendance(classId);
   const { assignments, loading: asgLoading, addAssignment, toggleSubmitted, deleteAssignment, stats: asgStats } = useAssignments(classId);
+  const { timetables } = useTimetables();
 
   const [classInfo, setClassInfo] = useState<Class | null>(null);
   const [note, setNote] = useState('');
@@ -289,6 +291,11 @@ export function ClassDetailScreen() {
     { key: 'note',       label: 'メモ',  icon: 'create-outline' },
   ];
 
+  const timetable = classInfo?.timetable_id
+    ? timetables.find(t => t.id === classInfo.timetable_id) ?? null
+    : null;
+  const DAY_LABELS_SHORT = ['月', '火', '水', '木', '金', '土', '日'];
+
   return (
     <SafeAreaView style={s.container}>
       {/* サマリーカード */}
@@ -298,6 +305,16 @@ export function ClassDetailScreen() {
           <RingGauge rate={attStats.rate} color={attColor} />
         </View>
         <View style={s.summaryStats}>
+          {classInfo && (
+            <View style={s.statBlock}>
+              {timetable && (
+                <Text style={s.timetableYear}>{timetable.academicYear}年度 {timetable.semester}</Text>
+              )}
+              <Text style={s.timetableSchedule}>
+                {DAY_LABELS_SHORT[classInfo.day_of_week]}曜{classInfo.period}限
+              </Text>
+            </View>
+          )}
           <View style={s.statBlock}>
             <Text style={[s.statNum, { color: asgColor }]}>{asgStats.rate}%</Text>
             <Text style={s.statLbl}>課題提出率</Text>
@@ -783,6 +800,8 @@ const s = StyleSheet.create({
   statNum: { fontSize: 18, fontWeight: '700', color: '#1C1C1E' },
   statLbl: { fontSize: 10, color: '#8E8E93' },
   statDivider: { width: 0.5, height: 28, backgroundColor: '#E5E5EA' },
+  timetableYear: { fontSize: 11, color: '#8E8E93', textAlign: 'center' },
+  timetableSchedule: { fontSize: 18, fontWeight: '700', color: '#1C1C1E', textAlign: 'center' },
 
   // タブバー
   tabBar: {
