@@ -743,10 +743,10 @@ export function ClassDetailScreen() {
 
       {/* 講義編集モーダル */}
       <Modal visible={showEditClass} animationType="slide">
-        <View style={[s.editContainer, { paddingTop: insets.top, paddingBottom: insets.bottom }]}>
+        <View style={[s.editContainer, { paddingBottom: insets.bottom }]}>
           <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : undefined} style={{ flex: 1 }}>
             {/* 編集ヘッダー */}
-            <View style={s.editHeader}>
+            <View style={[s.editHeader, { paddingTop: insets.top + 12 }]}>
               <TouchableOpacity onPress={() => setShowEditClass(false)} hitSlop={8}>
                 <Text style={s.editHeaderCancel}>キャンセル</Text>
               </TouchableOpacity>
@@ -1347,7 +1347,7 @@ const s = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'space-between',
     paddingHorizontal: 16,
-    paddingVertical: 12,
+    paddingBottom: 12,
     backgroundColor: '#FFFFFF',
     borderBottomWidth: 0.5,
     borderBottomColor: '#E5E5EA',
