@@ -30,12 +30,14 @@ function TimetableSwitcher({
     currentId,
     onSelect,
     onDelete,
+    onAdd,
     onClose,
 }: {
     timetables: Timetable[];
     currentId: string;
     onSelect: (id: string) => void;
     onDelete: (id: string) => void;
+    onAdd: () => void;
     onClose: () => void;
 }) {
     const handleDelete = (item: Timetable) => {
@@ -61,7 +63,15 @@ function TimetableSwitcher({
                     <TouchableWithoutFeedback>
                         <View style={sw.sheet}>
                             <View style={sw.handle} />
-                            <Text style={sw.sheetTitle}>時間割を選択</Text>
+                            <View style={sw.sheetHeader}>
+                                <Text style={sw.sheetTitle}>時間割を選択</Text>
+                                <TouchableOpacity
+                                    style={sw.addBtn}
+                                    onPress={() => { onClose(); onAdd(); }}
+                                >
+                                    <Text style={sw.addBtnText}>作成</Text>
+                                </TouchableOpacity>
+                            </View>
                             <FlatList
                                 data={timetables}
                                 keyExtractor={item => item.id}
@@ -264,16 +274,8 @@ export function TimetableScreen() {
         <SafeAreaView style={styles.container} edges={["top"]}>
             {/* ヘッダー */}
             <View style={styles.header}>
-                {/* 左: 追加ボタン */}
-                <View style={styles.headerSide}>
-                    <TouchableOpacity
-                        onPress={() => setShowCreate(true)}
-                        style={styles.gearBtn}
-                        hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
-                    >
-                        <Ionicons name="add" size={24} color="#007AFF" />
-                    </TouchableOpacity>
-                </View>
+                {/* 左: スペーサー */}
+                <View style={styles.headerSide} />
 
                 {/* 中央: 時間割切り替えボタン */}
                 <TouchableOpacity
@@ -319,6 +321,7 @@ export function TimetableScreen() {
                     currentId={currentTimetableId ?? ''}
                     onSelect={setCurrentTimetableId}
                     onDelete={handleDelete}
+                    onAdd={() => setShowCreate(true)}
                     onClose={() => setShowSwitcher(false)}
                 />
             )}
@@ -420,14 +423,35 @@ const sw = StyleSheet.create({
         marginTop: 12,
         marginBottom: 4,
     },
+    sheetHeader: {
+        flexDirection: "row",
+        alignItems: "center",
+        justifyContent: "flex-end",
+        paddingHorizontal: 16,
+        paddingVertical: 4,
+    },
     sheetTitle: {
+        position: "absolute",
+        left: 0,
+        right: 0,
         fontSize: 13,
         fontWeight: "600",
         color: "#8E8E93",
         textAlign: "center",
-        paddingVertical: 12,
+        paddingVertical: 8,
         textTransform: "uppercase",
         letterSpacing: 0.5,
+    },
+    addBtn: {
+        backgroundColor: "#007AFF",
+        borderRadius: 20,
+        paddingVertical: 6,
+        paddingHorizontal: 16,
+    },
+    addBtnText: {
+        fontSize: 14,
+        fontWeight: "600",
+        color: "#FFFFFF",
     },
     row: {
         flexDirection: "row",
@@ -465,7 +489,7 @@ const sw = StyleSheet.create({
         marginHorizontal: 20,
     },
     label: {
-        fontSize: 17,
+        fontSize: 15,
         color: "#1C1C1E",
         fontWeight: "500",
     },
