@@ -21,7 +21,7 @@ const HEADER_ROW_H = 30;
 const CELL_GAP = 3;
 const GRID_PAD = 6;
 
-const CLASS_COLOR = { bg: "#D0E6FF", border: "#A8C8F0", text: "#1A4F8A", pill: "#A8C8F0" };
+const CLASS_COLOR = { bg: "#D0E6FF", border: "#A8C8F0", text: "#3C3C43", pill: "#3A7BD5" };
 
 interface Props {
     classes: Class[];
@@ -127,7 +127,7 @@ export function TimetableGrid({ classes, settings, onCellPress, todayDayIndex }:
                                                     {cls.room ? (
                                                         <View style={[styles.roomPill, { backgroundColor: color.pill }]}>
                                                             <Text
-                                                                style={[styles.roomText, { color: color.text }]}
+                                                                style={[styles.roomText, { color: "#FFFFFF" }]}
                                                                 numberOfLines={1}
                                                             >
                                                                 {cls.room}
