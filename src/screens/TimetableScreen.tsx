@@ -224,7 +224,18 @@ export function TimetableScreen() {
         <SafeAreaView style={styles.container} edges={["top"]}>
             {/* ヘッダー */}
             <View style={styles.header}>
-                {/* 時間割切り替えボタン */}
+                {/* 左: 追加ボタン */}
+                <View style={styles.headerSide}>
+                    <TouchableOpacity
+                        onPress={() => setShowCreate(true)}
+                        style={styles.gearBtn}
+                        hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+                    >
+                        <Ionicons name="add" size={24} color="#007AFF" />
+                    </TouchableOpacity>
+                </View>
+
+                {/* 中央: 時間割切り替えボタン */}
                 <TouchableOpacity
                     style={styles.switcherBtn}
                     onPress={() => setShowSwitcher(true)}
@@ -239,14 +250,8 @@ export function TimetableScreen() {
                     />
                 </TouchableOpacity>
 
+                {/* 右: 設定ボタン */}
                 <View style={styles.headerSide}>
-                    <TouchableOpacity
-                        onPress={() => setShowCreate(true)}
-                        style={styles.gearBtn}
-                        hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
-                    >
-                        <Ionicons name="add" size={24} color="#007AFF" />
-                    </TouchableOpacity>
                     <TouchableOpacity
                         onPress={() => currentTimetableId && navigation.navigate("TimetableSettings", { timetableId: currentTimetableId })}
                         style={styles.gearBtn}
@@ -305,21 +310,29 @@ const styles = StyleSheet.create({
         flex: 1,
         flexDirection: "row",
         alignItems: "center",
-        gap: 4,
+        justifyContent: "center",
+        alignSelf: "center",
+        gap: 6,
+        backgroundColor: "#F2F2F7",
+        borderRadius: 20,
+        paddingVertical: 6,
+        paddingHorizontal: 14,
+        maxWidth: 200,
     },
     semesterTitle: {
-        fontSize: 22,
-        fontWeight: "700",
+        fontSize: 15,
+        fontWeight: "600",
         color: "#1C1C1E",
-        letterSpacing: 0.3,
+        letterSpacing: 0.2,
     },
     switcherChevron: {
         marginTop: 3,
     },
     headerSide: {
+        width: 44,
         flexDirection: "row",
         alignItems: "center",
-        gap: 8,
+        justifyContent: "center",
     },
     gearBtn: {
         padding: 4,
