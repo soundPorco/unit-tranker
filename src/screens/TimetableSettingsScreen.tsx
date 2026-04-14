@@ -98,8 +98,19 @@ export function TimetableSettingsScreen() {
   };
 
   return (
-    <SafeAreaView style={s.container} edges={['bottom']}>
-      <KeyboardAvoidingView style={{ flex: 1 }} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
+    <SafeAreaView style={s.container} edges={['top', 'bottom']}>
+      <View style={s.header}>
+        <TouchableOpacity
+          onPress={navigation.goBack}
+          hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+          style={s.backBtn}
+        >
+          <Ionicons name="chevron-back" size={26} color="#007AFF" />
+        </TouchableOpacity>
+        <Text style={s.headerTitle}>時間割の設定</Text>
+        <View style={s.backBtn} />
+      </View>
+      <KeyboardAvoidingView style={{ flex: 1, backgroundColor: '#F2F2F7' }} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
         <ScrollView contentContainerStyle={s.scroll} keyboardShouldPersistTaps="handled">
 
           {/* ─── 個別設定セクション ─── */}
@@ -248,7 +259,17 @@ export function TimetableSettingsScreen() {
 }
 
 const s = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#F2F2F7' },
+  container: { flex: 1, backgroundColor: '#FFFFFF' },
+  header: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingHorizontal: 8,
+    paddingVertical: 10,
+    backgroundColor: '#FFFFFF',
+  },
+  backBtn: { width: 40, alignItems: 'center' },
+  headerTitle: { fontSize: 17, fontWeight: '600', color: '#1C1C1E' },
   scroll: { padding: 16, gap: 4, paddingBottom: 40 },
 
   sectionHeader: {

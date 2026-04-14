@@ -27,12 +27,7 @@ function TimetableNavigator() {
       <TimetableStack.Screen
         name="TimetableSettings"
         component={TimetableSettingsScreen}
-        options={{
-          title: '時間割の設定',
-          headerTintColor: '#007AFF',
-          headerStyle: { backgroundColor: '#F2F2F7' },
-          headerShadowVisible: false,
-        }}
+        options={{ headerShown: false }}
       />
       <TimetableStack.Screen name="ClassForm" component={ClassFormScreen} options={{ title: '講義登録', presentation: 'modal', headerTintColor: '#007AFF' }} />
       <TimetableStack.Screen name="ClassDetail" component={ClassDetailScreen} options={{ headerShown: false }} />
