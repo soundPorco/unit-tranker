@@ -6,6 +6,7 @@ export interface AssignmentWithClass {
   class_id: string;
   title: string;
   due_date: string | null;
+  memo: string | null;
   is_submitted: boolean;
   created_at: string;
   classes: {
@@ -39,11 +40,17 @@ export function useAllAssignments() {
     return error;
   };
 
+  const updateAssignment = async (id: string, input: { title: string; due_date?: string | null; memo?: string | null; is_submitted?: boolean }) => {
+    const { error } = await supabase.from('assignments').update(input).eq('id', id);
+    if (!error) await fetch();
+    return error;
+  };
+
   const deleteAssignment = async (id: string) => {
     const { error } = await supabase.from('assignments').delete().eq('id', id);
     if (!error) await fetch();
     return error;
   };
 
-  return { assignments, loading, refetch: fetch, toggleSubmitted, deleteAssignment };
+  return { assignments, loading, refetch: fetch, toggleSubmitted, updateAssignment, deleteAssignment };
 }
