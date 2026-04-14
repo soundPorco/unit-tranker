@@ -9,6 +9,7 @@ import {
     TouchableWithoutFeedback,
     FlatList,
     ScrollView,
+    Alert,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useNavigation, useFocusEffect } from "@react-navigation/native";
@@ -28,19 +29,39 @@ function TimetableSwitcher({
     timetables,
     currentId,
     onSelect,
+    onDelete,
     onClose,
 }: {
     timetables: Timetable[];
     currentId: string;
     onSelect: (id: string) => void;
+    onDelete: (id: string) => void;
     onClose: () => void;
 }) {
+    const handleDelete = (item: Timetable) => {
+        const label = `${item.academicYear}年度 ${item.semester}`;
+        Alert.alert(
+            `「${label}」を削除`,
+            'この時間割とすべての講義データが削除されます。この操作は取り消せません。',
+            [
+                { text: 'キャンセル', style: 'cancel' },
+                {
+                    text: '削除',
+                    style: 'destructive',
+                    onPress: () => onDelete(item.id),
+                },
+            ],
+        );
+    };
+
     return (
-        <Modal visible transparent animationType="fade" onRequestClose={onClose}>
+        <Modal visible transparent animationType="slide" onRequestClose={onClose}>
             <TouchableWithoutFeedback onPress={onClose}>
                 <View style={sw.overlay}>
                     <TouchableWithoutFeedback>
-                        <View style={sw.card}>
+                        <View style={sw.sheet}>
+                            <View style={sw.handle} />
+                            <Text style={sw.sheetTitle}>時間割を選択</Text>
                             <FlatList
                                 data={timetables}
                                 keyExtractor={item => item.id}
@@ -50,21 +71,32 @@ function TimetableSwitcher({
                                     const label = `${item.academicYear}年度 ${item.semester}`;
                                     const active = item.id === currentId;
                                     return (
-                                        <TouchableOpacity
-                                            style={sw.row}
-                                            activeOpacity={0.6}
-                                            onPress={() => {
-                                                onSelect(item.id);
-                                                onClose();
-                                            }}
-                                        >
-                                            <Text style={[sw.label, active && sw.labelActive]}>
-                                                {label}
-                                            </Text>
-                                            {active && (
-                                                <Ionicons name="checkmark" size={18} color="#007AFF" />
-                                            )}
-                                        </TouchableOpacity>
+                                        <View style={sw.row}>
+                                            {/* ラジオボタン + ラベル */}
+                                            <TouchableOpacity
+                                                style={sw.rowMain}
+                                                activeOpacity={0.6}
+                                                onPress={() => {
+                                                    onSelect(item.id);
+                                                    onClose();
+                                                }}
+                                            >
+                                                <View style={[sw.radio, active && sw.radioActive]}>
+                                                    {active && <View style={sw.radioDot} />}
+                                                </View>
+                                                <Text style={[sw.label, active && sw.labelActive]}>
+                                                    {label}
+                                                </Text>
+                                            </TouchableOpacity>
+                                            {/* 削除ボタン */}
+                                            <TouchableOpacity
+                                                style={sw.deleteBtn}
+                                                hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+                                                onPress={() => handleDelete(item)}
+                                            >
+                                                <Ionicons name="trash-outline" size={18} color="#FF3B30" />
+                                            </TouchableOpacity>
+                                        </View>
                                     );
                                 }}
                             />
@@ -143,7 +175,7 @@ function CreateTimetableModal({
 export function TimetableScreen() {
     const navigation = useNavigation<Nav>();
 
-    const { timetables, loaded, reload, globalSettings, createTimetable } = useTimetables();
+    const { timetables, loaded, reload, globalSettings, createTimetable, deleteTimetable } = useTimetables();
     const [currentTimetableId, setCurrentTimetableId] = useState<string | null>(null);
     const [showSwitcher, setShowSwitcher] = useState(false);
     const [showCreate, setShowCreate] = useState(false);
@@ -179,6 +211,14 @@ export function TimetableScreen() {
         setShowCreate(false);
         const newT = await createTimetable(academicYear, semester);
         setCurrentTimetableId(newT.id);
+    };
+
+    const handleDelete = async (id: string) => {
+        await deleteTimetable(id);
+        if (currentTimetableId === id) {
+            const remaining = timetables.filter(t => t.id !== id);
+            setCurrentTimetableId(remaining.length > 0 ? remaining[0].id : null);
+        }
     };
 
     if (loading || !loaded) {
@@ -278,6 +318,7 @@ export function TimetableScreen() {
                     timetables={timetables}
                     currentId={currentTimetableId ?? ''}
                     onSelect={setCurrentTimetableId}
+                    onDelete={handleDelete}
                     onClose={() => setShowSwitcher(false)}
                 />
             )}
@@ -351,45 +392,89 @@ const styles = StyleSheet.create({
     emptyDesc: { fontSize: 14, color: '#8E8E93' },
 });
 
-// ドロップダウンスタイル
+// ボトムシートスタイル
 const sw = StyleSheet.create({
     overlay: {
         flex: 1,
-        backgroundColor: "rgba(0,0,0,0.3)",
-        alignItems: "center",
-        paddingTop: 100,
+        backgroundColor: "rgba(0,0,0,0.4)",
+        justifyContent: "flex-end",
     },
-    card: {
+    sheet: {
         backgroundColor: "#FFFFFF",
-        borderRadius: 14,
-        width: 200,
-        overflow: "hidden",
+        borderTopLeftRadius: 20,
+        borderTopRightRadius: 20,
+        minHeight: "50%",
+        paddingBottom: 32,
         shadowColor: "#000",
-        shadowOpacity: 0.12,
-        shadowRadius: 12,
-        shadowOffset: { width: 0, height: 4 },
-        elevation: 8,
+        shadowOpacity: 0.15,
+        shadowRadius: 16,
+        shadowOffset: { width: 0, height: -4 },
+        elevation: 12,
+    },
+    handle: {
+        width: 36,
+        height: 4,
+        borderRadius: 2,
+        backgroundColor: "#C7C7CC",
+        alignSelf: "center",
+        marginTop: 12,
+        marginBottom: 4,
+    },
+    sheetTitle: {
+        fontSize: 13,
+        fontWeight: "600",
+        color: "#8E8E93",
+        textAlign: "center",
+        paddingVertical: 12,
+        textTransform: "uppercase",
+        letterSpacing: 0.5,
     },
     row: {
         flexDirection: "row",
         alignItems: "center",
-        justifyContent: "space-between",
-        paddingHorizontal: 16,
+        paddingHorizontal: 20,
         paddingVertical: 14,
+    },
+    rowMain: {
+        flex: 1,
+        flexDirection: "row",
+        alignItems: "center",
+        gap: 12,
+    },
+    radio: {
+        width: 22,
+        height: 22,
+        borderRadius: 11,
+        borderWidth: 2,
+        borderColor: "#C7C7CC",
+        alignItems: "center",
+        justifyContent: "center",
+    },
+    radioActive: {
+        borderColor: "#007AFF",
+    },
+    radioDot: {
+        width: 11,
+        height: 11,
+        borderRadius: 6,
+        backgroundColor: "#007AFF",
     },
     sep: {
         height: 0.5,
         backgroundColor: "#E5E5EA",
-        marginHorizontal: 16,
+        marginHorizontal: 20,
     },
     label: {
-        fontSize: 16,
+        fontSize: 17,
         color: "#1C1C1E",
         fontWeight: "500",
     },
     labelActive: {
         color: "#007AFF",
         fontWeight: "600",
+    },
+    deleteBtn: {
+        padding: 6,
     },
 });
 
