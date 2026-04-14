@@ -7,7 +7,6 @@ import { Ionicons } from '@expo/vector-icons';
 import { TimetableScreen } from '../screens/TimetableScreen';
 import { TimetableSettingsScreen } from '../screens/TimetableSettingsScreen';
 import { ClassFormScreen } from '../screens/ClassFormScreen';
-import { CalendarScreen } from '../screens/CalendarScreen';
 import { AssignmentListScreen } from '../screens/AssignmentListScreen';
 import { GradeListScreen } from '../screens/GradeListScreen';
 import { ClassDetailScreen } from '../screens/ClassDetailScreen';
@@ -80,7 +79,6 @@ type TabConfig = {
 
 const TAB_CONFIG: Record<keyof RootTabParamList, TabConfig> = {
   Timetable:   { icon: 'calendar',          iconOutline: 'calendar-outline',          label: '時間割'   },
-  Calendar:    { icon: 'calendar-number',   iconOutline: 'calendar-number-outline',   label: 'カレンダー' },
   Assignments: { icon: 'document-text',     iconOutline: 'document-text-outline',     label: '課題'     },
   Grade:       { icon: 'bar-chart',         iconOutline: 'bar-chart-outline',         label: '成績'     },
   Settings:    { icon: 'person-circle',     iconOutline: 'person-circle-outline',     label: '設定'     },
@@ -114,7 +112,6 @@ export function AppNavigator() {
         }}
       >
         <Tab.Screen name="Timetable"   component={TimetableNavigator} />
-        <Tab.Screen name="Calendar"    component={CalendarScreen} />
         <Tab.Screen name="Assignments" component={AssignmentListScreen} />
         <Tab.Screen name="Grade"       component={GradeNavigator} />
         <Tab.Screen name="Settings"    component={SettingsScreen} />

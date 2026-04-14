@@ -18,19 +18,21 @@ const DAY_INDICES: Record<TimetableSettings["daysMode"], number[]> = {
 
 const PERIOD_COL_W = 46;
 const HEADER_ROW_H = 30;
-const CELL_GAP = 3; // セル間の隙間
-const GRID_PAD = 6; // グリッド全体のパディング
+const CELL_GAP = 3;
+const GRID_PAD = 6;
+
+const CLASS_COLOR = { bg: "#D0E6FF", border: "#A8C8F0", text: "#1A4F8A", pill: "#A8C8F0" };
 
 interface Props {
     classes: Class[];
     settings: TimetableSettings;
     onCellPress: (day: DayOfWeek, period: Period, existing?: Class) => void;
+    todayDayIndex?: number; // 0=月, 1=火, ..., 6=日
 }
 
-export function TimetableGrid({ classes, settings, onCellPress }: Props) {
+export function TimetableGrid({ classes, settings, onCellPress, todayDayIndex }: Props) {
     const { width } = useWindowDimensions();
     const dayIndices = DAY_INDICES[settings.daysMode];
-    // セル幅：画面幅 - グリッドパディング×2 - 限数列 - セル間ギャップ合計
     const totalGap = CELL_GAP * dayIndices.length;
     const cellWidth =
         (width - GRID_PAD * 2 - PERIOD_COL_W - totalGap) / dayIndices.length;
@@ -46,25 +48,29 @@ export function TimetableGrid({ classes, settings, onCellPress }: Props) {
         <View style={styles.container}>
             {/* 曜日ヘッダー行 */}
             <View style={[styles.headerRow, { height: HEADER_ROW_H }]}>
-                {/* 限数列のスペーサー */}
                 <View style={{ width: PERIOD_COL_W + CELL_GAP }} />
-                {dayIndices.map((di, idx) => (
-                    <View
-                        key={di}
-                        style={[
-                            styles.dayHeaderCell,
-                            { width: cellWidth },
-                            idx < dayIndices.length - 1 && {
-                                marginRight: CELL_GAP,
-                            },
-                        ]}
-                    >
-                        <Text style={styles.dayText}>{ALL_DAYS[di]}</Text>
-                    </View>
-                ))}
+                {dayIndices.map((di, idx) => {
+                    const isToday = di === todayDayIndex;
+                    return (
+                        <View
+                            key={di}
+                            style={[
+                                styles.dayHeaderCell,
+                                { width: cellWidth },
+                                idx < dayIndices.length - 1 && { marginRight: CELL_GAP },
+                            ]}
+                        >
+                            <View style={[styles.dayBadge, isToday && styles.dayBadgeToday]}>
+                                <Text style={[styles.dayText, isToday && styles.dayTextToday]}>
+                                    {ALL_DAYS[di]}
+                                </Text>
+                            </View>
+                        </View>
+                    );
+                })}
             </View>
 
-            {/* 時限行（残り全高を均等分割） */}
+            {/* 時限行 */}
             <View style={styles.periodsContainer}>
                 {periods.map((period) => {
                     const pIdx = period - 1;
@@ -76,24 +82,15 @@ export function TimetableGrid({ classes, settings, onCellPress }: Props) {
                             <View
                                 style={[
                                     styles.periodCell,
-                                    {
-                                        width: PERIOD_COL_W,
-                                        marginRight: CELL_GAP,
-                                    },
+                                    { width: PERIOD_COL_W, marginRight: CELL_GAP },
                                 ]}
                             >
-                                <Text style={styles.periodNumber}>
-                                    {period}
-                                </Text>
+                                <Text style={styles.periodNumber}>{period}</Text>
                                 {timeInfo && (
                                     <View style={styles.timeBlock}>
-                                        <Text style={styles.timeText}>
-                                            {timeInfo.start}
-                                        </Text>
+                                        <Text style={styles.timeText}>{timeInfo.start}</Text>
                                         <Text style={styles.timeSep}>|</Text>
-                                        <Text style={styles.timeText}>
-                                            {timeInfo.end}
-                                        </Text>
+                                        <Text style={styles.timeText}>{timeInfo.end}</Text>
                                     </View>
                                 )}
                             </View>
@@ -102,52 +99,46 @@ export function TimetableGrid({ classes, settings, onCellPress }: Props) {
                             {dayIndices.map((di, idx) => {
                                 const day = di as DayOfWeek;
                                 const cls = getClass(day, period);
+                                const color = cls ? CLASS_COLOR : null;
+
                                 return (
                                     <TouchableOpacity
                                         key={di}
-                                        activeOpacity={0.6}
+                                        activeOpacity={0.65}
                                         style={[
                                             styles.cell,
                                             { width: cellWidth },
-                                            idx < dayIndices.length - 1 && {
-                                                marginRight: CELL_GAP,
-                                            },
-                                            cls
-                                                ? styles.cellFilled
+                                            idx < dayIndices.length - 1 && { marginRight: CELL_GAP },
+                                            color
+                                                ? { backgroundColor: color.bg, borderColor: color.border }
                                                 : styles.cellEmpty,
                                         ]}
-                                        onPress={() =>
-                                            onCellPress(day, period, cls)
-                                        }
+                                        onPress={() => onCellPress(day, period, cls)}
                                     >
-                                        {cls ? (
-                                            <View style={styles.classInner}>
-                                                <Text
-                                                    style={styles.className}
-                                                    numberOfLines={3}
-                                                >
-                                                    {cls.name}
-                                                </Text>
-                                                {cls.room ? (
-                                                    <View
-                                                        style={styles.roomPill}
+                                        {cls && color ? (
+                                            <>
+                                                <View style={styles.classInner}>
+                                                    <Text
+                                                        style={[styles.className, { color: color.text }]}
+                                                        numberOfLines={3}
                                                     >
-                                                        <Text
-                                                            style={
-                                                                styles.roomText
-                                                            }
-                                                            numberOfLines={1}
-                                                        >
-                                                            {cls.room}
-                                                        </Text>
-                                                    </View>
-                                                ) : null}
-                                            </View>
+                                                        {cls.name}
+                                                    </Text>
+                                                    {cls.room ? (
+                                                        <View style={[styles.roomPill, { backgroundColor: color.pill }]}>
+                                                            <Text
+                                                                style={[styles.roomText, { color: color.text }]}
+                                                                numberOfLines={1}
+                                                            >
+                                                                {cls.room}
+                                                            </Text>
+                                                        </View>
+                                                    ) : null}
+                                                </View>
+                                            </>
                                         ) : (
                                             <View style={styles.emptyContainer}>
-                                                <Text
-                                                    style={styles.emptyPlus}
-                                                ></Text>
+                                                <Text style={styles.emptyPlus}></Text>
                                             </View>
                                         )}
                                     </TouchableOpacity>
@@ -179,11 +170,24 @@ const styles = StyleSheet.create({
         alignItems: "center",
         justifyContent: "center",
     },
+    dayBadge: {
+        alignSelf: "stretch",
+        alignItems: "center",
+        justifyContent: "center",
+        paddingVertical: 4,
+        borderRadius: 8,
+    },
+    dayBadgeToday: {
+        backgroundColor: "#007AFF",
+    },
     dayText: {
         fontSize: 14,
         fontWeight: "600",
         color: "#1C1C1E",
         letterSpacing: 0.2,
+    },
+    dayTextToday: {
+        color: "#FFFFFF",
     },
 
     // 時限コンテナ
@@ -227,48 +231,38 @@ const styles = StyleSheet.create({
     cell: {
         flex: 1,
         borderRadius: 8,
-        padding: 4,
         overflow: "hidden",
-        borderWidth: 1,
-        borderColor: "#f0efef",
-    },
-    cellFilled: {
-        backgroundColor: "#FFFFFF",
-        borderColor: "#dfdfdf",
-        shadowColor: "#000",
-        shadowOpacity: 0.06,
-        shadowRadius: 3,
-        shadowOffset: { width: 0, height: 1 },
-        elevation: 2,
+        borderWidth: 1.5,
+        flexDirection: "row",
     },
     cellEmpty: {
         backgroundColor: "#F8F8F8",
+        borderColor: "#EFEFEF",
     },
 
     // 科目カード内容
     classInner: {
         flex: 1,
         justifyContent: "center",
-        paddingLeft: 2,
+        paddingHorizontal: 4,
+        paddingVertical: 4,
     },
     className: {
         fontSize: 12,
         fontWeight: "600",
-        color: "#1C1C1E",
         lineHeight: 15,
     },
     roomPill: {
         alignSelf: "flex-start",
         marginTop: 3,
-        backgroundColor: "#eaeaea",
         borderRadius: 999,
         paddingHorizontal: 5,
         paddingVertical: 1,
     },
     roomText: {
         fontSize: 10,
-        color: "#6E6E73",
         letterSpacing: 0.1,
+        fontWeight: "500",
     },
 
     emptyContainer: {

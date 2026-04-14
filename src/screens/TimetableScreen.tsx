@@ -263,6 +263,7 @@ export function TimetableScreen() {
                     classes={classes}
                     settings={settings}
                     onCellPress={handleCellPress}
+                    todayDayIndex={(() => { const d = new Date().getDay(); return d === 0 ? 6 : d - 1; })()}
                 />
             </View>
 

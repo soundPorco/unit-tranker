@@ -74,7 +74,6 @@ export interface Note {
 
 export type RootTabParamList = {
   Timetable: undefined;
-  Calendar: undefined;
   Assignments: undefined;
   Grade: undefined;
   Settings: undefined;
