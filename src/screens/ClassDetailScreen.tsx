@@ -7,7 +7,7 @@ import {
 
 const AnimatedPressable = Animated.createAnimatedComponent(Pressable);
 import { Calendar } from 'react-native-calendars';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useRoute, RouteProp, useNavigation } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { Ionicons } from '@expo/vector-icons';
@@ -142,6 +142,7 @@ export function ClassDetailScreen() {
   const { classId, className } = route.params;
   const navigation = useNavigation<NativeStackNavigationProp<GradeStackParamList>>();
 
+  const insets = useSafeAreaInsets();
   const [activeTab, setActiveTab] = useState<Tab>('attendance');
   const { records, loading: attLoading, upsertAttendance, deleteAttendance, stats: attStats } = useAttendance(classId);
   const { assignments, loading: asgLoading, addAssignment, toggleSubmitted, deleteAssignment, stats: asgStats } = useAssignments(classId);
@@ -742,7 +743,7 @@ export function ClassDetailScreen() {
 
       {/* 講義編集モーダル */}
       <Modal visible={showEditClass} animationType="slide">
-        <SafeAreaView style={s.editContainer}>
+        <View style={[s.editContainer, { paddingTop: insets.top, paddingBottom: insets.bottom }]}>
           <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : undefined} style={{ flex: 1 }}>
             {/* 編集ヘッダー */}
             <View style={s.editHeader}>
@@ -870,7 +871,7 @@ export function ClassDetailScreen() {
               </TouchableOpacity>
             </ScrollView>
           </KeyboardAvoidingView>
-        </SafeAreaView>
+        </View>
       </Modal>
 
       {/* 出席追加モーダル */}
