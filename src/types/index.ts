@@ -84,6 +84,7 @@ export type TimetableStackParamList = {
   TimetableMain: undefined;
   TimetableSettings: { timetableId: string };
   ClassForm: { classData?: Class; day?: DayOfWeek; period?: Period; timetableId: string };
+  ClassDetail: { classId: string; className: string };
 };
 
 export type GradeStackParamList = {

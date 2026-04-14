@@ -168,7 +168,11 @@ export function TimetableScreen() {
 
     const handleCellPress = (day: DayOfWeek, period: Period, existing?: Class) => {
         if (!currentTimetableId) return;
-        navigation.navigate("ClassForm", { classData: existing, day, period, timetableId: currentTimetableId });
+        if (existing) {
+            navigation.navigate("ClassDetail", { classId: existing.id, className: existing.name });
+        } else {
+            navigation.navigate("ClassForm", { day, period, timetableId: currentTimetableId });
+        }
     };
 
     const handleCreate = async (academicYear: number, semester: Semester) => {

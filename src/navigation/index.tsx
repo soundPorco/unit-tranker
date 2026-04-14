@@ -36,6 +36,7 @@ function TimetableNavigator() {
         }}
       />
       <TimetableStack.Screen name="ClassForm" component={ClassFormScreen} options={{ title: '講義登録', presentation: 'modal', headerTintColor: '#007AFF' }} />
+      <TimetableStack.Screen name="ClassDetail" component={ClassDetailScreen} options={{ headerShown: false }} />
     </TimetableStack.Navigator>
   );
 }
