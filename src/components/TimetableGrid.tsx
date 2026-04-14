@@ -157,6 +157,7 @@ const styles = StyleSheet.create({
         flex: 1,
         backgroundColor: "#FFFFFF",
         paddingHorizontal: GRID_PAD,
+        paddingTop: 8,
         paddingBottom: GRID_PAD,
     },
 

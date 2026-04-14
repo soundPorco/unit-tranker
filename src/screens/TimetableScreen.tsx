@@ -349,6 +349,8 @@ const styles = StyleSheet.create({
         paddingHorizontal: 16,
         paddingTop: 6,
         paddingBottom: 10,
+        borderBottomWidth: 0.5,
+        borderBottomColor: "#E0E0E0",
     },
     switcherBtn: {
         flex: 1,
