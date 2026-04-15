@@ -8,6 +8,7 @@ import { TimetableScreen } from '../screens/TimetableScreen';
 import { TimetableSettingsScreen } from '../screens/TimetableSettingsScreen';
 import { ClassFormScreen } from '../screens/ClassFormScreen';
 import { AssignmentListScreen } from '../screens/AssignmentListScreen';
+import { GradeTimetableSelectScreen } from '../screens/GradeTimetableSelectScreen';
 import { GradeListScreen } from '../screens/GradeListScreen';
 import { ClassDetailScreen } from '../screens/ClassDetailScreen';
 import { AttendanceListScreen } from '../screens/AttendanceListScreen';
@@ -38,6 +39,7 @@ function TimetableNavigator() {
 function GradeNavigator() {
   return (
     <GradeStack.Navigator>
+      <GradeStack.Screen name="GradeTimetableSelect" component={GradeTimetableSelectScreen} options={{ headerShown: false }} />
       <GradeStack.Screen name="GradeList" component={GradeListScreen} options={{ headerShown: false }} />
       <GradeStack.Screen
         name="ClassDetail"
