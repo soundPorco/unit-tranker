@@ -76,6 +76,7 @@ export type RootTabParamList = {
   Timetable: undefined;
   Assignments: undefined;
   Grade: undefined;
+  Log: undefined;
   Settings: undefined;
 };
 
