@@ -10,60 +10,67 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { useActivityLog } from '../hooks/useActivityLog';
 
 // --- 定数 ---
-const CELL_SIZE = 13;
-const CELL_GAP = 3;
-const WEEKS = 26; // 表示する週数（約半年）
+const CELL_SIZE = 34;
+const CELL_GAP = 4;
 const DAY_LABELS = ['日', '月', '火', '水', '木', '金', '土'];
 
 const LEVEL_COLORS = ['#EBEDF0', '#9BE9A8', '#40C463', '#216E39'] as const;
+
+const MONTH_LABEL_WIDTH = 32;
 
 // --- ヘルパー ---
 function toDateString(d: Date): string {
   return d.toISOString().slice(0, 10);
 }
 
-/** WEEKS 週分の日付グリッドを生成（列 = 週、行 = 曜日 0=日〜6=土） */
-function buildGrid(today: Date): Date[][] {
-  // 今日の週の土曜日を最終日にする
-  const endSunday = new Date(today);
-  endSunday.setDate(today.getDate() + (6 - today.getDay()));
+/**
+ * firstDate〜今週末までの日付グリッドを生成
+ * 返り値: rows[week][day]  day 0=日〜6=土
+ * 最後の行が今週（最新）
+ */
+function buildGrid(today: Date, firstDate: Date | null): Date[][] {
+  // 今週の土曜日
+  const endSat = new Date(today);
+  endSat.setDate(today.getDate() + (6 - today.getDay()));
 
-  const cols: Date[][] = [];
-  for (let w = WEEKS - 1; w >= 0; w--) {
-    const col: Date[] = [];
+  // 開始週の日曜日（firstDate がある週の日曜日、なければ今週）
+  const start = firstDate ? new Date(firstDate) : new Date(today);
+  start.setDate(start.getDate() - start.getDay()); // その週の日曜日へ
+
+  const weeks = Math.ceil((endSat.getTime() - start.getTime()) / (7 * 24 * 60 * 60 * 1000)) + 1;
+
+  const rows: Date[][] = [];
+  for (let w = weeks - 1; w >= 0; w--) {
+    const row: Date[] = [];
     for (let d = 0; d <= 6; d++) {
-      const date = new Date(endSunday);
-      date.setDate(endSunday.getDate() - w * 7 - (6 - d));
-      col.push(date);
+      const date = new Date(endSat);
+      date.setDate(endSat.getDate() - w * 7 - (6 - d));
+      row.push(date);
     }
-    cols.push(col);
+    rows.push(row);
   }
-  return cols;
-}
-
-/** 月ラベル（グリッド列ごとに月の変わり目を返す） */
-function buildMonthLabels(grid: Date[][]): (string | null)[] {
-  return grid.map((col, i) => {
-    const month = col[0].getMonth();
-    if (i === 0) return `${col[0].getMonth() + 1}月`;
-    const prevMonth = grid[i - 1][0].getMonth();
-    return month !== prevMonth ? `${month + 1}月` : null;
-  });
+  return rows;
 }
 
 // --- コンポーネント ---
 export function LogScreen() {
   const { activityMap, loading } = useActivityLog();
   const today = useMemo(() => new Date(), []);
-  const grid = useMemo(() => buildGrid(today), [today]);
-  const monthLabels = useMemo(() => buildMonthLabels(grid), [grid]);
+  const todayStr = useMemo(() => toDateString(today), [today]);
+
+  const firstDate = useMemo(() => {
+    const dates = Object.keys(activityMap).sort();
+    return dates.length > 0 ? new Date(dates[0]) : null;
+  }, [activityMap]);
+
+  const grid = useMemo(() => buildGrid(today, firstDate), [today, firstDate]);
 
   const totalDays = Object.keys(activityMap).length;
   const totalAttendance = Object.values(activityMap).reduce((s, v) => s + v.attendanceCount, 0);
   const totalAssignments = Object.values(activityMap).reduce((s, v) => s + v.assignmentCount, 0);
 
   return (
-    <SafeAreaView style={styles.container}>
+    <SafeAreaView style={styles.container} edges={['top']}>
       <View style={styles.header}>
         <Text style={styles.headerTitle}>ログ</Text>
       </View>
@@ -81,58 +88,57 @@ export function LogScreen() {
             <StatCard label="課題提出" value={`${totalAssignments}件`} />
           </View>
 
-          {/* グリッド */}
+          {/* グラフカード */}
           <View style={styles.graphCard}>
-            <ScrollView horizontal showsHorizontalScrollIndicator={false}>
-              <View>
-                {/* 月ラベル */}
-                <View style={styles.monthRow}>
-                  {monthLabels.map((label, i) => (
-                    <View key={i} style={styles.monthCell}>
-                      {label ? <Text style={styles.monthText}>{label}</Text> : null}
-                    </View>
-                  ))}
-                </View>
+            {/* 曜日ヘッダー */}
+            <View style={styles.dayHeader}>
+              <View style={{ width: MONTH_LABEL_WIDTH }} />
+              {DAY_LABELS.map((label) => (
+                <Text key={label} style={styles.dayHeaderLabel}>{label}</Text>
+              ))}
+            </View>
 
-                {/* 曜日ラベル + セルグリッド */}
-                <View style={styles.gridBody}>
-                  {/* 曜日ラベル */}
-                  <View style={styles.dayLabelCol}>
-                    {DAY_LABELS.map((label, i) => (
-                      <Text key={i} style={styles.dayLabel}>{label}</Text>
-                    ))}
-                  </View>
+            {/* 週行 */}
+            {grid.map((row, wi) => {
+              // 月ラベル: その行の最初の日が月初めに変わるとき表示
+              const firstDate = row[0];
+              const prevFirstDate = wi > 0 ? grid[wi - 1][0] : null;
+              const showMonth =
+                wi === 0 ||
+                (prevFirstDate && firstDate.getMonth() !== prevFirstDate.getMonth());
+              const monthLabel = showMonth ? `${firstDate.getMonth() + 1}月` : null;
 
-                  {/* セル列 */}
-                  {grid.map((col, wi) => (
-                    <View key={wi} style={styles.weekCol}>
-                      {col.map((date, di) => {
-                        const ds = toDateString(date);
-                        const activity = activityMap[ds];
-                        const level = activity?.level ?? 0;
-                        const isToday = ds === toDateString(today);
-                        return (
-                          <View
-                            key={di}
-                            style={[
-                              styles.cell,
-                              { backgroundColor: LEVEL_COLORS[level] },
-                              isToday && styles.cellToday,
-                            ]}
-                          />
-                        );
-                      })}
-                    </View>
-                  ))}
+              return (
+                <View key={wi} style={styles.weekRow}>
+                  {/* 月ラベル */}
+                  <Text style={styles.monthLabel}>{monthLabel ?? ''}</Text>
+
+                  {/* セル */}
+                  {row.map((date, di) => {
+                    const ds = toDateString(date);
+                    const activity = activityMap[ds];
+                    const level = activity?.level ?? 0;
+                    const isToday = ds === todayStr;
+                    return (
+                      <View
+                        key={di}
+                        style={[
+                          styles.cell,
+                          { backgroundColor: LEVEL_COLORS[level] },
+                          isToday && styles.cellToday,
+                        ]}
+                      />
+                    );
+                  })}
                 </View>
-              </View>
-            </ScrollView>
+              );
+            })}
 
             {/* 凡例 */}
             <View style={styles.legend}>
               <Text style={styles.legendText}>少ない</Text>
               {LEVEL_COLORS.map((color, i) => (
-                <View key={i} style={[styles.cell, { backgroundColor: color }]} />
+                <View key={i} style={[styles.legendCell, { backgroundColor: color }]} />
               ))}
               <Text style={styles.legendText}>多い</Text>
             </View>
@@ -208,44 +214,38 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     padding: 14,
   },
-  monthRow: {
+  dayHeader: {
     flexDirection: 'row',
-    marginLeft: 22,
+    alignItems: 'center',
     marginBottom: 4,
   },
-  monthCell: {
-    width: CELL_SIZE + CELL_GAP,
-  },
-  monthText: {
-    fontSize: 10,
-    color: '#8E8E93',
-  },
-  gridBody: {
-    flexDirection: 'row',
-  },
-  dayLabelCol: {
-    marginRight: 4,
-    gap: CELL_GAP,
-  },
-  dayLabel: {
-    fontSize: 10,
-    color: '#8E8E93',
-    width: 18,
-    height: CELL_SIZE,
-    lineHeight: CELL_SIZE,
-    textAlign: 'right',
-  },
-  weekCol: {
+  dayHeaderLabel: {
+    width: CELL_SIZE,
     marginRight: CELL_GAP,
-    gap: CELL_GAP,
+    fontSize: 11,
+    color: '#8E8E93',
+    textAlign: 'center',
+  },
+
+  // 週行
+  weekRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: CELL_GAP,
+  },
+  monthLabel: {
+    width: MONTH_LABEL_WIDTH,
+    fontSize: 10,
+    color: '#8E8E93',
   },
   cell: {
     width: CELL_SIZE,
     height: CELL_SIZE,
-    borderRadius: 2,
+    borderRadius: 4,
+    marginRight: CELL_GAP,
   },
   cellToday: {
-    borderWidth: 1.5,
+    borderWidth: 2,
     borderColor: '#007AFF',
   },
 
@@ -254,11 +254,16 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'flex-end',
-    marginTop: 10,
+    marginTop: 8,
     gap: 4,
   },
   legendText: {
     fontSize: 10,
     color: '#8E8E93',
+  },
+  legendCell: {
+    width: 12,
+    height: 12,
+    borderRadius: 2,
   },
 });
