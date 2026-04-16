@@ -73,18 +73,11 @@ export function LogScreen() {
   const totalAttendance = Object.values(activityMap).reduce((s, v) => s + v.score, 0);
   const totalAssignments = Object.values(activityMap).reduce((s, v) => s + v.assignmentCount, 0);
 
-  // 連続記録日数（今日から遡る）
-  const streak = useMemo(() => {
-    let count = 0;
-    const cursor = new Date(today);
-    while (true) {
-      const ds = toDateString(cursor);
-      if (!activityMap[ds]) break;
-      count++;
-      cursor.setDate(cursor.getDate() - 1);
-    }
-    return count;
-  }, [activityMap, today]);
+  // 記録開始からの経過日数
+  const elapsedDays = useMemo(() => {
+    if (!firstDate) return 0;
+    return Math.floor((today.getTime() - firstDate.getTime()) / (24 * 60 * 60 * 1000)) + 1;
+  }, [firstDate, today]);
 
   return (
     <SafeAreaView style={styles.container} edges={['top']}>
@@ -93,11 +86,6 @@ export function LogScreen() {
         <View style={styles.headerSide} />
         <View style={styles.headerCenter}>
           <Text style={styles.headerTitle}>ログ</Text>
-          {firstDate && (
-            <Text style={styles.headerSubtitle}>
-              {firstDate.getFullYear()}/{firstDate.getMonth() + 1}/{firstDate.getDate()} から記録中
-            </Text>
-          )}
         </View>
         <View style={styles.headerSide}>
           <TouchableOpacity hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }} onPress={() => setHelpVisible(true)}>
@@ -124,9 +112,9 @@ export function LogScreen() {
               </Text>
             </View>
             <View style={styles.modalSection}>
-              <Text style={styles.modalSectionTitle}>連続記録（日連続）</Text>
+              <Text style={styles.modalSectionTitle}>記録開始カード</Text>
               <Text style={styles.modalBody}>
-                今日から遡って何日連続で活動があったかを表示します。毎日出席・課題を記録することで継続日数が伸びます。
+                最初に活動を記録した日からの経過日数を表示します。積み上げてきた日数を確認できます。
               </Text>
             </View>
             <View style={styles.modalSection}>
@@ -154,11 +142,16 @@ export function LogScreen() {
           contentContainerStyle={styles.scrollContent}
           showsVerticalScrollIndicator={false}
         >
-          {/* ストリーク */}
-          {streak > 0 && (
-            <View style={styles.streakCard}>
-              <Text style={styles.streakNumber}>{streak}</Text>
-              <Text style={styles.streakLabel}>日連続</Text>
+          {/* 記録開始カード */}
+          {firstDate && (
+            <View style={styles.sinceCard}>
+              <View>
+                <Text style={styles.sinceDate}>
+                  {firstDate.getFullYear()}/{firstDate.getMonth() + 1}/{firstDate.getDate()} から記録中
+                </Text>
+                <Text style={styles.sinceDays}>{elapsedDays}日目</Text>
+              </View>
+              <Ionicons name="calendar-outline" size={32} color="rgba(255,255,255,0.7)" />
             </View>
           )}
 
@@ -318,31 +311,32 @@ const styles = StyleSheet.create({
     fontWeight: '400',
   },
 
-  // ストリーク
-  streakCard: {
+  // 記録開始カード
+  sinceCard: {
     backgroundColor: '#007AFF',
     borderRadius: 14,
-    paddingVertical: 16,
+    paddingVertical: 18,
     paddingHorizontal: 20,
     flexDirection: 'row',
-    alignItems: 'baseline',
-    gap: 6,
+    alignItems: 'center',
+    justifyContent: 'space-between',
     shadowColor: '#007AFF',
     shadowOpacity: 0.3,
     shadowRadius: 10,
     shadowOffset: { width: 0, height: 4 },
     elevation: 4,
   },
-  streakNumber: {
-    fontSize: 36,
+  sinceDate: {
+    fontSize: 13,
+    fontWeight: '500',
+    color: 'rgba(255,255,255,0.85)',
+    marginBottom: 4,
+  },
+  sinceDays: {
+    fontSize: 34,
     fontWeight: '800',
     color: '#FFFFFF',
     letterSpacing: -0.5,
-  },
-  streakLabel: {
-    fontSize: 15,
-    fontWeight: '600',
-    color: 'rgba(255,255,255,0.85)',
   },
 
   // サマリー
