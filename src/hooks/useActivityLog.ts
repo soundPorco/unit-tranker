@@ -81,7 +81,17 @@ export function useActivityLog() {
     setLoading(false);
   }, []);
 
-  useEffect(() => { fetch(); }, [fetch]);
+  useEffect(() => {
+    fetch();
+
+    const channel = supabase
+      .channel('activity-log-realtime')
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'attendance' }, fetch)
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'assignments' }, fetch)
+      .subscribe();
+
+    return () => { supabase.removeChannel(channel); };
+  }, [fetch]);
 
   return { activityMap, loading, refetch: fetch };
 }

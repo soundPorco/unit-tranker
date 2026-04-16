@@ -1,4 +1,4 @@
-import React, { useMemo } from 'react';
+import React, { useMemo, useState } from 'react';
 import {
   View,
   Text,
@@ -6,6 +6,8 @@ import {
   StyleSheet,
   ActivityIndicator,
   TouchableOpacity,
+  Modal,
+  Pressable,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
@@ -56,6 +58,7 @@ function buildGrid(today: Date, firstDate: Date | null): Date[][] {
 // --- コンポーネント ---
 export function LogScreen() {
   const { activityMap, loading } = useActivityLog();
+  const [helpVisible, setHelpVisible] = useState(false);
   const today = useMemo(() => new Date(), []);
   const todayStr = useMemo(() => toDateString(today), [today]);
 
@@ -97,11 +100,49 @@ export function LogScreen() {
           )}
         </View>
         <View style={styles.headerSide}>
-          <TouchableOpacity hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}>
+          <TouchableOpacity hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }} onPress={() => setHelpVisible(true)}>
             <Ionicons name="help-circle-outline" size={22} color="#8E8E93" />
           </TouchableOpacity>
         </View>
       </View>
+
+      {/* ヘルプモーダル */}
+      <Modal
+        visible={helpVisible}
+        transparent
+        animationType="fade"
+        onRequestClose={() => setHelpVisible(false)}
+      >
+        <Pressable style={styles.modalOverlay} onPress={() => setHelpVisible(false)}>
+          <Pressable style={styles.modalCard} onPress={() => {}}>
+            <Text style={styles.modalTitle}>ログ画面について</Text>
+            <View style={styles.modalDivider} />
+            <View style={styles.modalSection}>
+              <Text style={styles.modalSectionTitle}>アクティビティグラフ</Text>
+              <Text style={styles.modalBody}>
+                出席・課題の活動量を日ごとのマスで可視化します。色が濃いほどその日の活動量が多いことを示します。
+              </Text>
+            </View>
+            <View style={styles.modalSection}>
+              <Text style={styles.modalSectionTitle}>連続記録（日連続）</Text>
+              <Text style={styles.modalBody}>
+                今日から遡って何日連続で活動があったかを表示します。毎日出席・課題を記録することで継続日数が伸びます。
+              </Text>
+            </View>
+            <View style={styles.modalSection}>
+              <Text style={styles.modalSectionTitle}>サマリー</Text>
+              <Text style={styles.modalBody}>
+                <Text style={styles.bold}>活動日数</Text>：記録がある日の合計{'\n'}
+                <Text style={styles.bold}>出席スコア</Text>：出席記録の合計ポイント{'\n'}
+                <Text style={styles.bold}>課題提出</Text>：提出した課題の合計件数
+              </Text>
+            </View>
+            <TouchableOpacity style={styles.modalCloseButton} onPress={() => setHelpVisible(false)}>
+              <Text style={styles.modalCloseText}>閉じる</Text>
+            </TouchableOpacity>
+          </Pressable>
+        </Pressable>
+      </Modal>
 
       {loading ? (
         <View style={styles.center}>
@@ -414,5 +455,60 @@ const styles = StyleSheet.create({
     width: 12,
     height: 12,
     borderRadius: 3,
+  },
+
+  // ヘルプモーダル
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0,0,0,0.45)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 24,
+  },
+  modalCard: {
+    backgroundColor: '#FFFFFF',
+    borderRadius: 18,
+    padding: 24,
+    width: '100%',
+    gap: 12,
+  },
+  modalTitle: {
+    fontSize: 17,
+    fontWeight: '700',
+    color: '#1C1C1E',
+    textAlign: 'center',
+  },
+  modalDivider: {
+    height: 0.5,
+    backgroundColor: '#E0E0E0',
+  },
+  modalSection: {
+    gap: 4,
+  },
+  modalSectionTitle: {
+    fontSize: 13,
+    fontWeight: '600',
+    color: '#007AFF',
+  },
+  modalBody: {
+    fontSize: 13,
+    color: '#3C3C43',
+    lineHeight: 20,
+  },
+  bold: {
+    fontWeight: '600',
+    color: '#1C1C1E',
+  },
+  modalCloseButton: {
+    marginTop: 4,
+    backgroundColor: '#F2F2F7',
+    borderRadius: 10,
+    paddingVertical: 12,
+    alignItems: 'center',
+  },
+  modalCloseText: {
+    fontSize: 15,
+    fontWeight: '600',
+    color: '#007AFF',
   },
 });
