@@ -1,6 +1,6 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import {
-  View, Text, SectionList, TouchableOpacity, StyleSheet, ActivityIndicator,
+  View, Text, ScrollView, TouchableOpacity, StyleSheet, ActivityIndicator,
   Modal, TouchableWithoutFeedback, FlatList,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -9,23 +9,29 @@ import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { Ionicons } from '@expo/vector-icons';
 import { useClasses } from '../hooks/useClasses';
 import { useTimetables } from '../hooks/useTimetables';
+import { useAllClassStats } from '../hooks/useAllClassStats';
 import { GradeStackParamList } from '../types';
 
 type Nav = NativeStackNavigationProp<GradeStackParamList, 'GradeList'>;
 
 const DAYS = ['月', '火', '水', '木', '金', '土', '日'];
 const DAY_COLORS = ['#007AFF', '#34C759', '#FF9500', '#FF3B30', '#AF52DE', '#5AC8FA', '#FF6B6B'];
+const CLASS_TYPE_SHORT: Record<string, string> = {
+  required: '必修',
+  elective_required: '選択必修',
+  elective: '選択',
+};
 
 export function GradeListScreen() {
   const navigation = useNavigation<Nav>();
-
   const [currentTimetableId, setCurrentTimetableId] = useState<string | null>(null);
   const [showSwitcher, setShowSwitcher] = useState(false);
 
   const { timetables, loaded, reload } = useTimetables();
-  const { classes, loading, refetch } = useClasses(currentTimetableId ?? '');
+  const { classes, loading: classesLoading, refetch } = useClasses(currentTimetableId ?? '');
+  const classIds = useMemo(() => classes.map(c => c.id), [classes]);
+  const { stats, loading: statsLoading } = useAllClassStats(classIds);
 
-  // 初回ロード時に先頭の時間割を選択
   useEffect(() => {
     if (loaded && currentTimetableId === null && timetables.length > 0) {
       setCurrentTimetableId(timetables[0].id);
@@ -42,138 +48,194 @@ export function GradeListScreen() {
     ? `${currentTimetable.academicYear}年度 ${currentTimetable.semester}`
     : '成績';
 
-  const sections = useMemo(() => {
-    return DAYS.map((day, index) => ({
-      day,
-      dayIndex: index,
-      color: DAY_COLORS[index],
-      data: classes
-        .filter(c => c.day_of_week === index)
-        .sort((a, b) => a.period - b.period),
-    })).filter(s => s.data.length > 0);
-  }, [classes]);
+  const sortedClasses = useMemo(() =>
+    [...classes].sort((a, b) =>
+      a.day_of_week !== b.day_of_week
+        ? a.day_of_week - b.day_of_week
+        : a.period - b.period
+    ), [classes]);
 
-  if (loading || !loaded) {
-    return (
-      <SafeAreaView style={styles.container} edges={['bottom', 'left', 'right']}>
-        <SafeAreaView edges={['top']} style={styles.headerSafeArea}>
-          <View style={styles.customHeader}>
-            <View style={styles.headerSide} />
-            <View style={styles.switcherBtn}>
-              <Text style={styles.headerTitle}>{currentLabel}</Text>
-            </View>
-            <View style={styles.headerSide} />
-          </View>
-        </SafeAreaView>
-        <View style={styles.headerDivider} />
-        <ActivityIndicator color="#007AFF" style={{ flex: 1 }} />
-      </SafeAreaView>
-    );
-  }
+  const summary = useMemo(() => {
+    const totalCredits = classes.reduce((s, c) => s + (c.credits ?? 0), 0);
+    const creditClasses = classes.filter(c => c.credits != null).length;
+    const rates = Object.values(stats).map(s => s.attendanceRate);
+    const avgAtt = rates.length > 0
+      ? Math.round(rates.reduce((s, r) => s + r, 0) / rates.length)
+      : null;
+    return { totalCredits, creditClasses, avgAtt };
+  }, [classes, stats]);
 
-  // 時間割がない場合
-  if (timetables.length === 0) {
-    return (
-      <SafeAreaView style={styles.container} edges={['bottom', 'left', 'right']}>
-        <SafeAreaView edges={['top']} style={styles.headerSafeArea}>
-          <View style={styles.customHeader}>
-            <View style={styles.headerSide} />
-            <View style={styles.switcherBtn}>
-              <Text style={styles.headerTitle}>成績</Text>
-            </View>
-            <View style={styles.headerSide} />
-          </View>
-        </SafeAreaView>
-        <View style={styles.headerDivider} />
-        <View style={styles.emptyContainer}>
-          <Ionicons name="calendar-outline" size={48} color="#C7C7CC" />
-          <Text style={styles.emptyTitle}>時間割がありません</Text>
-          <Text style={styles.emptyDesc}>時間割タブから追加しましょう</Text>
-        </View>
-      </SafeAreaView>
-    );
-  }
+  const loading = !loaded || classesLoading;
 
-  return (
-    <SafeAreaView style={styles.container} edges={['bottom', 'left', 'right']}>
-      {/* カスタムヘッダー */}
-      <SafeAreaView edges={['top']} style={styles.headerSafeArea}>
-        <View style={styles.customHeader}>
-          <View style={styles.headerSide} />
-
-          {/* 時間割切り替えボタン */}
+  // --- 共通ヘッダー ---
+  const renderHeader = (interactive = true) => (
+    <SafeAreaView edges={['top']} style={s.headerSafeArea}>
+      <View style={s.headerRow}>
+        <View style={s.headerSide} />
+        {interactive && timetables.length > 0 ? (
           <TouchableOpacity
-            style={styles.switcherBtn}
+            style={s.switcherBtn}
             onPress={() => setShowSwitcher(true)}
             activeOpacity={0.7}
           >
-            <Text style={styles.headerTitle} numberOfLines={1}>{currentLabel}</Text>
+            <Text style={s.headerTitle} numberOfLines={1}>{currentLabel}</Text>
             <Ionicons
               name={showSwitcher ? 'chevron-up' : 'chevron-down'}
               size={14}
               color="#8E8E93"
             />
           </TouchableOpacity>
+        ) : (
+          <View style={s.switcherBtn}>
+            <Text style={s.headerTitle}>成績</Text>
+          </View>
+        )}
+        <View style={s.headerSide} />
+      </View>
+    </SafeAreaView>
+  );
 
-          <View style={styles.headerSide} />
-        </View>
-        <Text style={styles.headerSubtitle}>{classes.length} 科目</Text>
+  if (loading) {
+    return (
+      <SafeAreaView style={s.container} edges={['bottom', 'left', 'right']}>
+        {renderHeader(false)}
+        <View style={s.divider} />
+        <ActivityIndicator color="#007AFF" style={{ flex: 1 }} />
       </SafeAreaView>
-      <View style={styles.headerDivider} />
+    );
+  }
 
-      {classes.length === 0 ? (
-        <View style={styles.emptyContainer}>
-          <Ionicons name="book-outline" size={48} color="#C7C7CC" />
-          <Text style={styles.emptyTitle}>科目が登録されていません</Text>
-          <Text style={styles.emptyDesc}>時間割から科目を追加しましょう</Text>
+  if (timetables.length === 0) {
+    return (
+      <SafeAreaView style={s.container} edges={['bottom', 'left', 'right']}>
+        {renderHeader(false)}
+        <View style={s.divider} />
+        <View style={s.emptyContainer}>
+          <Ionicons name="calendar-outline" size={48} color="#C7C7CC" />
+          <Text style={s.emptyTitle}>時間割がありません</Text>
+          <Text style={s.emptyDesc}>時間割タブから追加しましょう</Text>
         </View>
-      ) : (
-        <SectionList
-          sections={sections}
-          keyExtractor={item => item.id}
-          contentContainerStyle={styles.list}
-          showsVerticalScrollIndicator={false}
-          stickySectionHeadersEnabled={false}
-          renderSectionHeader={({ section }) => (
-            <View style={styles.sectionHeader}>
-              <View style={[styles.sectionDot, { backgroundColor: section.color }]} />
-              <Text style={[styles.sectionTitle, { color: section.color }]}>
-                {section.day}曜日
-              </Text>
-            </View>
-          )}
-          renderItem={({ item, section }) => {
-            const color = section.color;
-            return (
-              <TouchableOpacity
-                style={styles.card}
-                activeOpacity={0.7}
-                onPress={() => navigation.navigate('ClassDetail', {
-                  classId: item.id,
-                  className: item.name,
-                })}
-              >
-                <View style={[styles.stripe, { backgroundColor: color }]} />
-                <View style={styles.cardContent}>
-                  <View style={styles.cardTop}>
-                    <Text style={styles.className} numberOfLines={1}>{item.name}</Text>
-                    <Text style={[styles.period, { color }]}>{item.period}限</Text>
+      </SafeAreaView>
+    );
+  }
+
+  return (
+    <SafeAreaView style={s.container} edges={['bottom', 'left', 'right']}>
+      {renderHeader()}
+      <View style={s.divider} />
+
+      <ScrollView
+        style={s.scrollBg}
+        contentContainerStyle={s.scrollContent}
+        showsVerticalScrollIndicator={false}
+      >
+        {/* サマリーカード */}
+        <View style={s.summaryRow}>
+          <SummaryCard
+            icon="book-outline"
+            label="登録科目"
+            value={String(classes.length)}
+            unit="科目"
+          />
+          <SummaryCard
+            icon="school-outline"
+            label="合計単位"
+            value={String(summary.totalCredits)}
+            unit="単位"
+            sub={summary.creditClasses < classes.length
+              ? `${classes.length - summary.creditClasses}科目未設定`
+              : undefined}
+          />
+          <SummaryCard
+            icon="person-outline"
+            label="平均出席率"
+            value={summary.avgAtt != null ? String(summary.avgAtt) : '—'}
+            unit={summary.avgAtt != null ? '%' : ''}
+          />
+        </View>
+
+        {/* 科目別リスト */}
+        {classes.length === 0 ? (
+          <View style={s.emptyCard}>
+            <Ionicons name="book-outline" size={40} color="#C7C7CC" />
+            <Text style={s.emptyTitle}>科目が登録されていません</Text>
+            <Text style={s.emptyDesc}>時間割から科目を追加しましょう</Text>
+          </View>
+        ) : (
+          <>
+            <Text style={s.sectionLabel}>科目別</Text>
+            {sortedClasses.map(cls => {
+              const color = DAY_COLORS[cls.day_of_week];
+              const stat = stats[cls.id];
+              const attRate = stat?.attendanceRate ?? 0;
+              const submRate = stat?.submissionRate ?? 0;
+              const meta = [
+                `${DAYS[cls.day_of_week]}曜${cls.period}限`,
+                cls.credits != null ? `${cls.credits}単位` : null,
+                cls.class_type ? CLASS_TYPE_SHORT[cls.class_type] : null,
+              ].filter(Boolean).join(' · ');
+
+              return (
+                <TouchableOpacity
+                  key={cls.id}
+                  style={s.classCard}
+                  activeOpacity={0.7}
+                  onPress={() => navigation.navigate('ClassDetail', {
+                    classId: cls.id,
+                    className: cls.name,
+                  })}
+                >
+                  <View style={[s.stripe, { backgroundColor: color }]} />
+                  <View style={s.classBody}>
+                    {/* 科目名 + 矢印 */}
+                    <View style={s.classTop}>
+                      <Text style={s.className} numberOfLines={1}>{cls.name}</Text>
+                      <Ionicons name="chevron-forward" size={14} color="#C7C7CC" />
+                    </View>
+
+                    {/* メタ情報 */}
+                    <Text style={s.classMeta}>{meta}</Text>
+
+                    {/* 出席率バー */}
+                    {statsLoading ? (
+                      <View style={s.barSkeleton} />
+                    ) : (
+                      <View style={s.barRow}>
+                        <Text style={s.barLabel}>出席</Text>
+                        <View style={s.track}>
+                          <View style={[s.fill, { width: `${attRate}%` as any, backgroundColor: color }]} />
+                        </View>
+                        <Text style={[s.barPct, { color: attRate > 0 ? color : '#C7C7CC' }]}>
+                          {attRate > 0 ? `${attRate}%` : '—'}
+                        </Text>
+                      </View>
+                    )}
+
+                    {/* 課題提出率バー（提出実績があれば表示） */}
+                    {!statsLoading && submRate > 0 && (
+                      <View style={s.barRow}>
+                        <Text style={s.barLabel}>課題</Text>
+                        <View style={s.track}>
+                          <View style={[s.fill, { width: `${submRate}%` as any, backgroundColor: '#8E8E93' }]} />
+                        </View>
+                        <Text style={[s.barPct, { color: '#8E8E93' }]}>{submRate}%</Text>
+                      </View>
+                    )}
                   </View>
-                  {item.teacher ? (
-                    <Text style={styles.teacher}>{item.teacher}</Text>
-                  ) : null}
-                </View>
-                <Ionicons name="chevron-forward" size={16} color="#C7C7CC" style={styles.chevron} />
-              </TouchableOpacity>
-            );
-          }}
-          SectionSeparatorComponent={() => <View style={{ height: 4 }} />}
-          ItemSeparatorComponent={() => <View style={{ height: 8 }} />}
-        />
-      )}
+                </TouchableOpacity>
+              );
+            })}
+          </>
+        )}
+      </ScrollView>
 
       {/* 時間割切り替えモーダル */}
-      <Modal visible={showSwitcher} transparent animationType="slide" onRequestClose={() => setShowSwitcher(false)}>
+      <Modal
+        visible={showSwitcher}
+        transparent
+        animationType="slide"
+        onRequestClose={() => setShowSwitcher(false)}
+      >
         <TouchableWithoutFeedback onPress={() => setShowSwitcher(false)}>
           <View style={sw.overlay}>
             <TouchableWithoutFeedback>
@@ -216,17 +278,41 @@ export function GradeListScreen() {
   );
 }
 
-const styles = StyleSheet.create({
+// --- サマリーカード ---
+function SummaryCard({
+  icon, label, value, unit, sub,
+}: {
+  icon: any;
+  label: string;
+  value: string;
+  unit: string;
+  sub?: string;
+}) {
+  return (
+    <View style={s.summaryCard}>
+      <Ionicons name={icon} size={16} color="#8E8E93" />
+      <Text style={s.summaryLabel}>{label}</Text>
+      <View style={s.summaryValueRow}>
+        <Text style={s.summaryValue}>{value}</Text>
+        {unit ? <Text style={s.summaryUnit}>{unit}</Text> : null}
+      </View>
+      {sub ? <Text style={s.summarySub}>{sub}</Text> : null}
+    </View>
+  );
+}
+
+// --- スタイル ---
+const s = StyleSheet.create({
   container: { flex: 1, backgroundColor: '#F2F2F7' },
 
   headerSafeArea: { backgroundColor: '#FFFFFF' },
-  customHeader: {
+  headerRow: {
     flexDirection: 'row',
     alignItems: 'center',
     backgroundColor: '#FFFFFF',
     paddingHorizontal: 16,
     paddingTop: 6,
-    paddingBottom: 4,
+    paddingBottom: 10,
   },
   headerSide: { width: 44 },
   switcherBtn: {
@@ -241,9 +327,85 @@ const styles = StyleSheet.create({
     paddingHorizontal: 14,
   },
   headerTitle: { fontSize: 15, fontWeight: '600', color: '#1C1C1E', letterSpacing: 0.2 },
-  headerSubtitle: { fontSize: 12, color: '#8E8E93', textAlign: 'center', paddingBottom: 6 },
-  headerDivider: { height: 0.5, backgroundColor: '#E5E5EA' },
+  divider: { height: 0.5, backgroundColor: '#E5E5EA' },
 
+  scrollBg: { backgroundColor: '#F2F2F7' },
+  scrollContent: { paddingHorizontal: 16, paddingTop: 16, paddingBottom: 40, gap: 12 },
+
+  // サマリー
+  summaryRow: { flexDirection: 'row', gap: 10 },
+  summaryCard: {
+    flex: 1,
+    backgroundColor: '#FFFFFF',
+    borderRadius: 14,
+    padding: 12,
+    gap: 4,
+    shadowColor: '#000',
+    shadowOpacity: 0.05,
+    shadowRadius: 6,
+    shadowOffset: { width: 0, height: 2 },
+    elevation: 2,
+  },
+  summaryLabel: { fontSize: 11, color: '#8E8E93', fontWeight: '500', marginTop: 2 },
+  summaryValueRow: { flexDirection: 'row', alignItems: 'baseline', gap: 2 },
+  summaryValue: { fontSize: 22, fontWeight: '700', color: '#1C1C1E' },
+  summaryUnit: { fontSize: 12, fontWeight: '500', color: '#8E8E93' },
+  summarySub: { fontSize: 10, color: '#C7C7CC' },
+
+  // セクションラベル
+  sectionLabel: {
+    fontSize: 13,
+    fontWeight: '500',
+    color: '#6C6C70',
+    textTransform: 'uppercase',
+    letterSpacing: 0.4,
+    marginLeft: 4,
+    marginBottom: -4,
+  },
+
+  // 科目カード
+  classCard: {
+    flexDirection: 'row',
+    backgroundColor: '#FFFFFF',
+    borderRadius: 14,
+    overflow: 'hidden',
+    shadowColor: '#000',
+    shadowOpacity: 0.05,
+    shadowRadius: 6,
+    shadowOffset: { width: 0, height: 2 },
+    elevation: 2,
+  },
+  stripe: { width: 4 },
+  classBody: { flex: 1, padding: 14, gap: 8 },
+  classTop: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    gap: 8,
+  },
+  className: { fontSize: 16, fontWeight: '600', color: '#1C1C1E', flex: 1 },
+  classMeta: { fontSize: 12, color: '#8E8E93', marginTop: -4 },
+
+  // バー
+  barRow: { flexDirection: 'row', alignItems: 'center', gap: 8 },
+  barLabel: { fontSize: 11, color: '#8E8E93', width: 26, fontWeight: '500' },
+  track: {
+    flex: 1,
+    height: 6,
+    borderRadius: 3,
+    backgroundColor: '#F2F2F7',
+    overflow: 'hidden',
+  },
+  fill: { height: 6, borderRadius: 3 },
+  barPct: { fontSize: 12, fontWeight: '600', width: 34, textAlign: 'right' },
+  barSkeleton: {
+    height: 6,
+    borderRadius: 3,
+    backgroundColor: '#F2F2F7',
+    marginVertical: 4,
+  },
+
+  // 空状態
   emptyContainer: {
     flex: 1,
     alignItems: 'center',
@@ -251,44 +413,13 @@ const styles = StyleSheet.create({
     gap: 8,
     paddingBottom: 60,
   },
-  emptyTitle: { fontSize: 17, fontWeight: '600', color: '#3C3C43', marginTop: 8 },
-  emptyDesc: { fontSize: 14, color: '#8E8E93' },
-
-  list: { paddingHorizontal: 16, paddingBottom: 24 },
-
-  sectionHeader: {
-    flexDirection: 'row',
+  emptyCard: {
     alignItems: 'center',
-    gap: 6,
-    paddingTop: 16,
-    paddingBottom: 8,
-  },
-  sectionDot: { width: 8, height: 8, borderRadius: 4 },
-  sectionTitle: { fontSize: 13, fontWeight: '700', letterSpacing: 0.3 },
-
-  card: {
-    flexDirection: 'row',
-    backgroundColor: '#FFFFFF',
-    borderRadius: 14,
-    overflow: 'hidden',
-    shadowColor: '#000',
-    shadowOpacity: 0.06,
-    shadowRadius: 6,
-    shadowOffset: { width: 0, height: 2 },
-    elevation: 2,
-  },
-  stripe: { width: 4 },
-  cardContent: { flex: 1, padding: 14, gap: 4 },
-  cardTop: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
+    paddingVertical: 48,
     gap: 8,
   },
-  className: { fontSize: 16, fontWeight: '600', color: '#1C1C1E', flex: 1 },
-  period: { fontSize: 13, fontWeight: '600' },
-  teacher: { fontSize: 12, color: '#8E8E93' },
-  chevron: { alignSelf: 'center', marginRight: 10 },
+  emptyTitle: { fontSize: 17, fontWeight: '600', color: '#3C3C43' },
+  emptyDesc: { fontSize: 14, color: '#8E8E93' },
 });
 
 const sw = StyleSheet.create({
@@ -310,54 +441,28 @@ const sw = StyleSheet.create({
     elevation: 12,
   },
   handle: {
-    width: 36,
-    height: 4,
-    borderRadius: 2,
+    width: 36, height: 4, borderRadius: 2,
     backgroundColor: '#C7C7CC',
     alignSelf: 'center',
-    marginTop: 12,
-    marginBottom: 4,
+    marginTop: 12, marginBottom: 4,
   },
-  sheetHeader: {
-    paddingHorizontal: 16,
-    paddingVertical: 8,
-    alignItems: 'center',
-  },
+  sheetHeader: { paddingHorizontal: 16, paddingVertical: 8, alignItems: 'center' },
   sheetTitle: {
-    fontSize: 13,
-    fontWeight: '600',
-    color: '#8E8E93',
-    textTransform: 'uppercase',
-    letterSpacing: 0.5,
+    fontSize: 13, fontWeight: '600', color: '#8E8E93',
+    textTransform: 'uppercase', letterSpacing: 0.5,
   },
   row: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingHorizontal: 20,
-    paddingVertical: 14,
-    gap: 12,
+    flexDirection: 'row', alignItems: 'center',
+    paddingHorizontal: 20, paddingVertical: 14, gap: 12,
   },
   radio: {
-    width: 22,
-    height: 22,
-    borderRadius: 11,
-    borderWidth: 2,
-    borderColor: '#C7C7CC',
-    alignItems: 'center',
-    justifyContent: 'center',
+    width: 22, height: 22, borderRadius: 11,
+    borderWidth: 2, borderColor: '#C7C7CC',
+    alignItems: 'center', justifyContent: 'center',
   },
   radioActive: { borderColor: '#007AFF' },
-  radioDot: {
-    width: 11,
-    height: 11,
-    borderRadius: 6,
-    backgroundColor: '#007AFF',
-  },
-  sep: {
-    height: 0.5,
-    backgroundColor: '#E5E5EA',
-    marginHorizontal: 20,
-  },
+  radioDot: { width: 11, height: 11, borderRadius: 6, backgroundColor: '#007AFF' },
+  sep: { height: 0.5, backgroundColor: '#E5E5EA', marginHorizontal: 20 },
   label: { fontSize: 15, color: '#1C1C1E', fontWeight: '500' },
   labelActive: { color: '#007AFF', fontWeight: '600' },
 });
