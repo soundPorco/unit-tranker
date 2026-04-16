@@ -357,7 +357,7 @@ function SummaryCard({
 }) {
   return (
     <View style={s.summaryCard}>
-      <Ionicons name={icon} size={16} color="#8E8E93" />
+      <Ionicons name={icon} size={16} color="#007AFF" />
       <Text style={s.summaryLabel}>{label}</Text>
       <View style={s.summaryValueRow}>
         <Text style={s.summaryValue}>{value}</Text>
@@ -413,10 +413,10 @@ const s = StyleSheet.create({
     shadowOffset: { width: 0, height: 2 },
     elevation: 2,
   },
-  summaryLabel: { fontSize: 11, color: '#8E8E93', fontWeight: '500', marginTop: 2 },
+  summaryLabel: { fontSize: 12, color: '#6C6C70', fontWeight: '600', marginTop: 2 },
   summaryValueRow: { flexDirection: 'row', alignItems: 'baseline', gap: 2 },
   summaryValue: { fontSize: 22, fontWeight: '700', color: '#1C1C1E' },
-  summaryUnit: { fontSize: 12, fontWeight: '500', color: '#8E8E93' },
+  summaryUnit: { fontSize: 12, fontWeight: '600', color: '#8E8E93' },
   summarySub: { fontSize: 10, color: '#C7C7CC' },
 
   activitySection: {
