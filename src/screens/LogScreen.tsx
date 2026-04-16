@@ -21,10 +21,10 @@ const MONTH_LABEL_WIDTH = 30;
 
 const LEVEL_COLORS = [
   '#EBEBEB',
-  '#B7DFBB',
-  '#74C07A',
-  '#3DA844',
-  '#1C7A2E',
+  '#90DBA6',
+  '#4DBD70',
+  '#25A84E',
+  '#167535',
 ] as const;
 
 // --- ヘルパー ---
