@@ -104,12 +104,13 @@ export function ActivityGraphCard() {
 
       {/* グラフカード */}
       <View style={styles.card}>
-        <View style={styles.cardTitleRow}>
-          <Text style={styles.cardTitle}>アクティビティ</Text>
-          <TouchableOpacity hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }} onPress={() => setHelpVisible(true)}>
-            <Ionicons name="help-circle-outline" size={18} color="#C7C7CC" />
-          </TouchableOpacity>
-        </View>
+        <TouchableOpacity
+          style={styles.cardHelpBtn}
+          hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+          onPress={() => setHelpVisible(true)}
+        >
+          <Ionicons name="help-circle-outline" size={18} color="#C7C7CC" />
+        </TouchableOpacity>
 
         {/* 曜日ヘッダー */}
         <View style={styles.dayHeader}>
@@ -437,6 +438,10 @@ const styles = StyleSheet.create({
     shadowRadius: 6,
     shadowOffset: { width: 0, height: 2 },
     elevation: 2,
+  },
+  cardHelpBtn: {
+    alignSelf: 'flex-end',
+    marginBottom: 8,
   },
   cardTitleRow: {
     flexDirection: 'row',

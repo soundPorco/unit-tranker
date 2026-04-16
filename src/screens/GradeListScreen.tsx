@@ -68,6 +68,7 @@ export function GradeListScreen() {
 
   const dayKeys = useMemo(() => Array.from(classesByDay.keys()).sort((a, b) => a - b), [classesByDay]);
 
+  const [activityExpanded, setActivityExpanded] = useState(true);
   const [expandedDays, setExpandedDays] = useState<Set<number>>(new Set());
 
   const toggleDay = useCallback((day: number) => {
@@ -121,7 +122,7 @@ export function GradeListScreen() {
 
   if (loading) {
     return (
-      <SafeAreaView style={s.container} edges={['bottom', 'left', 'right']}>
+      <SafeAreaView style={s.container} edges={['left', 'right']}>
         {renderHeader(false)}
         <View style={s.divider} />
         <ActivityIndicator color="#007AFF" style={{ flex: 1 }} />
@@ -131,7 +132,7 @@ export function GradeListScreen() {
 
   if (timetables.length === 0) {
     return (
-      <SafeAreaView style={s.container} edges={['bottom', 'left', 'right']}>
+      <SafeAreaView style={s.container} edges={['left', 'right']}>
         {renderHeader(false)}
         <View style={s.divider} />
         <View style={s.emptyContainer}>
@@ -144,7 +145,7 @@ export function GradeListScreen() {
   }
 
   return (
-    <SafeAreaView style={s.container} edges={['bottom', 'left', 'right']}>
+    <SafeAreaView style={s.container} edges={['left', 'right']}>
       {renderHeader()}
       <View style={s.divider} />
 
@@ -178,8 +179,25 @@ export function GradeListScreen() {
           />
         </View>
 
-        {/* アクティビティグラフ */}
-        <ActivityGraphCard />
+        {/* アクティビティグラフ（アコーディオン） */}
+        <View style={s.activitySection}>
+          <TouchableOpacity
+            style={s.activityHeader}
+            activeOpacity={0.7}
+            onPress={() => setActivityExpanded(prev => !prev)}
+          >
+            <View style={s.activityHeaderLeft}>
+              <Ionicons name="pulse-outline" size={16} color="#007AFF" />
+              <Text style={s.activityHeaderLabel}>アクティビティ</Text>
+            </View>
+            <Ionicons
+              name={activityExpanded ? 'chevron-up' : 'chevron-down'}
+              size={16}
+              color="#8E8E93"
+            />
+          </TouchableOpacity>
+          {activityExpanded && <ActivityGraphCard />}
+        </View>
 
         {/* 科目別リスト */}
         {classes.length === 0 ? (
@@ -400,6 +418,34 @@ const s = StyleSheet.create({
   summaryValue: { fontSize: 22, fontWeight: '700', color: '#1C1C1E' },
   summaryUnit: { fontSize: 12, fontWeight: '500', color: '#8E8E93' },
   summarySub: { fontSize: 10, color: '#C7C7CC' },
+
+  activitySection: {
+    backgroundColor: '#FFFFFF',
+    borderRadius: 14,
+    overflow: 'hidden',
+    shadowColor: '#000',
+    shadowOpacity: 0.05,
+    shadowRadius: 6,
+    shadowOffset: { width: 0, height: 2 },
+    elevation: 2,
+  },
+  activityHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingHorizontal: 14,
+    paddingVertical: 12,
+  },
+  activityHeaderLeft: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+  },
+  activityHeaderLabel: {
+    fontSize: 15,
+    fontWeight: '600',
+    color: '#1C1C1E',
+  },
 
   // セクションラベル
   sectionLabel: {
