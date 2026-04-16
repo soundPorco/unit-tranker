@@ -8,7 +8,7 @@ import {
 const AnimatedPressable = Animated.createAnimatedComponent(Pressable);
 import { Calendar } from 'react-native-calendars';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { useRoute, RouteProp } from '@react-navigation/native';
+import { useRoute, RouteProp, useNavigation } from '@react-navigation/native';
 import { Ionicons } from '@expo/vector-icons';
 import { useAttendance } from '../hooks/useAttendance';
 import { AttendanceButton } from '../components/AttendanceButton';
@@ -26,6 +26,7 @@ function formatDate(iso: string) {
 
 export function AttendanceListScreen() {
   const route = useRoute<Route>();
+  const navigation = useNavigation();
   const { classId } = route.params;
 
   const { records, loading, upsertAttendance, deleteAttendance } = useAttendance(classId);
@@ -83,14 +84,30 @@ export function AttendanceListScreen() {
 
   if (loading) {
     return (
-      <SafeAreaView style={s.container}>
+      <SafeAreaView style={s.container} edges={['top', 'bottom']}>
+        <View style={s.customHeader}>
+          <TouchableOpacity onPress={() => navigation.goBack()} hitSlop={8} style={s.backButton}>
+            <Ionicons name="chevron-back" size={26} color="#007AFF" />
+          </TouchableOpacity>
+          <Text style={s.headerTitle}>出席一覧</Text>
+          <View style={s.backButton} />
+        </View>
+        <View style={s.headerDivider} />
         <ActivityIndicator color="#007AFF" style={{ flex: 1 }} />
       </SafeAreaView>
     );
   }
 
   return (
-    <SafeAreaView style={s.container} edges={['bottom']}>
+    <SafeAreaView style={s.container} edges={['top', 'bottom']}>
+      <View style={s.customHeader}>
+        <TouchableOpacity onPress={() => navigation.goBack()} hitSlop={8} style={s.backButton}>
+          <Ionicons name="chevron-back" size={26} color="#007AFF" />
+        </TouchableOpacity>
+        <Text style={s.headerTitle}>出席一覧</Text>
+        <View style={s.backButton} />
+      </View>
+      <View style={s.headerDivider} />
       <ScrollView contentContainerStyle={s.content} showsVerticalScrollIndicator={false}>
         <View style={s.card}>
           {records.length === 0 ? (
@@ -231,6 +248,15 @@ export function AttendanceListScreen() {
 
 const s = StyleSheet.create({
   container: { flex: 1, backgroundColor: '#F2F2F7' },
+  customHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 8,
+    paddingVertical: 8,
+  },
+  backButton: { width: 36, alignItems: 'center' },
+  headerTitle: { flex: 1, textAlign: 'center', fontSize: 17, fontWeight: '600', color: '#1C1C1E' },
+  headerDivider: { height: 0.5, backgroundColor: '#E5E5EA' },
   content: { padding: 16, paddingBottom: 40 },
 
   card: {

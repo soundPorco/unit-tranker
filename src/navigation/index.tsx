@@ -31,24 +31,8 @@ function TimetableNavigator() {
       />
       <TimetableStack.Screen name="ClassForm" component={ClassFormScreen} options={{ title: '講義登録', presentation: 'modal', headerTintColor: '#007AFF' }} />
       <TimetableStack.Screen name="ClassDetail" component={ClassDetailScreen} options={{ headerShown: false }} />
-      <TimetableStack.Screen
-        name="AttendanceList"
-        component={AttendanceListScreen}
-        options={{
-          title: '出席一覧',
-          headerTintColor: '#007AFF',
-          headerStyle: { backgroundColor: '#F2F2F7' },
-        }}
-      />
-      <TimetableStack.Screen
-        name="AssignmentList"
-        component={ClassAssignmentListScreen}
-        options={{
-          title: '課題一覧',
-          headerTintColor: '#007AFF',
-          headerStyle: { backgroundColor: '#F2F2F7' },
-        }}
-      />
+      <TimetableStack.Screen name="AttendanceList" component={AttendanceListScreen} options={{ headerShown: false }} />
+      <TimetableStack.Screen name="AssignmentList" component={ClassAssignmentListScreen} options={{ headerShown: false }} />
     </TimetableStack.Navigator>
   );
 }
@@ -57,29 +41,9 @@ function GradeNavigator() {
   return (
     <GradeStack.Navigator>
       <GradeStack.Screen name="GradeList" component={GradeListScreen} options={{ headerShown: false }} />
-      <GradeStack.Screen
-        name="ClassDetail"
-        component={ClassDetailScreen}
-        options={{ headerShown: false }}
-      />
-      <GradeStack.Screen
-        name="AttendanceList"
-        component={AttendanceListScreen}
-        options={{
-          title: '出席一覧',
-          headerTintColor: '#007AFF',
-          headerStyle: { backgroundColor: '#F2F2F7' },
-        }}
-      />
-      <GradeStack.Screen
-        name="AssignmentList"
-        component={ClassAssignmentListScreen}
-        options={{
-          title: '課題一覧',
-          headerTintColor: '#007AFF',
-          headerStyle: { backgroundColor: '#F2F2F7' },
-        }}
-      />
+      <GradeStack.Screen name="ClassDetail" component={ClassDetailScreen} options={{ headerShown: false }} />
+      <GradeStack.Screen name="AttendanceList" component={AttendanceListScreen} options={{ headerShown: false }} />
+      <GradeStack.Screen name="AssignmentList" component={ClassAssignmentListScreen} options={{ headerShown: false }} />
     </GradeStack.Navigator>
   );
 }
