@@ -201,7 +201,7 @@ export function ClassFormScreen() {
                     style={s.datePicker}
                     onPress={() => setShowExamCalendar(v => !v)}
                   >
-                    <Ionicons name="calendar-outline" size={16} color="#007AFF" />
+                    <Ionicons name="calendar-outline" size={16} color="#4F46E5" />
                     <Text style={[s.datePickerText, !examDate && s.datePickerPlaceholder]}>
                       {examDate ? formatDate(examDate) : '日付を選択'}
                     </Text>
@@ -229,10 +229,10 @@ export function ClassFormScreen() {
                   setExamDate(day.dateString);
                   setShowExamCalendar(false);
                 }}
-                markedDates={examDate ? { [examDate]: { selected: true, selectedColor: '#007AFF' } } : {}}
+                markedDates={examDate ? { [examDate]: { selected: true, selectedColor: '#4F46E5' } } : {}}
                 theme={{
-                  arrowColor: '#007AFF',
-                  selectedDayBackgroundColor: '#007AFF',
+                  arrowColor: '#4F46E5',
+                  selectedDayBackgroundColor: '#4F46E5',
                 }}
                 style={s.calendar}
               />
@@ -278,7 +278,7 @@ const s = StyleSheet.create({
   scroll: { padding: 16, paddingBottom: 40 },
 
   banner: {
-    backgroundColor: '#007AFF',
+    backgroundColor: '#4F46E5',
     borderRadius: 12,
     paddingVertical: 12,
     alignItems: 'center',
@@ -339,7 +339,7 @@ const s = StyleSheet.create({
     borderRadius: 8,
     backgroundColor: '#F2F2F7',
   },
-  segBtnActive: { backgroundColor: '#007AFF' },
+  segBtnActive: { backgroundColor: '#4F46E5' },
   segText: { fontSize: 13, color: '#3C3C43', fontWeight: '500' },
   segTextActive: { color: '#FFFFFF', fontWeight: '600' },
 
@@ -352,7 +352,7 @@ const s = StyleSheet.create({
   },
 
   saveBtn: {
-    backgroundColor: '#007AFF',
+    backgroundColor: '#4F46E5',
     borderRadius: 12,
     paddingVertical: 15,
     alignItems: 'center',

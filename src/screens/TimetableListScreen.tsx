@@ -54,14 +54,14 @@ function CreateTimetableModal({
                 style={modal.yearBtn}
                 onPress={() => setAcademicYear(y => y - 1)}
               >
-                <Ionicons name="remove" size={20} color="#007AFF" />
+                <Ionicons name="remove" size={20} color="#4F46E5" />
               </TouchableOpacity>
               <Text style={modal.yearText}>{academicYear}年度</Text>
               <TouchableOpacity
                 style={modal.yearBtn}
                 onPress={() => setAcademicYear(y => y + 1)}
               >
-                <Ionicons name="add" size={20} color="#007AFF" />
+                <Ionicons name="add" size={20} color="#4F46E5" />
               </TouchableOpacity>
             </View>
           </View>
@@ -115,7 +115,7 @@ export function TimetableListScreen() {
           onPress={() => setShowCreate(true)}
           hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
         >
-          <Ionicons name="add" size={26} color="#007AFF" />
+          <Ionicons name="add" size={26} color="#4F46E5" />
         </TouchableOpacity>
       </View>
 
@@ -142,7 +142,7 @@ export function TimetableListScreen() {
                 onPress={() => navigation.navigate('TimetableMain', { timetableId: item.id })}
               >
                 <View style={styles.cardIcon}>
-                  <Ionicons name="calendar" size={24} color="#007AFF" />
+                  <Ionicons name="calendar" size={24} color="#4F46E5" />
                 </View>
                 <View style={styles.cardContent}>
                   <Text style={styles.cardTitle}>{label}</Text>
@@ -234,8 +234,8 @@ const modal = StyleSheet.create({
     backgroundColor: '#F2F2F7',
   },
   title: { fontSize: 17, fontWeight: '600', color: '#1C1C1E' },
-  cancel: { fontSize: 17, color: '#007AFF' },
-  save: { fontSize: 17, color: '#007AFF', fontWeight: '600' },
+  cancel: { fontSize: 17, color: '#4F46E5' },
+  save: { fontSize: 17, color: '#4F46E5', fontWeight: '600' },
 
   scroll: { padding: 16, gap: 4 },
 
@@ -285,7 +285,7 @@ const modal = StyleSheet.create({
     borderRadius: 8,
     backgroundColor: '#F2F2F7',
   },
-  segActive: { backgroundColor: '#007AFF' },
+  segActive: { backgroundColor: '#4F46E5' },
   segText: { fontSize: 14, color: '#3C3C43', fontWeight: '500' },
   segTextActive: { color: '#FFFFFF', fontWeight: '600' },
 });

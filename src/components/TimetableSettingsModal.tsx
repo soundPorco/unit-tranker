@@ -110,14 +110,14 @@ export function TimetableSettingsModal({ visible, settings, academicYear, semest
                     style={styles.yearBtn}
                     onPress={() => setDraftYear(y => y - 1)}
                   >
-                    <Ionicons name="remove" size={20} color="#007AFF" />
+                    <Ionicons name="remove" size={20} color="#4F46E5" />
                   </TouchableOpacity>
                   <Text style={styles.yearText}>{draftYear}年度</Text>
                   <TouchableOpacity
                     style={styles.yearBtn}
                     onPress={() => setDraftYear(y => y + 1)}
                   >
-                    <Ionicons name="add" size={20} color="#007AFF" />
+                    <Ionicons name="add" size={20} color="#4F46E5" />
                   </TouchableOpacity>
                 </View>
               </View>
@@ -264,9 +264,9 @@ const styles = StyleSheet.create({
   },
   title: { fontSize: 17, fontWeight: '600', color: '#1C1C1E' },
   cancelBtn: { minWidth: 60 },
-  cancelText: { fontSize: 17, color: '#007AFF' },
+  cancelText: { fontSize: 17, color: '#4F46E5' },
   saveBtn: { minWidth: 60, alignItems: 'flex-end' },
-  saveText: { fontSize: 17, color: '#007AFF', fontWeight: '600' },
+  saveText: { fontSize: 17, color: '#4F46E5', fontWeight: '600' },
 
   scroll: { padding: 16, gap: 4, paddingBottom: 40 },
 
@@ -322,7 +322,7 @@ const styles = StyleSheet.create({
     borderRadius: 8,
     backgroundColor: '#F2F2F7',
   },
-  segmentActive: { backgroundColor: '#007AFF' },
+  segmentActive: { backgroundColor: '#4F46E5' },
   segmentText: { fontSize: 14, color: '#3C3C43', fontWeight: '500' },
   segmentTextActive: { color: '#FFFFFF', fontWeight: '600' },
 
@@ -332,7 +332,7 @@ const styles = StyleSheet.create({
     borderRadius: 8,
     backgroundColor: '#F2F2F7',
   },
-  periodNumActive: { backgroundColor: '#007AFF' },
+  periodNumActive: { backgroundColor: '#4F46E5' },
   periodNumText: { fontSize: 14, color: '#3C3C43', fontWeight: '500' },
   periodNumTextActive: { color: '#FFFFFF', fontWeight: '600' },
 

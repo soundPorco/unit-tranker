@@ -152,14 +152,14 @@ function CreateTimetableModal({
                                 style={cm.yearBtn}
                                 onPress={() => setAcademicYear(y => y - 1)}
                             >
-                                <Ionicons name="remove" size={20} color="#007AFF" />
+                                <Ionicons name="remove" size={20} color="#4F46E5" />
                             </TouchableOpacity>
                             <Text style={cm.yearText}>{academicYear}年度</Text>
                             <TouchableOpacity
                                 style={cm.yearBtn}
                                 onPress={() => setAcademicYear(y => y + 1)}
                             >
-                                <Ionicons name="add" size={20} color="#007AFF" />
+                                <Ionicons name="add" size={20} color="#4F46E5" />
                             </TouchableOpacity>
                         </View>
                     </View>
@@ -234,7 +234,7 @@ export function TimetableScreen() {
     if (loading || !loaded) {
         return (
             <SafeAreaView style={styles.container} edges={["top"]}>
-                <ActivityIndicator color="#007AFF" style={{ flex: 1 }} />
+                <ActivityIndicator color="#4F46E5" style={{ flex: 1 }} />
             </SafeAreaView>
         );
     }
@@ -250,7 +250,7 @@ export function TimetableScreen() {
                             style={styles.gearBtn}
                             hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
                         >
-                            <Ionicons name="add" size={24} color="#007AFF" />
+                            <Ionicons name="add" size={24} color="#4F46E5" />
                         </TouchableOpacity>
                     </View>
                 </View>
@@ -445,7 +445,7 @@ const sw = StyleSheet.create({
         letterSpacing: 0.5,
     },
     addBtn: {
-        backgroundColor: "#007AFF",
+        backgroundColor: "#4F46E5",
         borderRadius: 20,
         paddingVertical: 6,
         paddingHorizontal: 16,
@@ -477,13 +477,13 @@ const sw = StyleSheet.create({
         justifyContent: "center",
     },
     radioActive: {
-        borderColor: "#007AFF",
+        borderColor: "#4F46E5",
     },
     radioDot: {
         width: 11,
         height: 11,
         borderRadius: 6,
-        backgroundColor: "#007AFF",
+        backgroundColor: "#4F46E5",
     },
     sep: {
         height: 0.5,
@@ -496,7 +496,7 @@ const sw = StyleSheet.create({
         fontWeight: "500",
     },
     labelActive: {
-        color: "#007AFF",
+        color: "#4F46E5",
         fontWeight: "600",
     },
     deleteBtn: {
@@ -518,8 +518,8 @@ const cm = StyleSheet.create({
         backgroundColor: '#F2F2F7',
     },
     title: { fontSize: 17, fontWeight: '600', color: '#1C1C1E' },
-    cancel: { fontSize: 17, color: '#007AFF' },
-    save: { fontSize: 17, color: '#007AFF', fontWeight: '600' },
+    cancel: { fontSize: 17, color: '#4F46E5' },
+    save: { fontSize: 17, color: '#4F46E5', fontWeight: '600' },
     scroll: { padding: 16, gap: 4 },
     label: {
         fontSize: 13,
@@ -565,7 +565,7 @@ const cm = StyleSheet.create({
         borderRadius: 8,
         backgroundColor: '#F2F2F7',
     },
-    segActive: { backgroundColor: '#007AFF' },
+    segActive: { backgroundColor: '#4F46E5' },
     segText: { fontSize: 14, color: '#3C3C43', fontWeight: '500' },
     segTextActive: { color: '#FFFFFF', fontWeight: '600' },
 });

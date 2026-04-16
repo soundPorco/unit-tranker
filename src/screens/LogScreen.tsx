@@ -71,7 +71,7 @@ export function ActivityGraphCard() {
   if (loading) {
     return (
       <View style={[styles.card, { alignItems: 'center', paddingVertical: 24 }]}>
-        <ActivityIndicator color="#007AFF" />
+        <ActivityIndicator color="#4F46E5" />
       </View>
     );
   }
@@ -192,7 +192,7 @@ export function LogContent() {
   if (loading) {
     return (
       <View style={styles.center}>
-        <ActivityIndicator color="#007AFF" />
+        <ActivityIndicator color="#4F46E5" />
       </View>
     );
   }
@@ -364,14 +364,14 @@ const styles = StyleSheet.create({
 
   // 記録開始カード
   sinceCard: {
-    backgroundColor: '#007AFF',
+    backgroundColor: '#4F46E5',
     borderRadius: 14,
     paddingVertical: 18,
     paddingHorizontal: 20,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    shadowColor: '#007AFF',
+    shadowColor: '#4F46E5',
     shadowOpacity: 0.3,
     shadowRadius: 10,
     shadowOffset: { width: 0, height: 4 },
@@ -492,7 +492,7 @@ const styles = StyleSheet.create({
   },
   cellToday: {
     borderWidth: 2,
-    borderColor: '#007AFF',
+    borderColor: '#4F46E5',
   },
   cellEmpty: {
     width: CELL_SIZE,
@@ -550,7 +550,7 @@ const styles = StyleSheet.create({
   modalSectionTitle: {
     fontSize: 13,
     fontWeight: '600',
-    color: '#007AFF',
+    color: '#4F46E5',
   },
   modalBody: {
     fontSize: 13,
@@ -571,6 +571,6 @@ const styles = StyleSheet.create({
   modalCloseText: {
     fontSize: 15,
     fontWeight: '600',
-    color: '#007AFF',
+    color: '#4F46E5',
   },
 });

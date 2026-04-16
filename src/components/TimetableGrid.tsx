@@ -21,7 +21,7 @@ const HEADER_ROW_H = 30;
 const CELL_GAP = 3;
 const GRID_PAD = 6;
 
-const CLASS_COLOR = { bg: "#D0E6FF", border: "#A8C8F0", text: "#3C3C43", pill: "#3A7BD5" };
+const CLASS_COLOR = { bg: "#EEF2FF", border: "#C7D2FE", text: "#3C3C43", pill: "#4F46E5" };
 
 interface Props {
     classes: Class[];
@@ -179,7 +179,7 @@ const styles = StyleSheet.create({
         borderRadius: 8,
     },
     dayBadgeToday: {
-        backgroundColor: "#007AFF",
+        backgroundColor: "#4F46E5",
     },
     dayText: {
         fontSize: 14,

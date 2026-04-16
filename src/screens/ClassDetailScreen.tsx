@@ -52,7 +52,7 @@ function formatDate(iso: string) {
 
 // 出席内訳 横棒グラフ
 const ATT_BAR_ITEMS = [
-  { key: 'present',   label: '出席', color: '#007AFF', mono: false },
+  { key: 'present',   label: '出席', color: '#F59E0B', mono: false },
   { key: 'late',      label: '遅刻', color: '#AEAEB2', mono: true  },
   { key: 'absent',    label: '欠席', color: '#8E8E93', mono: true  },
   { key: 'cancelled', label: '休講', color: '#C7C7CC', mono: true  },
@@ -131,7 +131,7 @@ const bc = StyleSheet.create({
   },
   bar: { height: 10, borderRadius: 5 },
   rowCount: { fontSize: 14, fontWeight: '700', width: 40, textAlign: 'right' },
-  rowCountBlue: { color: '#007AFF' },
+  rowCountBlue: { color: '#F59E0B' },
   rowCountMono: { color: '#8E8E93' },
   legendLabel: { fontSize: 12, color: '#6C6C70' },
   legendCount: { fontSize: 13, fontWeight: '700' },
@@ -318,7 +318,7 @@ export function ClassDetailScreen() {
   if (attLoading || asgLoading) {
     return (
       <SafeAreaView style={s.container}>
-        <ActivityIndicator color="#007AFF" style={{ flex: 1 }} />
+        <ActivityIndicator color="#4F46E5" style={{ flex: 1 }} />
       </SafeAreaView>
     );
   }
@@ -342,7 +342,7 @@ export function ClassDetailScreen() {
       <SafeAreaView edges={['top']} style={s.headerSafeArea}>
         <View style={s.customHeader}>
           <TouchableOpacity onPress={() => navigation.goBack()} hitSlop={8} style={s.backButton}>
-            <Ionicons name="chevron-back" size={26} color="#007AFF" />
+            <Ionicons name="chevron-back" size={26} color="#4F46E5" />
           </TouchableOpacity>
           <Text style={s.headerTitle} numberOfLines={1}>{className}</Text>
           <TouchableOpacity
@@ -350,7 +350,7 @@ export function ClassDetailScreen() {
             hitSlop={8}
             style={s.backButton}
           >
-            <Ionicons name="ellipsis-horizontal" size={22} color="#007AFF" />
+            <Ionicons name="ellipsis-horizontal" size={22} color="#4F46E5" />
           </TouchableOpacity>
         </View>
       </SafeAreaView>
@@ -427,7 +427,7 @@ export function ClassDetailScreen() {
             <Ionicons
               name={tab.icon}
               size={16}
-              color={activeTab === tab.key ? '#007AFF' : '#8E8E93'}
+              color={activeTab === tab.key ? '#4F46E5' : '#8E8E93'}
             />
             <Text style={[s.tabLabel, activeTab === tab.key && s.tabLabelActive]}>
               {tab.label}
@@ -474,7 +474,7 @@ export function ClassDetailScreen() {
                     <View style={[
                       s.statusChip,
                       statusConf.filled
-                        ? { backgroundColor: '#007AFF' }
+                        ? { backgroundColor: '#F59E0B' }
                         : { backgroundColor: 'transparent', borderWidth: 1.5, borderColor: '#6C6C70' },
                     ]}>
                       <Text style={[s.statusChipText, { color: statusConf.filled ? '#FFFFFF' : '#6C6C70' }]}>
@@ -516,7 +516,7 @@ export function ClassDetailScreen() {
           <View style={s.asgSummaryCard}>
             <View style={s.asgSummaryRow}>
               <View style={s.asgSummaryBlock}>
-                <Text style={[s.asgSummaryNum, { color: '#007AFF' }]}>{asgStats.submitted}</Text>
+                <Text style={[s.asgSummaryNum, { color: '#4F46E5' }]}>{asgStats.submitted}</Text>
                 <Text style={s.asgSummaryLbl}>提出済み</Text>
               </View>
               <View style={s.asgSummaryDivider} />
@@ -535,9 +535,9 @@ export function ClassDetailScreen() {
                 <View style={s.asgSummarySep} />
                 <View style={s.asgProgressRow}>
                   <View style={s.asgProgressTrack}>
-                    <View style={[s.asgProgressFill, { width: `${asgStats.rate}%` as any, backgroundColor: '#007AFF' }]} />
+                    <View style={[s.asgProgressFill, { width: `${asgStats.rate}%` as any, backgroundColor: '#4F46E5' }]} />
                   </View>
-                  <Text style={[s.asgProgressLabel, { color: '#007AFF' }]}>{asgStats.rate}%</Text>
+                  <Text style={[s.asgProgressLabel, { color: '#4F46E5' }]}>{asgStats.rate}%</Text>
                 </View>
               </>
             )}
@@ -558,7 +558,7 @@ export function ClassDetailScreen() {
                   pending.map((item, idx) => {
                     const isOverdue = !!item.due_date && item.due_date < today;
                     const isToday = item.due_date === today;
-                    const dueColor = isOverdue ? '#FF3B30' : isToday ? '#007AFF' : '#8E8E93';
+                    const dueColor = isOverdue ? '#FF3B30' : isToday ? '#4F46E5' : '#8E8E93';
                     return (
                       <View key={item.id} style={[s.listRow, idx < pending.length - 1 && s.listRowBorder]}>
                         <TouchableOpacity
@@ -677,7 +677,7 @@ export function ClassDetailScreen() {
                   }
                 }}
               >
-                <Ionicons name="calendar-outline" size={16} color="#007AFF" />
+                <Ionicons name="calendar-outline" size={16} color="#4F46E5" />
                 <Text style={s.datePickerText}>
                   {newDueEnabled ? formatDate(newDue) : '設定しない'}
                 </Text>
@@ -707,12 +707,12 @@ export function ClassDetailScreen() {
                     setShowAsgCalendar(false);
                   }}
                   markedDates={{
-                    [newDue]: { selected: true, selectedColor: '#007AFF' },
+                    [newDue]: { selected: true, selectedColor: '#4F46E5' },
                   }}
                   theme={{
-                    todayTextColor: '#007AFF',
-                    arrowColor: '#007AFF',
-                    selectedDayBackgroundColor: '#007AFF',
+                    todayTextColor: '#4F46E5',
+                    arrowColor: '#4F46E5',
+                    selectedDayBackgroundColor: '#4F46E5',
                   }}
                   style={s.calendar}
                 />
@@ -733,7 +733,7 @@ export function ClassDetailScreen() {
                   onPress={() => setNewNotify(v => !v)}
                   activeOpacity={0.7}
                 >
-                  <Ionicons name="notifications-outline" size={18} color={newNotify ? '#007AFF' : '#8E8E93'} />
+                  <Ionicons name="notifications-outline" size={18} color={newNotify ? '#4F46E5' : '#8E8E93'} />
                   <Text style={[s.notifyLabel, newNotify && s.notifyLabelActive]}>締切日に通知する</Text>
                   <View style={[s.toggle, newNotify && s.toggleActive]}>
                     <View style={[s.toggleThumb, newNotify && s.toggleThumbActive]} />
@@ -833,7 +833,7 @@ export function ClassDetailScreen() {
                         style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}
                         onPress={() => setEditShowExamCalendar(v => !v)}
                       >
-                        <Ionicons name="calendar-outline" size={16} color="#007AFF" />
+                        <Ionicons name="calendar-outline" size={16} color="#4F46E5" />
                         <Text style={[s.editTextInput, { flex: 0, textAlign: 'right' }, !editExamDate && { color: '#C7C7CC' }]}>
                           {editExamDate ? formatDate(editExamDate) : '日付を選択'}
                         </Text>
@@ -851,8 +851,8 @@ export function ClassDetailScreen() {
                   <Calendar
                     current={editExamDate || undefined}
                     onDayPress={(d: { dateString: string }) => { setEditExamDate(d.dateString); setEditShowExamCalendar(false); }}
-                    markedDates={editExamDate ? { [editExamDate]: { selected: true, selectedColor: '#007AFF' } } : {}}
-                    theme={{ arrowColor: '#007AFF', selectedDayBackgroundColor: '#007AFF' }}
+                    markedDates={editExamDate ? { [editExamDate]: { selected: true, selectedColor: '#4F46E5' } } : {}}
+                    theme={{ arrowColor: '#4F46E5', selectedDayBackgroundColor: '#4F46E5' }}
                     style={{ borderRadius: 12, overflow: 'hidden', marginBottom: 8 }}
                   />
                 )}
@@ -898,7 +898,7 @@ export function ClassDetailScreen() {
                   style={s.datePicker}
                   onPress={() => setShowCalendar(v => !v)}
                 >
-                  <Ionicons name="calendar-outline" size={16} color="#007AFF" />
+                  <Ionicons name="calendar-outline" size={16} color="#4F46E5" />
                   <Text style={s.datePickerText}>{formatDate(attDate)}</Text>
                   <Ionicons
                     name={showCalendar ? 'chevron-up' : 'chevron-down'}
@@ -915,12 +915,12 @@ export function ClassDetailScreen() {
                       setShowCalendar(false);
                     }}
                     markedDates={{
-                      [attDate]: { selected: true, selectedColor: '#007AFF' },
+                      [attDate]: { selected: true, selectedColor: '#4F46E5' },
                     }}
                     theme={{
-                      todayTextColor: '#007AFF',
-                      arrowColor: '#007AFF',
-                      selectedDayBackgroundColor: '#007AFF',
+                      todayTextColor: '#4F46E5',
+                      arrowColor: '#4F46E5',
+                      selectedDayBackgroundColor: '#4F46E5',
                     }}
                     style={s.calendar}
                   />
@@ -1020,9 +1020,9 @@ const s = StyleSheet.create({
     borderBottomWidth: 2,
     borderBottomColor: 'transparent',
   },
-  tabItemActive: { borderBottomColor: '#007AFF' },
+  tabItemActive: { borderBottomColor: '#4F46E5' },
   tabLabel: { fontSize: 13, color: '#8E8E93', fontWeight: '500' },
-  tabLabelActive: { color: '#007AFF', fontWeight: '600' },
+  tabLabelActive: { color: '#4F46E5', fontWeight: '600' },
 
   // コンテンツ
   tabContent: { padding: 16, gap: 14, paddingBottom: 40 },
@@ -1047,10 +1047,10 @@ const s = StyleSheet.create({
     gap: 3,
     paddingHorizontal: 10,
     paddingVertical: 4,
-    backgroundColor: '#E8F1FF',
+    backgroundColor: '#EEF2FF',
     borderRadius: 10,
   },
-  addBtnText: { fontSize: 13, color: '#007AFF', fontWeight: '600' },
+  addBtnText: { fontSize: 13, color: '#4F46E5', fontWeight: '600' },
 
   card: {
     backgroundColor: '#FFFFFF',
@@ -1086,7 +1086,7 @@ const s = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     gap: 6,
-    backgroundColor: '#007AFF',
+    backgroundColor: '#F59E0B',
     borderRadius: 12,
     paddingVertical: 14,
   },
@@ -1200,7 +1200,7 @@ const s = StyleSheet.create({
     borderWidth: 2, borderColor: '#C7C7CC',
     alignItems: 'center', justifyContent: 'center',
   },
-  checkboxDone: { backgroundColor: '#007AFF', borderColor: '#007AFF' },
+  checkboxDone: { backgroundColor: '#4F46E5', borderColor: '#4F46E5' },
   asgInfo: { flex: 1 },
   asgTitle: { fontSize: 15, color: '#1C1C1E', fontWeight: '500' },
   strikethrough: { textDecorationLine: 'line-through', color: '#C7C7CC' },
@@ -1215,7 +1215,7 @@ const s = StyleSheet.create({
     lineHeight: 22,
   },
   saveNoteBtn: {
-    backgroundColor: '#007AFF',
+    backgroundColor: '#4F46E5',
     borderRadius: 12,
     paddingVertical: 14,
     alignItems: 'center',
@@ -1273,7 +1273,7 @@ const s = StyleSheet.create({
     color: '#1C1C1E',
   },
   sheetConfirmBtn: {
-    backgroundColor: '#007AFF',
+    backgroundColor: '#4F46E5',
     borderRadius: 12,
     paddingVertical: 14,
     alignItems: 'center',
@@ -1302,14 +1302,14 @@ const s = StyleSheet.create({
     padding: 12,
   },
   notifyLabel: { flex: 1, fontSize: 15, color: '#8E8E93' },
-  notifyLabelActive: { color: '#007AFF' },
+  notifyLabelActive: { color: '#4F46E5' },
   toggle: {
     width: 44, height: 26, borderRadius: 13,
     backgroundColor: '#E5E5EA',
     justifyContent: 'center',
     paddingHorizontal: 2,
   },
-  toggleActive: { backgroundColor: '#007AFF' },
+  toggleActive: { backgroundColor: '#4F46E5' },
   toggleThumb: {
     width: 22, height: 22, borderRadius: 11,
     backgroundColor: '#FFFFFF',
@@ -1341,7 +1341,7 @@ const s = StyleSheet.create({
 
   sheetConfirm: {
     marginTop: 16,
-    backgroundColor: '#007AFF',
+    backgroundColor: '#4F46E5',
     borderRadius: 12,
     paddingVertical: 14,
     alignItems: 'center',
@@ -1359,12 +1359,12 @@ const s = StyleSheet.create({
     borderBottomWidth: 0.5,
     borderBottomColor: '#E5E5EA',
   },
-  editHeaderCancel: { fontSize: 16, color: '#007AFF' },
+  editHeaderCancel: { fontSize: 16, color: '#4F46E5' },
   editHeaderTitle: { fontSize: 17, fontWeight: '600', color: '#1C1C1E' },
-  editHeaderSave: { fontSize: 16, fontWeight: '600', color: '#007AFF' },
+  editHeaderSave: { fontSize: 16, fontWeight: '600', color: '#4F46E5' },
   editScroll: { padding: 16, paddingBottom: 40 },
   editBanner: {
-    backgroundColor: '#007AFF',
+    backgroundColor: '#4F46E5',
     borderRadius: 12,
     paddingVertical: 12,
     alignItems: 'center',
@@ -1405,7 +1405,7 @@ const s = StyleSheet.create({
     borderRadius: 8,
     backgroundColor: '#F2F2F7',
   },
-  editSegItemActive: { backgroundColor: '#007AFF' },
+  editSegItemActive: { backgroundColor: '#4F46E5' },
   editSegText: { fontSize: 13, color: '#3C3C43', fontWeight: '500' },
   editSegTextActive: { color: '#FFFFFF', fontWeight: '600' },
   editMemoInput: {

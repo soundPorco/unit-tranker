@@ -87,13 +87,13 @@ export function AttendanceListScreen() {
       <SafeAreaView style={s.container} edges={['top', 'bottom']}>
         <View style={s.customHeader}>
           <TouchableOpacity onPress={() => navigation.goBack()} hitSlop={8} style={s.backButton}>
-            <Ionicons name="chevron-back" size={26} color="#007AFF" />
+            <Ionicons name="chevron-back" size={26} color="#4F46E5" />
           </TouchableOpacity>
           <Text style={s.headerTitle}>出席一覧</Text>
           <View style={s.backButton} />
         </View>
         <View style={s.headerDivider} />
-        <ActivityIndicator color="#007AFF" style={{ flex: 1 }} />
+        <ActivityIndicator color="#4F46E5" style={{ flex: 1 }} />
       </SafeAreaView>
     );
   }
@@ -102,7 +102,7 @@ export function AttendanceListScreen() {
     <SafeAreaView style={s.container} edges={['top', 'bottom']}>
       <View style={s.customHeader}>
         <TouchableOpacity onPress={() => navigation.goBack()} hitSlop={8} style={s.backButton}>
-          <Ionicons name="chevron-back" size={26} color="#007AFF" />
+          <Ionicons name="chevron-back" size={26} color="#4F46E5" />
         </TouchableOpacity>
         <Text style={s.headerTitle}>出席一覧</Text>
         <View style={s.backButton} />
@@ -146,7 +146,7 @@ export function AttendanceListScreen() {
                       <View style={[
                         s.statusChip,
                         statusConf.filled
-                          ? { backgroundColor: '#007AFF' }
+                          ? { backgroundColor: '#F59E0B' }
                           : { backgroundColor: 'transparent', borderWidth: 1.5, borderColor: '#6C6C70' },
                       ]}>
                         <Text style={[s.statusChipText, { color: statusConf.filled ? '#FFFFFF' : '#6C6C70' }]}>
@@ -180,7 +180,7 @@ export function AttendanceListScreen() {
                 style={s.datePicker}
                 onPress={() => setShowCalendar(v => !v)}
               >
-                <Ionicons name="calendar-outline" size={16} color="#007AFF" />
+                <Ionicons name="calendar-outline" size={16} color="#4F46E5" />
                 <Text style={s.datePickerText}>{formatDate(attDate)}</Text>
                 <Ionicons
                   name={showCalendar ? 'chevron-up' : 'chevron-down'}
@@ -197,12 +197,12 @@ export function AttendanceListScreen() {
                     setShowCalendar(false);
                   }}
                   markedDates={{
-                    [attDate]: { selected: true, selectedColor: '#007AFF' },
+                    [attDate]: { selected: true, selectedColor: '#4F46E5' },
                   }}
                   theme={{
-                    todayTextColor: '#007AFF',
-                    arrowColor: '#007AFF',
-                    selectedDayBackgroundColor: '#007AFF',
+                    todayTextColor: '#4F46E5',
+                    arrowColor: '#4F46E5',
+                    selectedDayBackgroundColor: '#4F46E5',
                   }}
                   style={s.calendar}
                 />
@@ -325,7 +325,7 @@ const s = StyleSheet.create({
     color: '#1C1C1E',
   },
   sheetConfirmBtn: {
-    backgroundColor: '#007AFF',
+    backgroundColor: '#4F46E5',
     borderRadius: 12,
     paddingVertical: 14,
     alignItems: 'center',
