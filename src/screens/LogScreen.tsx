@@ -54,6 +54,117 @@ function buildGrid(today: Date, firstDate: Date | null): Date[][] {
   return rows;
 }
 
+// --- ActivityGraphCard（成績タブに埋め込む用） ---
+export function ActivityGraphCard() {
+  const { activityMap, loading } = useActivityLog();
+  const [helpVisible, setHelpVisible] = useState(false);
+  const today = useMemo(() => new Date(), []);
+  const todayStr = useMemo(() => toDateString(today), [today]);
+
+  const firstDate = useMemo(() => {
+    const dates = Object.keys(activityMap).sort();
+    return dates.length > 0 ? new Date(dates[0]) : null;
+  }, [activityMap]);
+
+  const grid = useMemo(() => buildGrid(today, firstDate), [today, firstDate]);
+
+  if (loading) {
+    return (
+      <View style={[styles.card, { alignItems: 'center', paddingVertical: 24 }]}>
+        <ActivityIndicator color="#007AFF" />
+      </View>
+    );
+  }
+
+  return (
+    <>
+      {/* ヘルプモーダル */}
+      <Modal
+        visible={helpVisible}
+        transparent
+        animationType="fade"
+        onRequestClose={() => setHelpVisible(false)}
+      >
+        <Pressable style={styles.modalOverlay} onPress={() => setHelpVisible(false)}>
+          <Pressable style={styles.modalCard} onPress={() => {}}>
+            <Text style={styles.modalTitle}>アクティビティについて</Text>
+            <View style={styles.modalDivider} />
+            <View style={styles.modalSection}>
+              <Text style={styles.modalSectionTitle}>アクティビティグラフ</Text>
+              <Text style={styles.modalBody}>
+                出席・課題の活動量を日ごとのマスで可視化します。色が濃いほどその日の活動量が多いことを示します。
+              </Text>
+            </View>
+            <TouchableOpacity style={styles.modalCloseButton} onPress={() => setHelpVisible(false)}>
+              <Text style={styles.modalCloseText}>閉じる</Text>
+            </TouchableOpacity>
+          </Pressable>
+        </Pressable>
+      </Modal>
+
+      {/* グラフカード */}
+      <View style={styles.card}>
+        <View style={styles.cardTitleRow}>
+          <Text style={styles.cardTitle}>アクティビティ</Text>
+          <TouchableOpacity hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }} onPress={() => setHelpVisible(true)}>
+            <Ionicons name="help-circle-outline" size={18} color="#C7C7CC" />
+          </TouchableOpacity>
+        </View>
+
+        {/* 曜日ヘッダー */}
+        <View style={styles.dayHeader}>
+          <View style={{ width: MONTH_LABEL_WIDTH }} />
+          {DAY_LABELS.map((label) => (
+            <Text key={label} style={styles.dayHeaderLabel}>{label}</Text>
+          ))}
+        </View>
+
+        {/* 週行 */}
+        {grid.map((row, wi) => {
+          const firstOfRow = row[0];
+          const prev = wi > 0 ? grid[wi - 1][0] : null;
+          const showMonth =
+            wi === 0 || (prev && firstOfRow.getMonth() !== prev.getMonth());
+          const monthLabel = showMonth ? `${firstOfRow.getMonth() + 1}月` : null;
+
+          return (
+            <View key={wi} style={styles.weekRow}>
+              <Text style={styles.monthLabel}>{monthLabel ?? ''}</Text>
+              {row.map((date, di) => {
+                const ds = toDateString(date);
+                if (ds > todayStr) {
+                  return <View key={di} style={styles.cellEmpty} />;
+                }
+                const level = activityMap[ds]?.level ?? 0;
+                const isToday = ds === todayStr;
+                return (
+                  <View
+                    key={di}
+                    style={[
+                      styles.cell,
+                      { backgroundColor: LEVEL_COLORS[level] },
+                      isToday && styles.cellToday,
+                    ]}
+                  />
+                );
+              })}
+            </View>
+          );
+        })}
+
+        {/* 凡例 */}
+        <View style={styles.legend}>
+          <Text style={styles.legendText}>少ない</Text>
+          {LEVEL_COLORS.map((color, i) => (
+            <View key={i} style={[styles.legendCell, { backgroundColor: color }]} />
+          ))}
+          <Text style={styles.legendText}>多い</Text>
+        </View>
+      </View>
+    </>
+  );
+}
+
 // --- LogContent（GradeListScreen に埋め込む用） ---
 export function LogContent() {
   const { activityMap, loading } = useActivityLog();
