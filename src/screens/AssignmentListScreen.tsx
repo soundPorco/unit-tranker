@@ -96,8 +96,6 @@ export function AssignmentListScreen() {
 
   const sections = useMemo(() => groupAssignments(filtered), [filtered]);
 
-  const pendingCount = assignments.filter(a => !a.is_submitted && (!a.due_date || a.due_date >= today)).length;
-  const overdueCount = assignments.filter(a => !a.is_submitted && !!a.due_date && a.due_date < today).length;
 
   const openEdit = async (item: AssignmentWithClass) => {
     setEditing(item);
@@ -145,41 +143,43 @@ export function AssignmentListScreen() {
 
   if (loading) {
     return (
-      <SafeAreaView style={s.container} edges={['top']}>
-        <ActivityIndicator color="#007AFF" style={{ flex: 1 }} />
+      <SafeAreaView style={s.safeArea} edges={['top']}>
+        <View style={s.container}>
+          <ActivityIndicator color="#007AFF" style={{ flex: 1 }} />
+        </View>
       </SafeAreaView>
     );
   }
 
   return (
-    <SafeAreaView style={s.container} edges={['top']}>
+    <SafeAreaView style={s.safeArea} edges={['top']}>
+      <View style={s.container}>
       {/* ヘッダー */}
       <View style={s.header}>
-        <View>
+        <View style={s.headerSide} />
+        <View style={s.headerCenter}>
           <Text style={s.title}>課題</Text>
-          <View style={s.headerSub}>
-            {overdueCount > 0 && (
-              <View style={s.overduePill}>
-                <Text style={s.overduePillText}>期限切れ {overdueCount}件</Text>
-              </View>
-            )}
-            <Text style={s.headerCount}>未提出 {pendingCount}件</Text>
-          </View>
         </View>
+        <View style={s.headerSide} />
       </View>
 
-      {/* フィルターチップ */}
-      <View style={s.filterRow}>
+      {/* フィルタータブ */}
+      <View style={s.filterBar}>
         {([['all', '全て'], ['pending', '未提出'], ['submitted', '提出済み']] as [Filter, string][]).map(
-          ([key, label]) => (
-            <TouchableOpacity
-              key={key}
-              style={[s.chip, filter === key && s.chipActive]}
-              onPress={() => setFilter(key)}
-            >
-              <Text style={[s.chipText, filter === key && s.chipTextActive]}>{label}</Text>
-            </TouchableOpacity>
-          )
+          ([key, label]) => {
+            const active = filter === key;
+            return (
+              <TouchableOpacity
+                key={key}
+                style={s.filterTab}
+                onPress={() => setFilter(key)}
+                activeOpacity={0.7}
+              >
+                <Text style={[s.filterTabText, active && s.filterTabTextActive]}>{label}</Text>
+                {active && <View style={s.filterTabIndicator} />}
+              </TouchableOpacity>
+            );
+          }
         )}
       </View>
 
@@ -387,44 +387,58 @@ export function AssignmentListScreen() {
           </Pressable>
         </AnimatedPressable>
       </Modal>
+      </View>
     </SafeAreaView>
   );
 }
 
 const s = StyleSheet.create({
+  safeArea: { flex: 1, backgroundColor: '#FFFFFF' },
   container: { flex: 1, backgroundColor: '#F2F2F7' },
 
   header: {
-    paddingHorizontal: 16,
-    paddingTop: 4,
-    paddingBottom: 8,
-  },
-  title: { fontSize: 28, fontWeight: '700', color: '#1C1C1E', letterSpacing: 0.3 },
-  headerSub: { flexDirection: 'row', alignItems: 'center', gap: 8, marginTop: 2 },
-  overduePill: {
-    backgroundColor: '#FF3B30',
-    borderRadius: 8,
-    paddingHorizontal: 7,
-    paddingVertical: 2,
-  },
-  overduePillText: { fontSize: 11, color: '#fff', fontWeight: '700' },
-  headerCount: { fontSize: 13, color: '#8E8E93' },
-
-  filterRow: {
     flexDirection: 'row',
-    gap: 8,
+    alignItems: 'center',
+    justifyContent: 'space-between',
     paddingHorizontal: 16,
-    paddingBottom: 12,
+    paddingVertical: 10,
+    borderBottomWidth: 0.5,
+    borderBottomColor: '#E0E0E0',
+    backgroundColor: '#FFFFFF',
   },
-  chip: {
-    paddingHorizontal: 14,
-    paddingVertical: 6,
-    borderRadius: 16,
-    backgroundColor: '#E5E5EA',
+  headerSide: {
+    width: 44,
+    alignItems: 'flex-end',
+    justifyContent: 'center',
   },
-  chipActive: { backgroundColor: '#007AFF' },
-  chipText: { fontSize: 13, color: '#3C3C43', fontWeight: '500' },
-  chipTextActive: { color: '#FFFFFF', fontWeight: '600' },
+  headerCenter: {
+    flex: 1,
+    alignItems: 'center',
+  },
+  title: { fontSize: 15, fontWeight: '600', color: '#1C1C1E', letterSpacing: 0.2 },
+
+  filterBar: {
+    flexDirection: 'row',
+    backgroundColor: '#FFFFFF',
+    borderBottomWidth: 0.5,
+    borderBottomColor: '#E0E0E0',
+  },
+  filterTab: {
+    flex: 1,
+    alignItems: 'center',
+    paddingVertical: 10,
+  },
+  filterTabText: { fontSize: 13, fontWeight: '500', color: '#8E8E93' },
+  filterTabTextActive: { color: '#007AFF', fontWeight: '600' },
+  filterTabIndicator: {
+    position: 'absolute',
+    bottom: 0,
+    left: 0,
+    right: 0,
+    height: 2,
+    backgroundColor: '#007AFF',
+    borderRadius: 1,
+  },
 
   listContent: { paddingHorizontal: 16, paddingBottom: 40, gap: 6 },
 
