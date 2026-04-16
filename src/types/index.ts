@@ -88,8 +88,7 @@ export type TimetableStackParamList = {
 };
 
 export type GradeStackParamList = {
-  GradeTimetableSelect: undefined;
-  GradeList: { timetableId: string; timetableLabel: string };
+  GradeList: undefined;
   ClassDetail: { classId: string; className: string };
   AttendanceList: { classId: string; className: string };
   AssignmentList: { classId: string; className: string };
