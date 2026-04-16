@@ -13,7 +13,7 @@ import { scheduleAssignmentNotification, cancelAssignmentNotification, hasAssign
 
 const AnimatedPressable = Animated.createAnimatedComponent(Pressable);
 
-type Filter = 'all' | 'pending' | 'submitted';
+type Filter = 'all' | 'pending' | 'overdue' | 'submitted';
 
 const today = new Date().toISOString().slice(0, 10);
 
@@ -90,7 +90,8 @@ export function AssignmentListScreen() {
   }, [kbOffset]);
 
   const filtered = useMemo(() => {
-    if (filter === 'pending')   return assignments.filter(a => !a.is_submitted);
+    if (filter === 'pending')   return assignments.filter(a => !a.is_submitted && (!a.due_date || a.due_date >= today));
+    if (filter === 'overdue')   return assignments.filter(a => !a.is_submitted && !!a.due_date && a.due_date < today);
     if (filter === 'submitted') return assignments.filter(a => a.is_submitted);
     return assignments;
   }, [assignments, filter]);
@@ -166,9 +167,10 @@ export function AssignmentListScreen() {
 
       {/* フィルタータブ */}
       <View style={s.filterBar}>
-        {([['all', '全て'], ['pending', '未提出'], ['submitted', '提出済み']] as [Filter, string][]).map(
+        {([['all', '全て'], ['pending', '未提出'], ['overdue', '期限切れ'], ['submitted', '提出済み']] as [Filter, string][]).map(
           ([key, label]) => {
             const active = filter === key;
+            const tabColor = key === 'overdue' ? '#FF3B30' : '#007AFF';
             return (
               <TouchableOpacity
                 key={key}
@@ -176,8 +178,8 @@ export function AssignmentListScreen() {
                 onPress={() => setFilter(key)}
                 activeOpacity={0.7}
               >
-                <Text style={[s.filterTabText, active && s.filterTabTextActive]}>{label}</Text>
-                {active && <View style={s.filterTabIndicator} />}
+                <Text style={[s.filterTabText, active && { color: tabColor, fontWeight: '600' }]}>{label}</Text>
+                {active && <View style={[s.filterTabIndicator, { backgroundColor: tabColor }]} />}
               </TouchableOpacity>
             );
           }
@@ -193,7 +195,7 @@ export function AssignmentListScreen() {
           <View style={s.emptyContainer}>
             <Ionicons name="checkmark-circle-outline" size={52} color="#C7C7CC" />
             <Text style={s.emptyTitle}>
-              {filter === 'pending' ? 'すべて提出済みです' : '課題がありません'}
+              {filter === 'pending' ? 'すべて提出済みです' : filter === 'overdue' ? '期限切れの課題はありません' : '課題がありません'}
             </Text>
             <Text style={s.emptyDesc}>科目詳細から課題を追加できます</Text>
           </View>
@@ -337,24 +339,42 @@ export function AssignmentListScreen() {
               )}
 
               <Text style={s.sheetLabel}>ステータス</Text>
-              <View style={s.statusRow}>
-                {([false, true] as const).map(val => (
-                  <TouchableOpacity
-                    key={String(val)}
-                    style={[s.statusBtn, editSubmitted === val && s.statusBtnActive]}
-                    onPress={() => setEditSubmitted(val)}
-                  >
-                    <Ionicons
-                      name={val ? 'checkmark-circle' : 'ellipse-outline'}
-                      size={16}
-                      color={editSubmitted === val ? '#FFFFFF' : '#8E8E93'}
-                    />
-                    <Text style={[s.statusBtnText, editSubmitted === val && s.statusBtnTextActive]}>
-                      {val ? '提出済み' : '未提出'}
-                    </Text>
-                  </TouchableOpacity>
-                ))}
-              </View>
+              {(() => {
+                const isOverdue = !editSubmitted && editDueEnabled && editDue < today;
+                const currentStatus = editSubmitted ? 'submitted' : isOverdue ? 'overdue' : 'pending';
+                const statusOptions: { key: 'pending' | 'overdue' | 'submitted'; label: string; icon: string; color: string }[] = [
+                  { key: 'pending',   label: '未提出',   icon: 'ellipse-outline',  color: '#007AFF' },
+                  { key: 'overdue',   label: '期限切れ', icon: 'alert-circle',     color: '#FF3B30' },
+                  { key: 'submitted', label: '提出済み', icon: 'checkmark-circle', color: '#34C759' },
+                ];
+                return (
+                  <View style={s.statusRow}>
+                    {statusOptions.map(opt => {
+                      const active = currentStatus === opt.key;
+                      const activeColor = opt.color;
+                      return (
+                        <TouchableOpacity
+                          key={opt.key}
+                          style={[s.statusBtn, active && { backgroundColor: activeColor }]}
+                          onPress={() => {
+                            if (opt.key === 'submitted') setEditSubmitted(true);
+                            else setEditSubmitted(false);
+                          }}
+                        >
+                          <Ionicons
+                            name={opt.icon as any}
+                            size={16}
+                            color={active ? '#FFFFFF' : '#8E8E93'}
+                          />
+                          <Text style={[s.statusBtnText, active && s.statusBtnTextActive]}>
+                            {opt.label}
+                          </Text>
+                        </TouchableOpacity>
+                      );
+                    })}
+                  </View>
+                );
+              })()}
 
               <Text style={s.sheetLabel}>メモ（任意）</Text>
               <TextInput

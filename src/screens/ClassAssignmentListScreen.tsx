@@ -259,24 +259,41 @@ export function ClassAssignmentListScreen() {
               )}
 
               <Text style={s.sheetLabel}>ステータス</Text>
-              <View style={s.statusRow}>
-                {([false, true] as const).map(val => (
-                  <TouchableOpacity
-                    key={String(val)}
-                    style={[s.statusBtn, editSubmitted === val && s.statusBtnActive]}
-                    onPress={() => setEditSubmitted(val)}
-                  >
-                    <Ionicons
-                      name={val ? 'checkmark-circle' : 'ellipse-outline'}
-                      size={16}
-                      color={editSubmitted === val ? '#FFFFFF' : '#8E8E93'}
-                    />
-                    <Text style={[s.statusBtnText, editSubmitted === val && s.statusBtnTextActive]}>
-                      {val ? '提出済み' : '未提出'}
-                    </Text>
-                  </TouchableOpacity>
-                ))}
-              </View>
+              {(() => {
+                const isOverdue = !editSubmitted && editDueEnabled && editDue < today;
+                const currentStatus = editSubmitted ? 'submitted' : isOverdue ? 'overdue' : 'pending';
+                const statusOptions: { key: 'pending' | 'overdue' | 'submitted'; label: string; icon: string; color: string }[] = [
+                  { key: 'pending',   label: '未提出',   icon: 'ellipse-outline',  color: '#007AFF' },
+                  { key: 'overdue',   label: '期限切れ', icon: 'alert-circle',     color: '#FF3B30' },
+                  { key: 'submitted', label: '提出済み', icon: 'checkmark-circle', color: '#34C759' },
+                ];
+                return (
+                  <View style={s.statusRow}>
+                    {statusOptions.map(opt => {
+                      const active = currentStatus === opt.key;
+                      return (
+                        <TouchableOpacity
+                          key={opt.key}
+                          style={[s.statusBtn, active && { backgroundColor: opt.color }]}
+                          onPress={() => {
+                            if (opt.key === 'submitted') setEditSubmitted(true);
+                            else setEditSubmitted(false);
+                          }}
+                        >
+                          <Ionicons
+                            name={opt.icon as any}
+                            size={16}
+                            color={active ? '#FFFFFF' : '#8E8E93'}
+                          />
+                          <Text style={[s.statusBtnText, active && s.statusBtnTextActive]}>
+                            {opt.label}
+                          </Text>
+                        </TouchableOpacity>
+                      );
+                    })}
+                  </View>
+                );
+              })()}
 
               <Text style={s.sheetLabel}>メモ（任意）</Text>
               <TextInput
