@@ -18,6 +18,7 @@ type Filter = 'all' | 'pending' | 'submitted';
 const today = new Date().toISOString().slice(0, 10);
 
 const DAY_LABELS = ['日', '月', '火', '水', '木', '金', '土'];
+const CLASS_DAY_LABELS = ['月', '火', '水', '木', '金', '土', '日']; // DayOfWeek: 0=月〜6=日
 function formatDate(iso: string) {
   const d = new Date(iso);
   return `${d.getMonth() + 1}月${d.getDate()}日(${DAY_LABELS[d.getDay()]})`;
@@ -232,11 +233,18 @@ export function AssignmentListScreen() {
                         </Text>
                         <View style={s.itemMeta}>
                           {item.classes && (
-                            <View style={[s.classPill, { backgroundColor: dayColor + '18' }]}>
-                              <Text style={[s.classPillText, { color: dayColor }]}>
-                                {item.classes.name}
-                              </Text>
-                            </View>
+                            <>
+                              <View style={[s.classPill, { backgroundColor: dayColor + '18' }]}>
+                                <Text style={[s.classPillText, { color: dayColor }]}>
+                                  {CLASS_DAY_LABELS[item.classes.day_of_week]}{item.classes.period}限
+                                </Text>
+                              </View>
+                              <View style={[s.classPill, { backgroundColor: dayColor + '18' }]}>
+                                <Text style={[s.classPillText, { color: dayColor }]}>
+                                  {item.classes.name}
+                                </Text>
+                              </View>
+                            </>
                           )}
                           {item.due_date ? (
                             <View style={s.dueDateRow}>
@@ -487,6 +495,7 @@ const s = StyleSheet.create({
     paddingHorizontal: 7,
     paddingVertical: 2,
   },
+
   classPillText: { fontSize: 11, fontWeight: '600' },
   dueDateRow: { flexDirection: 'row', alignItems: 'center', gap: 3 },
   dueDate: { fontSize: 12, fontWeight: '500' },

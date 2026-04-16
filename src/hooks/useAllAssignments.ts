@@ -12,6 +12,7 @@ export interface AssignmentWithClass {
   classes: {
     name: string;
     day_of_week: number;
+    period: number;
   } | null;
 }
 
@@ -23,7 +24,7 @@ export function useAllAssignments() {
     setLoading(true);
     const { data, error } = await supabase
       .from('assignments')
-      .select('*, classes(name, day_of_week)')
+      .select('*, classes(name, day_of_week, period)')
       .order('due_date', { ascending: true });
     if (!error && data) setAssignments(data as AssignmentWithClass[]);
     setLoading(false);
