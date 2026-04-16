@@ -2,19 +2,29 @@ import { useEffect, useState, useCallback } from 'react';
 import { supabase } from '../lib/supabase';
 
 export interface DayActivity {
-  attendanceCount: number; // present or late の件数
-  assignmentCount: number; // 提出済み課題の件数 (due_date がその日)
-  level: 0 | 1 | 2 | 3;   // 色の濃さ (0=なし, 1=薄, 2=中, 3=濃)
+  score: number;             // 重み付きスコアの合計
+  assignmentCount: number;   // 提出済み課題の件数
+  level: 0 | 1 | 2 | 3 | 4; // 色の濃さ (0=なし, 1〜4=薄→濃)
 }
 
 export type ActivityMap = Record<string, DayActivity>; // "YYYY-MM-DD" -> DayActivity
 
-function calcLevel(attendance: number, assignment: number): 0 | 1 | 2 | 3 {
-  const total = attendance + assignment;
-  if (total === 0) return 0;
-  if (total === 1) return 1;
-  if (total <= 3) return 2;
-  return 3;
+// 出席ステータスごとの重み
+// present: 2, late: 1, absent/cancelled: 0
+const ATTENDANCE_WEIGHT: Record<string, number> = {
+  present: 1,
+  late: 0.5,
+};
+
+// 課題提出ごとの重み
+const ASSIGNMENT_WEIGHT = 1;
+
+function calcLevel(score: number): 0 | 1 | 2 | 3 | 4 {
+  if (score === 0) return 0;
+  if (score <= 1) return 1;
+  if (score <= 2) return 2;
+  if (score <= 4) return 3;
+  return 4; // 5以上で深緑
 }
 
 export function useActivityLog() {
@@ -36,24 +46,25 @@ export function useActivityLog() {
         .not('due_date', 'is', null),
     ]);
 
-    const map: Record<string, { attendanceCount: number; assignmentCount: number }> = {};
+    const map: Record<string, { score: number; assignmentCount: number }> = {};
 
     const ensure = (date: string) => {
-      if (!map[date]) map[date] = { attendanceCount: 0, assignmentCount: 0 };
+      if (!map[date]) map[date] = { score: 0, assignmentCount: 0 };
     };
 
     if (attendanceRes.data) {
       for (const row of attendanceRes.data) {
         ensure(row.date);
-        map[row.date].attendanceCount += 1;
+        map[row.date].score += ATTENDANCE_WEIGHT[row.status] ?? 0;
       }
     }
 
     if (assignmentRes.data) {
       for (const row of assignmentRes.data) {
         if (!row.due_date) continue;
-        const date = row.due_date.slice(0, 10); // "YYYY-MM-DD"
+        const date = row.due_date.slice(0, 10);
         ensure(date);
+        map[date].score += ASSIGNMENT_WEIGHT;
         map[date].assignmentCount += 1;
       }
     }
@@ -62,7 +73,7 @@ export function useActivityLog() {
     for (const [date, val] of Object.entries(map)) {
       result[date] = {
         ...val,
-        level: calcLevel(val.attendanceCount, val.assignmentCount),
+        level: calcLevel(val.score),
       };
     }
 
