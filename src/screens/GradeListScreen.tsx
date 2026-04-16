@@ -11,8 +11,10 @@ import { useClasses } from '../hooks/useClasses';
 import { useTimetables } from '../hooks/useTimetables';
 import { useAllClassStats } from '../hooks/useAllClassStats';
 import { GradeStackParamList } from '../types';
+import { LogContent } from './LogScreen';
 
 type Nav = NativeStackNavigationProp<GradeStackParamList, 'GradeList'>;
+type Segment = 'grade' | 'log';
 
 const DAYS = ['月', '火', '水', '木', '金', '土', '日'];
 const CLASS_COLOR = '#007AFF';
@@ -24,6 +26,7 @@ const CLASS_TYPE_SHORT: Record<string, string> = {
 
 export function GradeListScreen() {
   const navigation = useNavigation<Nav>();
+  const [segment, setSegment] = useState<Segment>('grade');
   const [currentTimetableId, setCurrentTimetableId] = useState<string | null>(null);
   const [showSwitcher, setShowSwitcher] = useState(false);
 
@@ -55,7 +58,6 @@ export function GradeListScreen() {
         : a.period - b.period
     ), [classes]);
 
-  // 曜日ごとにグループ化
   const classesByDay = useMemo(() => {
     const map = new Map<number, typeof classes>();
     sortedClasses.forEach(cls => {
@@ -68,7 +70,6 @@ export function GradeListScreen() {
 
   const dayKeys = useMemo(() => Array.from(classesByDay.keys()).sort((a, b) => a - b), [classesByDay]);
 
-  // アコーディオンの開閉状態（デフォルト全展開）
   const [expandedDays, setExpandedDays] = useState<Set<number>>(new Set());
 
   const toggleDay = useCallback((day: number) => {
@@ -92,12 +93,12 @@ export function GradeListScreen() {
 
   const loading = !loaded || classesLoading;
 
-  // --- 共通ヘッダー ---
+  // --- ヘッダー ---
   const renderHeader = (interactive = true) => (
     <SafeAreaView edges={['top']} style={s.headerSafeArea}>
       <View style={s.headerRow}>
         <View style={s.headerSide} />
-        {interactive && timetables.length > 0 ? (
+        {interactive && segment === 'grade' && timetables.length > 0 ? (
           <TouchableOpacity
             style={s.switcherBtn}
             onPress={() => setShowSwitcher(true)}
@@ -120,12 +121,47 @@ export function GradeListScreen() {
     </SafeAreaView>
   );
 
-  if (loading) {
+  // --- セグメントコントロール ---
+  const renderSegment = () => (
+    <View style={s.segmentWrapper}>
+      <View style={s.segmentControl}>
+        <TouchableOpacity
+          style={[s.segmentTab, segment === 'grade' && s.segmentTabActive]}
+          activeOpacity={0.7}
+          onPress={() => setSegment('grade')}
+        >
+          <Text style={[s.segmentLabel, segment === 'grade' && s.segmentLabelActive]}>成績</Text>
+        </TouchableOpacity>
+        <TouchableOpacity
+          style={[s.segmentTab, segment === 'log' && s.segmentTabActive]}
+          activeOpacity={0.7}
+          onPress={() => setSegment('log')}
+        >
+          <Text style={[s.segmentLabel, segment === 'log' && s.segmentLabelActive]}>ログ</Text>
+        </TouchableOpacity>
+      </View>
+    </View>
+  );
+
+  if (loading && segment === 'grade') {
     return (
       <SafeAreaView style={s.container} edges={['bottom', 'left', 'right']}>
         {renderHeader(false)}
         <View style={s.divider} />
+        {renderSegment()}
         <ActivityIndicator color="#007AFF" style={{ flex: 1 }} />
+      </SafeAreaView>
+    );
+  }
+
+  if (segment === 'log') {
+    return (
+      <SafeAreaView style={s.container} edges={['bottom', 'left', 'right']}>
+        {renderHeader(false)}
+        <View style={s.divider} />
+        {renderSegment()}
+        <View style={s.divider} />
+        <LogContent />
       </SafeAreaView>
     );
   }
@@ -135,6 +171,7 @@ export function GradeListScreen() {
       <SafeAreaView style={s.container} edges={['bottom', 'left', 'right']}>
         {renderHeader(false)}
         <View style={s.divider} />
+        {renderSegment()}
         <View style={s.emptyContainer}>
           <Ionicons name="calendar-outline" size={48} color="#C7C7CC" />
           <Text style={s.emptyTitle}>時間割がありません</Text>
@@ -147,6 +184,8 @@ export function GradeListScreen() {
   return (
     <SafeAreaView style={s.container} edges={['bottom', 'left', 'right']}>
       {renderHeader()}
+      <View style={s.divider} />
+      {renderSegment()}
       <View style={s.divider} />
 
       <ScrollView
@@ -194,7 +233,6 @@ export function GradeListScreen() {
               const isExpanded = expandedDays.has(day);
               return (
                 <View key={day} style={s.accordionSection}>
-                  {/* 曜日ヘッダー */}
                   <TouchableOpacity
                     style={s.accordionHeader}
                     activeOpacity={0.7}
@@ -213,7 +251,6 @@ export function GradeListScreen() {
                     />
                   </TouchableOpacity>
 
-                  {/* 科目カード一覧 */}
                   {isExpanded && dayClasses.map((cls, idx) => {
                     const color = CLASS_COLOR;
                     const stat = stats[cls.id];
@@ -378,6 +415,42 @@ const s = StyleSheet.create({
   headerTitle: { fontSize: 15, fontWeight: '600', color: '#1C1C1E', letterSpacing: 0.2 },
   divider: { height: 0.5, backgroundColor: '#E5E5EA' },
 
+  // セグメントコントロール
+  segmentWrapper: {
+    backgroundColor: '#FFFFFF',
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+  },
+  segmentControl: {
+    flexDirection: 'row',
+    backgroundColor: '#F2F2F7',
+    borderRadius: 10,
+    padding: 2,
+  },
+  segmentTab: {
+    flex: 1,
+    paddingVertical: 7,
+    alignItems: 'center',
+    borderRadius: 8,
+  },
+  segmentTabActive: {
+    backgroundColor: '#FFFFFF',
+    shadowColor: '#000',
+    shadowOpacity: 0.08,
+    shadowRadius: 4,
+    shadowOffset: { width: 0, height: 1 },
+    elevation: 2,
+  },
+  segmentLabel: {
+    fontSize: 13,
+    fontWeight: '500',
+    color: '#8E8E93',
+  },
+  segmentLabelActive: {
+    color: '#1C1C1E',
+    fontWeight: '600',
+  },
+
   scrollBg: { backgroundColor: '#F2F2F7' },
   scrollContent: { paddingHorizontal: 16, paddingTop: 16, paddingBottom: 40, gap: 12 },
 
@@ -495,7 +568,6 @@ const s = StyleSheet.create({
     fontWeight: '500',
     color: '#6C6C70',
   },
-  // アコーディオン内の科目行（カード風なし・フラット）
   innerClassCard: {
     flexDirection: 'row',
     backgroundColor: '#FFFFFF',

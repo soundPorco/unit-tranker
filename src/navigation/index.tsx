@@ -12,7 +12,6 @@ import { GradeListScreen } from '../screens/GradeListScreen';
 import { ClassDetailScreen } from '../screens/ClassDetailScreen';
 import { AttendanceListScreen } from '../screens/AttendanceListScreen';
 import { ClassAssignmentListScreen } from '../screens/ClassAssignmentListScreen';
-import { LogScreen } from '../screens/LogScreen';
 import { SettingsScreen } from '../screens/SettingsScreen';
 
 import { RootTabParamList, TimetableStackParamList, GradeStackParamList } from '../types';
@@ -95,7 +94,6 @@ const TAB_CONFIG: Record<keyof RootTabParamList, TabConfig> = {
   Timetable:   { icon: 'calendar',          iconOutline: 'calendar-outline',          label: '時間割'   },
   Assignments: { icon: 'document-text',     iconOutline: 'document-text-outline',     label: '課題'     },
   Grade:       { icon: 'bar-chart',         iconOutline: 'bar-chart-outline',         label: '成績'     },
-  Log:         { icon: 'time',              iconOutline: 'time-outline',              label: 'ログ'     },
   Settings:    { icon: 'person-circle',     iconOutline: 'person-circle-outline',     label: '設定'     },
 };
 
@@ -127,7 +125,6 @@ export function AppNavigator() {
         }}
       >
         <Tab.Screen name="Timetable"   component={TimetableNavigator} />
-        <Tab.Screen name="Log"         component={LogScreen} />
         <Tab.Screen name="Assignments" component={AssignmentListScreen} />
         <Tab.Screen name="Grade"       component={GradeNavigator} />
         <Tab.Screen name="Settings"    component={SettingsScreen} />

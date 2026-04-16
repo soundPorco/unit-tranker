@@ -9,7 +9,6 @@ import {
   Modal,
   Pressable,
 } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { useActivityLog } from '../hooks/useActivityLog';
 
@@ -55,8 +54,8 @@ function buildGrid(today: Date, firstDate: Date | null): Date[][] {
   return rows;
 }
 
-// --- コンポーネント ---
-export function LogScreen() {
+// --- LogContent（GradeListScreen に埋め込む用） ---
+export function LogContent() {
   const { activityMap, loading } = useActivityLog();
   const [helpVisible, setHelpVisible] = useState(false);
   const today = useMemo(() => new Date(), []);
@@ -73,27 +72,21 @@ export function LogScreen() {
   const totalAttendance = Object.values(activityMap).reduce((s, v) => s + v.score, 0);
   const totalAssignments = Object.values(activityMap).reduce((s, v) => s + v.assignmentCount, 0);
 
-  // 記録開始からの経過日数
   const elapsedDays = useMemo(() => {
     if (!firstDate) return 0;
     return Math.floor((today.getTime() - firstDate.getTime()) / (24 * 60 * 60 * 1000)) + 1;
   }, [firstDate, today]);
 
-  return (
-    <SafeAreaView style={styles.container} edges={['top']}>
-      {/* ヘッダー */}
-      <View style={styles.header}>
-        <View style={styles.headerSide} />
-        <View style={styles.headerCenter}>
-          <Text style={styles.headerTitle}>ログ</Text>
-        </View>
-        <View style={styles.headerSide}>
-          <TouchableOpacity hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }} onPress={() => setHelpVisible(true)}>
-            <Ionicons name="help-circle-outline" size={22} color="#8E8E93" />
-          </TouchableOpacity>
-        </View>
+  if (loading) {
+    return (
+      <View style={styles.center}>
+        <ActivityIndicator color="#007AFF" />
       </View>
+    );
+  }
 
+  return (
+    <>
       {/* ヘルプモーダル */}
       <Modal
         visible={helpVisible}
@@ -103,7 +96,7 @@ export function LogScreen() {
       >
         <Pressable style={styles.modalOverlay} onPress={() => setHelpVisible(false)}>
           <Pressable style={styles.modalCard} onPress={() => {}}>
-            <Text style={styles.modalTitle}>ログ画面について</Text>
+            <Text style={styles.modalTitle}>ログについて</Text>
             <View style={styles.modalDivider} />
             <View style={styles.modalSection}>
               <Text style={styles.modalSectionTitle}>アクティビティグラフ</Text>
@@ -132,93 +125,92 @@ export function LogScreen() {
         </Pressable>
       </Modal>
 
-      {loading ? (
-        <View style={styles.center}>
-          <ActivityIndicator color="#007AFF" />
+      <ScrollView
+        style={styles.scrollBg}
+        contentContainerStyle={styles.scrollContent}
+        showsVerticalScrollIndicator={false}
+      >
+        {/* 記録開始カード */}
+        {firstDate && (
+          <View style={styles.sinceCard}>
+            <View>
+              <Text style={styles.sinceDate}>
+                {firstDate.getFullYear()}/{firstDate.getMonth() + 1}/{firstDate.getDate()} から記録中
+              </Text>
+              <Text style={styles.sinceDays}>{elapsedDays}日目</Text>
+            </View>
+            <Ionicons name="calendar-outline" size={32} color="rgba(255,255,255,0.7)" />
+          </View>
+        )}
+
+        {/* サマリー */}
+        <View style={styles.statsRow}>
+          <StatCard label="活動日数" value={String(totalDays)} unit="日" />
+          <StatCard label="出席スコア" value={String(totalAttendance)} unit="pt" />
+          <StatCard label="課題提出" value={String(totalAssignments)} unit="件" />
         </View>
-      ) : (
-        <ScrollView
-          style={styles.scrollBg}
-          contentContainerStyle={styles.scrollContent}
-          showsVerticalScrollIndicator={false}
-        >
-          {/* 記録開始カード */}
-          {firstDate && (
-            <View style={styles.sinceCard}>
-              <View>
-                <Text style={styles.sinceDate}>
-                  {firstDate.getFullYear()}/{firstDate.getMonth() + 1}/{firstDate.getDate()} から記録中
-                </Text>
-                <Text style={styles.sinceDays}>{elapsedDays}日目</Text>
-              </View>
-              <Ionicons name="calendar-outline" size={32} color="rgba(255,255,255,0.7)" />
-            </View>
-          )}
 
-          {/* サマリー */}
-          <View style={styles.statsRow}>
-            <StatCard label="活動日数" value={String(totalDays)} unit="日" />
-            <StatCard label="出席スコア" value={String(totalAttendance)} unit="pt" />
-            <StatCard label="課題提出" value={String(totalAssignments)} unit="件" />
-          </View>
-
-          {/* グラフ */}
-          <View style={styles.card}>
+        {/* グラフ */}
+        <View style={styles.card}>
+          <View style={styles.cardTitleRow}>
             <Text style={styles.cardTitle}>アクティビティ</Text>
-
-            {/* 曜日ヘッダー */}
-            <View style={styles.dayHeader}>
-              <View style={{ width: MONTH_LABEL_WIDTH }} />
-              {DAY_LABELS.map((label) => (
-                <Text key={label} style={styles.dayHeaderLabel}>{label}</Text>
-              ))}
-            </View>
-
-            {/* 週行 */}
-            {grid.map((row, wi) => {
-              const firstOfRow = row[0];
-              const prev = wi > 0 ? grid[wi - 1][0] : null;
-              const showMonth =
-                wi === 0 || (prev && firstOfRow.getMonth() !== prev.getMonth());
-              const monthLabel = showMonth ? `${firstOfRow.getMonth() + 1}月` : null;
-
-              return (
-                <View key={wi} style={styles.weekRow}>
-                  <Text style={styles.monthLabel}>{monthLabel ?? ''}</Text>
-                  {row.map((date, di) => {
-                    const ds = toDateString(date);
-                    if (ds > todayStr) {
-                      return <View key={di} style={styles.cellEmpty} />;
-                    }
-                    const level = activityMap[ds]?.level ?? 0;
-                    const isToday = ds === todayStr;
-                    return (
-                      <View
-                        key={di}
-                        style={[
-                          styles.cell,
-                          { backgroundColor: LEVEL_COLORS[level] },
-                          isToday && styles.cellToday,
-                        ]}
-                      />
-                    );
-                  })}
-                </View>
-              );
-            })}
-
-            {/* 凡例 */}
-            <View style={styles.legend}>
-              <Text style={styles.legendText}>少ない</Text>
-              {LEVEL_COLORS.map((color, i) => (
-                <View key={i} style={[styles.legendCell, { backgroundColor: color }]} />
-              ))}
-              <Text style={styles.legendText}>多い</Text>
-            </View>
+            <TouchableOpacity hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }} onPress={() => setHelpVisible(true)}>
+              <Ionicons name="help-circle-outline" size={18} color="#C7C7CC" />
+            </TouchableOpacity>
           </View>
-        </ScrollView>
-      )}
-    </SafeAreaView>
+
+          {/* 曜日ヘッダー */}
+          <View style={styles.dayHeader}>
+            <View style={{ width: MONTH_LABEL_WIDTH }} />
+            {DAY_LABELS.map((label) => (
+              <Text key={label} style={styles.dayHeaderLabel}>{label}</Text>
+            ))}
+          </View>
+
+          {/* 週行 */}
+          {grid.map((row, wi) => {
+            const firstOfRow = row[0];
+            const prev = wi > 0 ? grid[wi - 1][0] : null;
+            const showMonth =
+              wi === 0 || (prev && firstOfRow.getMonth() !== prev.getMonth());
+            const monthLabel = showMonth ? `${firstOfRow.getMonth() + 1}月` : null;
+
+            return (
+              <View key={wi} style={styles.weekRow}>
+                <Text style={styles.monthLabel}>{monthLabel ?? ''}</Text>
+                {row.map((date, di) => {
+                  const ds = toDateString(date);
+                  if (ds > todayStr) {
+                    return <View key={di} style={styles.cellEmpty} />;
+                  }
+                  const level = activityMap[ds]?.level ?? 0;
+                  const isToday = ds === todayStr;
+                  return (
+                    <View
+                      key={di}
+                      style={[
+                        styles.cell,
+                        { backgroundColor: LEVEL_COLORS[level] },
+                        isToday && styles.cellToday,
+                      ]}
+                    />
+                  );
+                })}
+              </View>
+            );
+          })}
+
+          {/* 凡例 */}
+          <View style={styles.legend}>
+            <Text style={styles.legendText}>少ない</Text>
+            {LEVEL_COLORS.map((color, i) => (
+              <View key={i} style={[styles.legendCell, { backgroundColor: color }]} />
+            ))}
+            <Text style={styles.legendText}>多い</Text>
+          </View>
+        </View>
+      </ScrollView>
+    </>
   );
 }
 
@@ -243,41 +235,6 @@ function StatCard({
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#FFFFFF',
-  },
-  header: {
-    backgroundColor: '#FFFFFF',
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingHorizontal: 16,
-    paddingVertical: 10,
-    borderBottomWidth: 0.5,
-    borderBottomColor: '#E0E0E0',
-  },
-  headerSide: {
-    width: 44,
-    alignItems: 'flex-end',
-    justifyContent: 'center',
-  },
-  headerCenter: {
-    flex: 1,
-    alignItems: 'center',
-  },
-  headerTitle: {
-    fontSize: 15,
-    fontWeight: '600',
-    color: '#1C1C1E',
-    letterSpacing: 0.2,
-  },
-  headerSubtitle: {
-    fontSize: 11,
-    color: '#8E8E93',
-    fontWeight: '400',
-    marginTop: 2,
-  },
   center: {
     flex: 1,
     alignItems: 'center',
@@ -291,24 +248,6 @@ const styles = StyleSheet.create({
     paddingTop: 8,
     paddingBottom: 32,
     gap: 12,
-  },
-
-  // タイトル
-  titleArea: {
-    paddingTop: 4,
-    paddingBottom: 4,
-    gap: 2,
-  },
-  title: {
-    fontSize: 28,
-    fontWeight: '700',
-    color: '#1C1C1E',
-    letterSpacing: 0.3,
-  },
-  subtitle: {
-    fontSize: 13,
-    color: '#8E8E93',
-    fontWeight: '400',
   },
 
   // 記録開始カード
@@ -388,13 +327,18 @@ const styles = StyleSheet.create({
     shadowOffset: { width: 0, height: 2 },
     elevation: 2,
   },
+  cardTitleRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginBottom: 12,
+  },
   cardTitle: {
     fontSize: 13,
     fontWeight: '600',
     color: '#8E8E93',
     letterSpacing: 0.3,
     textTransform: 'uppercase',
-    marginBottom: 12,
   },
 
   // 曜日ヘッダー
