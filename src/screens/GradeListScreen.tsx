@@ -15,7 +15,7 @@ import { GradeStackParamList } from '../types';
 type Nav = NativeStackNavigationProp<GradeStackParamList, 'GradeList'>;
 
 const DAYS = ['月', '火', '水', '木', '金', '土', '日'];
-const DAY_COLORS = ['#007AFF', '#34C759', '#FF9500', '#FF3B30', '#AF52DE', '#5AC8FA', '#FF6B6B'];
+const CLASS_COLOR = '#007AFF';
 const CLASS_TYPE_SHORT: Record<string, string> = {
   required: '必修',
   elective_required: '選択必修',
@@ -165,7 +165,7 @@ export function GradeListScreen() {
           <>
             <Text style={s.sectionLabel}>科目別</Text>
             {sortedClasses.map(cls => {
-              const color = DAY_COLORS[cls.day_of_week];
+              const color = CLASS_COLOR;
               const stat = stats[cls.id];
               const attRate = stat?.attendanceRate ?? 0;
               const submRate = stat?.submissionRate ?? 0;

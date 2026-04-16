@@ -17,7 +17,14 @@ import { useTimetables } from '../hooks/useTimetables';
 import { supabase } from '../lib/supabase';
 import { scheduleAssignmentNotification } from '../lib/notifications';
 import { AttendanceButton } from '../components/AttendanceButton';
-import { GradeStackParamList, Attendance, AttendanceStatus, Note, Class, ClassType, ExamType } from '../types';
+import { Attendance, AttendanceStatus, Note, Class, ClassType, ExamType } from '../types';
+
+// TimetableStack・GradeStack どちらから開かれても動作するよう共通ルートのみ定義
+type DetailNavParamList = {
+  ClassDetail: { classId: string; className: string };
+  AttendanceList: { classId: string; className: string };
+  AssignmentList: { classId: string; className: string };
+};
 
 const CLASS_TYPE_LABEL: Record<ClassType, string> = {
   required:          '必修',
@@ -32,7 +39,7 @@ const EXAM_TYPE_LABEL: Record<ExamType, string> = {
   none:    'なし',
 };
 
-type Route = RouteProp<GradeStackParamList, 'ClassDetail'>;
+type Route = RouteProp<DetailNavParamList, 'ClassDetail'>;
 type Tab = 'attendance' | 'assignment' | 'note';
 
 const today = new Date().toISOString().slice(0, 10);
@@ -140,7 +147,7 @@ const bc = StyleSheet.create({
 export function ClassDetailScreen() {
   const route = useRoute<Route>();
   const { classId, className } = route.params;
-  const navigation = useNavigation<NativeStackNavigationProp<GradeStackParamList>>();
+  const navigation = useNavigation<NativeStackNavigationProp<DetailNavParamList>>();
 
   const insets = useSafeAreaInsets();
   const [activeTab, setActiveTab] = useState<Tab>('attendance');
