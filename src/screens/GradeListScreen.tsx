@@ -55,6 +55,31 @@ export function GradeListScreen() {
         : a.period - b.period
     ), [classes]);
 
+  // 曜日ごとにグループ化
+  const classesByDay = useMemo(() => {
+    const map = new Map<number, typeof classes>();
+    sortedClasses.forEach(cls => {
+      const day = cls.day_of_week;
+      if (!map.has(day)) map.set(day, []);
+      map.get(day)!.push(cls);
+    });
+    return map;
+  }, [sortedClasses]);
+
+  const dayKeys = useMemo(() => Array.from(classesByDay.keys()).sort((a, b) => a - b), [classesByDay]);
+
+  // アコーディオンの開閉状態（デフォルト全展開）
+  const [expandedDays, setExpandedDays] = useState<Set<number>>(new Set());
+
+  const toggleDay = useCallback((day: number) => {
+    setExpandedDays(prev => {
+      const next = new Set(prev);
+      if (next.has(day)) next.delete(day);
+      else next.add(day);
+      return next;
+    });
+  }, []);
+
   const summary = useMemo(() => {
     const totalCredits = classes.reduce((s, c) => s + (c.credits ?? 0), 0);
     const creditClasses = classes.filter(c => c.credits != null).length;
@@ -164,65 +189,89 @@ export function GradeListScreen() {
         ) : (
           <>
             <Text style={s.sectionLabel}>科目別</Text>
-            {sortedClasses.map(cls => {
-              const color = CLASS_COLOR;
-              const stat = stats[cls.id];
-              const attRate = stat?.attendanceRate ?? 0;
-              const submRate = stat?.submissionRate ?? 0;
-              const meta = [
-                `${DAYS[cls.day_of_week]}曜${cls.period}限`,
-                cls.credits != null ? `${cls.credits}単位` : null,
-                cls.class_type ? CLASS_TYPE_SHORT[cls.class_type] : null,
-              ].filter(Boolean).join(' · ');
-
+            {dayKeys.map(day => {
+              const dayClasses = classesByDay.get(day) ?? [];
+              const isExpanded = expandedDays.has(day);
               return (
-                <TouchableOpacity
-                  key={cls.id}
-                  style={s.classCard}
-                  activeOpacity={0.7}
-                  onPress={() => navigation.navigate('ClassDetail', {
-                    classId: cls.id,
-                    className: cls.name,
-                  })}
-                >
-                  <View style={[s.stripe, { backgroundColor: color }]} />
-                  <View style={s.classBody}>
-                    {/* 科目名 + 矢印 */}
-                    <View style={s.classTop}>
-                      <Text style={s.className} numberOfLines={1}>{cls.name}</Text>
-                      <Ionicons name="chevron-forward" size={14} color="#C7C7CC" />
+                <View key={day} style={s.accordionSection}>
+                  {/* 曜日ヘッダー */}
+                  <TouchableOpacity
+                    style={s.accordionHeader}
+                    activeOpacity={0.7}
+                    onPress={() => toggleDay(day)}
+                  >
+                    <View style={s.accordionHeaderLeft}>
+                      <View style={s.dayBadge}>
+                        <Text style={s.dayBadgeText}>{DAYS[day]}</Text>
+                      </View>
+                      <Text style={s.accordionHeaderCount}>{dayClasses.length}科目</Text>
                     </View>
+                    <Ionicons
+                      name={isExpanded ? 'chevron-up' : 'chevron-down'}
+                      size={16}
+                      color="#8E8E93"
+                    />
+                  </TouchableOpacity>
 
-                    {/* メタ情報 */}
-                    <Text style={s.classMeta}>{meta}</Text>
+                  {/* 科目カード一覧 */}
+                  {isExpanded && dayClasses.map((cls, idx) => {
+                    const color = CLASS_COLOR;
+                    const stat = stats[cls.id];
+                    const attRate = stat?.attendanceRate ?? 0;
+                    const submRate = stat?.submissionRate ?? 0;
+                    const meta = [
+                      `${cls.period}限`,
+                      cls.credits != null ? `${cls.credits}単位` : null,
+                      cls.class_type ? CLASS_TYPE_SHORT[cls.class_type] : null,
+                    ].filter(Boolean).join(' · ');
 
-                    {/* 出席率バー */}
-                    {statsLoading ? (
-                      <View style={s.barSkeleton} />
-                    ) : (
-                      <View style={s.barRow}>
-                        <Text style={s.barLabel}>出席</Text>
-                        <View style={s.track}>
-                          <View style={[s.fill, { width: `${attRate}%` as any, backgroundColor: color }]} />
+                    return (
+                      <TouchableOpacity
+                        key={cls.id}
+                        style={[
+                          s.innerClassCard,
+                          idx < dayClasses.length - 1 && s.innerClassCardDivider,
+                        ]}
+                        activeOpacity={0.7}
+                        onPress={() => navigation.navigate('ClassDetail', {
+                          classId: cls.id,
+                          className: cls.name,
+                        })}
+                      >
+                        <View style={[s.stripe, { backgroundColor: color }]} />
+                        <View style={s.classBody}>
+                          <View style={s.classTop}>
+                            <Text style={s.className} numberOfLines={1}>{cls.name}</Text>
+                            <Ionicons name="chevron-forward" size={14} color="#C7C7CC" />
+                          </View>
+                          <Text style={s.classMeta}>{meta}</Text>
+                          {statsLoading ? (
+                            <View style={s.barSkeleton} />
+                          ) : (
+                            <View style={s.barRow}>
+                              <Text style={s.barLabel}>出席</Text>
+                              <View style={s.track}>
+                                <View style={[s.fill, { width: `${attRate}%` as any, backgroundColor: color }]} />
+                              </View>
+                              <Text style={[s.barPct, { color: attRate > 0 ? color : '#C7C7CC' }]}>
+                                {attRate > 0 ? `${attRate}%` : '—'}
+                              </Text>
+                            </View>
+                          )}
+                          {!statsLoading && submRate > 0 && (
+                            <View style={s.barRow}>
+                              <Text style={s.barLabel}>課題</Text>
+                              <View style={s.track}>
+                                <View style={[s.fill, { width: `${submRate}%` as any, backgroundColor: '#8E8E93' }]} />
+                              </View>
+                              <Text style={[s.barPct, { color: '#8E8E93' }]}>{submRate}%</Text>
+                            </View>
+                          )}
                         </View>
-                        <Text style={[s.barPct, { color: attRate > 0 ? color : '#C7C7CC' }]}>
-                          {attRate > 0 ? `${attRate}%` : '—'}
-                        </Text>
-                      </View>
-                    )}
-
-                    {/* 課題提出率バー（提出実績があれば表示） */}
-                    {!statsLoading && submRate > 0 && (
-                      <View style={s.barRow}>
-                        <Text style={s.barLabel}>課題</Text>
-                        <View style={s.track}>
-                          <View style={[s.fill, { width: `${submRate}%` as any, backgroundColor: '#8E8E93' }]} />
-                        </View>
-                        <Text style={[s.barPct, { color: '#8E8E93' }]}>{submRate}%</Text>
-                      </View>
-                    )}
-                  </View>
-                </TouchableOpacity>
+                      </TouchableOpacity>
+                    );
+                  })}
+                </View>
               );
             })}
           </>
@@ -403,6 +452,57 @@ const s = StyleSheet.create({
     borderRadius: 3,
     backgroundColor: '#F2F2F7',
     marginVertical: 4,
+  },
+
+  // アコーディオン
+  accordionSection: {
+    backgroundColor: '#FFFFFF',
+    borderRadius: 14,
+    overflow: 'hidden',
+    shadowColor: '#000',
+    shadowOpacity: 0.05,
+    shadowRadius: 6,
+    shadowOffset: { width: 0, height: 2 },
+    elevation: 2,
+  },
+  accordionHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingHorizontal: 14,
+    paddingVertical: 12,
+  },
+  accordionHeaderLeft: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 10,
+  },
+  dayBadge: {
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    backgroundColor: '#007AFF',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  dayBadgeText: {
+    fontSize: 14,
+    fontWeight: '700',
+    color: '#FFFFFF',
+  },
+  accordionHeaderCount: {
+    fontSize: 13,
+    fontWeight: '500',
+    color: '#6C6C70',
+  },
+  // アコーディオン内の科目行（カード風なし・フラット）
+  innerClassCard: {
+    flexDirection: 'row',
+    backgroundColor: '#FFFFFF',
+  },
+  innerClassCardDivider: {
+    borderBottomWidth: 0.5,
+    borderBottomColor: '#E5E5EA',
   },
 
   // 空状態
