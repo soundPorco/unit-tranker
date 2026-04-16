@@ -194,6 +194,9 @@ export function LogScreen() {
                   <Text style={styles.monthLabel}>{monthLabel ?? ''}</Text>
                   {row.map((date, di) => {
                     const ds = toDateString(date);
+                    if (ds > todayStr) {
+                      return <View key={di} style={styles.cellEmpty} />;
+                    }
                     const level = activityMap[ds]?.level ?? 0;
                     const isToday = ds === todayStr;
                     return (
@@ -436,6 +439,11 @@ const styles = StyleSheet.create({
   cellToday: {
     borderWidth: 2,
     borderColor: '#007AFF',
+  },
+  cellEmpty: {
+    width: CELL_SIZE,
+    height: CELL_SIZE,
+    marginRight: CELL_GAP,
   },
 
   // 凡例

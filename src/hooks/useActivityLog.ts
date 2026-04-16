@@ -10,11 +10,13 @@ export interface DayActivity {
 export type ActivityMap = Record<string, DayActivity>; // "YYYY-MM-DD" -> DayActivity
 
 // 出席ステータスごとの重み
-// present: 2, late: 1, absent/cancelled: 0
 const ATTENDANCE_WEIGHT: Record<string, number> = {
   present: 1,
   late: 0.5,
 };
+
+// 本日以外の出席登録に対するデバフ倍率
+const OFF_DAY_DEBUFF = 0.5;
 
 // 課題提出ごとの重み
 const ASSIGNMENT_WEIGHT = 1;
@@ -52,10 +54,14 @@ export function useActivityLog() {
       if (!map[date]) map[date] = { score: 0, assignmentCount: 0 };
     };
 
+    const todayStr = new Date().toISOString().slice(0, 10);
+
     if (attendanceRes.data) {
       for (const row of attendanceRes.data) {
         ensure(row.date);
-        map[row.date].score += ATTENDANCE_WEIGHT[row.status] ?? 0;
+        const base = ATTENDANCE_WEIGHT[row.status] ?? 0;
+        const multiplier = row.date === todayStr ? 1 : OFF_DAY_DEBUFF;
+        map[row.date].score += base * multiplier;
       }
     }
 
