@@ -55,8 +55,8 @@ function groupAssignments(list: AssignmentWithClass[]): Section[] {
 
 const URGENCY_COLOR: Record<string, string> = {
   pending: '#3eb370',
-  overdue: '#e60012',
-  done:    '#8E8E93',
+  overdue: '#FF3B30',
+  done:    '#6C6C70',
 };
 
 const DAY_COLORS = ['#3eb370', '#34C759', '#FF9500', '#e60012', '#AF52DE', '#5AC8FA', '#FF6B6B'];
@@ -158,32 +158,28 @@ export function AssignmentListScreen() {
       <View style={s.container}>
       {/* ヘッダー */}
       <View style={s.header}>
-        <View style={s.headerSide} />
-        <View style={s.headerCenter}>
-          <Text style={s.title}>課題</Text>
-        </View>
-        <View style={s.headerSide} />
+        <Text style={s.title}>課題</Text>
       </View>
 
       {/* フィルタータブ */}
       <View style={s.filterBar}>
-        {([['all', '全て'], ['pending', '未提出'], ['overdue', '期限切れ'], ['submitted', '提出済み']] as [Filter, string][]).map(
-          ([key, label]) => {
-            const active = filter === key;
-            const tabColor = key === 'overdue' ? '#e60012' : '#3eb370';
-            return (
-              <TouchableOpacity
-                key={key}
-                style={s.filterTab}
-                onPress={() => setFilter(key)}
-                activeOpacity={0.7}
-              >
-                <Text style={[s.filterTabText, active && { color: tabColor, fontWeight: '600' }]}>{label}</Text>
-                {active && <View style={[s.filterTabIndicator, { backgroundColor: tabColor }]} />}
-              </TouchableOpacity>
-            );
-          }
-        )}
+        <View style={s.filterSegmented}>
+          {([['all', '全て'], ['pending', '未提出'], ['overdue', '期限切れ'], ['submitted', '提出済み']] as [Filter, string][]).map(
+            ([key, label]) => {
+              const active = filter === key;
+              return (
+                <TouchableOpacity
+                  key={key}
+                  style={[s.filterTab, active && s.filterTabActive]}
+                  onPress={() => setFilter(key)}
+                  activeOpacity={0.7}
+                >
+                  <Text style={[s.filterTabText, active && s.filterTabTextActive]}>{label}</Text>
+                </TouchableOpacity>
+              );
+            }
+          )}
+        </View>
       </View>
 
       {/* 課題リスト */}
@@ -193,7 +189,7 @@ export function AssignmentListScreen() {
       >
         {sections.length === 0 ? (
           <View style={s.emptyContainer}>
-            <Ionicons name="checkmark-circle-outline" size={52} color="#C7C7CC" />
+            <Ionicons name="checkmark-circle-outline" size={52} color="#AEAEB2" />
             <Text style={s.emptyTitle}>
               {filter === 'pending' ? 'すべて提出済みです' : filter === 'overdue' ? '期限切れの課題はありません' : '課題がありません'}
             </Text>
@@ -214,7 +210,7 @@ export function AssignmentListScreen() {
                 {section.data.map((item, idx) => {
                   const isOverdue = !item.is_submitted && !!item.due_date && item.due_date < today;
                   const isToday   = !item.is_submitted && item.due_date === today;
-                  const dueColor  = item.is_submitted ? '#8E8E93' : isOverdue ? '#e60012' : isToday ? '#FF9500' : '#8E8E93';
+                  const dueColor  = item.is_submitted ? '#6C6C70' : isOverdue ? '#FF3B30' : isToday ? '#FF9500' : '#6C6C70';
                   const dayColor  = item.classes?.day_of_week != null
                     ? DAY_COLORS[item.classes.day_of_week]
                     : '#8E8E93';
@@ -236,12 +232,12 @@ export function AssignmentListScreen() {
                         <View style={s.itemMeta}>
                           {item.classes && (
                             <>
-                              <View style={[s.classPill, { backgroundColor: dayColor + '18' }]}>
+                              <View style={[s.classPill, { backgroundColor: dayColor + '30' }]}>
                                 <Text style={[s.classPillText, { color: dayColor }]}>
                                   {CLASS_DAY_LABELS[item.classes.day_of_week]}{item.classes.period}限
                                 </Text>
                               </View>
-                              <View style={[s.classPill, { backgroundColor: dayColor + '18' }]}>
+                              <View style={[s.classPill, { backgroundColor: dayColor + '30' }]}>
                                 <Text style={[s.classPillText, { color: dayColor }]}>
                                   {item.classes.name}
                                 </Text>
@@ -263,7 +259,7 @@ export function AssignmentListScreen() {
                           <Text style={s.memo} numberOfLines={1}>{item.memo}</Text>
                         ) : null}
                       </View>
-                      <Ionicons name="chevron-forward" size={16} color="#C7C7CC" />
+                      <Ionicons name="chevron-forward" size={16} color="#AEAEB2" />
                     </TouchableOpacity>
                   );
                 })}
@@ -344,7 +340,7 @@ export function AssignmentListScreen() {
                 const currentStatus = editSubmitted ? 'submitted' : isOverdue ? 'overdue' : 'pending';
                 const statusOptions: { key: 'pending' | 'overdue' | 'submitted'; label: string; icon: string; color: string }[] = [
                   { key: 'pending',   label: '未提出',   icon: 'ellipse-outline',  color: '#3eb370' },
-                  { key: 'overdue',   label: '期限切れ', icon: 'alert-circle',     color: '#e60012' },
+                  { key: 'overdue',   label: '期限切れ', icon: 'alert-circle',     color: '#FF3B30' },
                   { key: 'submitted', label: '提出済み', icon: 'checkmark-circle', color: '#34C759' },
                 ];
                 return (
@@ -425,48 +421,44 @@ const s = StyleSheet.create({
   container: { flex: 1, backgroundColor: '#F2F2F7' },
 
   header: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
     paddingHorizontal: 16,
     paddingVertical: 10,
     borderBottomWidth: 0.5,
-    borderBottomColor: '#E0E0E0',
+    borderBottomColor: '#C6C6C8',
     backgroundColor: '#FFFFFF',
-  },
-  headerSide: {
-    width: 44,
-    alignItems: 'flex-end',
-    justifyContent: 'center',
-  },
-  headerCenter: {
-    flex: 1,
     alignItems: 'center',
   },
-  title: { fontSize: 15, fontWeight: '600', color: '#1C1C1E', letterSpacing: 0.2 },
+  title: { fontSize: 17, fontWeight: '600', color: '#1C1C1E', letterSpacing: 0.2 },
 
   filterBar: {
-    flexDirection: 'row',
     backgroundColor: '#FFFFFF',
+    paddingHorizontal: 16,
+    paddingVertical: 10,
     borderBottomWidth: 0.5,
-    borderBottomColor: '#E0E0E0',
+    borderBottomColor: '#C6C6C8',
+  },
+  filterSegmented: {
+    flexDirection: 'row',
+    backgroundColor: '#E9E9EB',
+    borderRadius: 9,
+    padding: 2,
   },
   filterTab: {
     flex: 1,
     alignItems: 'center',
-    paddingVertical: 10,
+    paddingVertical: 7,
+    borderRadius: 7,
   },
-  filterTabText: { fontSize: 13, fontWeight: '500', color: '#8E8E93' },
-  filterTabTextActive: { color: '#3eb370', fontWeight: '600' },
-  filterTabIndicator: {
-    position: 'absolute',
-    bottom: 0,
-    left: 0,
-    right: 0,
-    height: 2,
-    backgroundColor: '#3eb370',
-    borderRadius: 1,
+  filterTabActive: {
+    backgroundColor: '#FFFFFF',
+    shadowColor: '#000',
+    shadowOpacity: 0.12,
+    shadowRadius: 4,
+    shadowOffset: { width: 0, height: 1 },
+    elevation: 2,
   },
+  filterTabText: { fontSize: 12, fontWeight: '500', color: '#6C6C70' },
+  filterTabTextActive: { fontSize: 12, fontWeight: '700', color: '#1C1C1E' },
 
   listContent: { paddingHorizontal: 16, paddingBottom: 40, gap: 6 },
 
@@ -476,26 +468,41 @@ const s = StyleSheet.create({
     paddingVertical: 80,
     gap: 8,
   },
-  emptyTitle: { fontSize: 17, fontWeight: '600', color: '#3C3C43', marginTop: 8 },
-  emptyDesc:  { fontSize: 14, color: '#8E8E93' },
+  emptyTitle: { fontSize: 17, fontWeight: '600', color: '#1C1C1E', marginTop: 8 },
+  emptyDesc:  { fontSize: 14, color: '#6C6C70' },
 
   sectionHeader: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 6,
-    marginTop: 8,
-    marginBottom: 4,
+    marginTop: 20,
+    marginBottom: 6,
+    marginLeft: 4,
+  },
+  sectionDot: { width: 8, height: 8, borderRadius: 4 },
+  sectionTitle: { fontSize: 12, fontWeight: '700', letterSpacing: 0.6, textTransform: 'uppercase' },
+  sectionCount: {
+    fontSize: 11,
+    color: '#FFFFFF',
+    fontWeight: '700',
+    backgroundColor: '#AEAEB2',
+    borderRadius: 8,
+    paddingHorizontal: 6,
+    paddingVertical: 1,
+    overflow: 'hidden',
     marginLeft: 2,
   },
-  sectionDot: { width: 7, height: 7, borderRadius: 4 },
-  sectionTitle: { fontSize: 13, fontWeight: '700', letterSpacing: 0.3 },
-  sectionCount: { fontSize: 12, color: '#8E8E93', marginLeft: 2 },
 
   card: {
     backgroundColor: '#FFFFFF',
     borderRadius: 12,
     paddingHorizontal: 14,
     overflow: 'hidden',
+    shadowColor: '#000',
+    shadowOpacity: 0.07,
+    shadowRadius: 8,
+    shadowOffset: { width: 0, height: 2 },
+    elevation: 2,
   },
   listRow: {
     flexDirection: 'row',
@@ -503,11 +510,11 @@ const s = StyleSheet.create({
     paddingVertical: 14,
     gap: 12,
   },
-  listRowBorder: { borderBottomWidth: 0.5, borderBottomColor: '#E5E5EA' },
+  listRowBorder: { borderBottomWidth: 0.5, borderBottomColor: '#C6C6C8' },
 
   itemBody: { flex: 1, gap: 5 },
-  itemTitle: { fontSize: 15, fontWeight: '500', color: '#1C1C1E', lineHeight: 20 },
-  itemTitleDone: { color: '#8E8E93' },
+  itemTitle: { fontSize: 15, fontWeight: '600', color: '#1C1C1E', lineHeight: 20 },
+  itemTitleDone: { color: '#AEAEB2' },
 
   itemMeta: { flexDirection: 'row', alignItems: 'center', gap: 8, flexWrap: 'wrap' },
   classPill: {
@@ -518,9 +525,9 @@ const s = StyleSheet.create({
 
   classPillText: { fontSize: 11, fontWeight: '600' },
   dueDateRow: { flexDirection: 'row', alignItems: 'center', gap: 3 },
-  dueDate: { fontSize: 12, fontWeight: '500' },
-  noDue: { fontSize: 12, color: '#C7C7CC' },
-  memo: { fontSize: 12, color: '#8E8E93' },
+  dueDate: { fontSize: 12, fontWeight: '600' },
+  noDue: { fontSize: 12, color: '#AEAEB2' },
+  memo: { fontSize: 12, color: '#6C6C70' },
 
   // 編集シート
   overlay: {
@@ -542,13 +549,15 @@ const s = StyleSheet.create({
     alignSelf: 'center', marginBottom: 4,
   },
   sheetTitle: { fontSize: 18, fontWeight: '700', color: '#1C1C1E' },
-  sheetLabel: { fontSize: 13, color: '#6C6C70', fontWeight: '500', marginTop: 4 },
+  sheetLabel: { fontSize: 13, color: '#3C3C43', fontWeight: '600', marginTop: 4 },
   sheetInput: {
     backgroundColor: '#F2F2F7',
     borderRadius: 10,
     padding: 12,
     fontSize: 15,
     color: '#1C1C1E',
+    borderWidth: 1,
+    borderColor: '#E5E5EA',
   },
   memoInput: { minHeight: 72, paddingTop: 12 },
   datePicker: {
@@ -592,7 +601,7 @@ const s = StyleSheet.create({
     borderRadius: 10,
     padding: 12,
   },
-  notifyLabel: { flex: 1, fontSize: 15, color: '#8E8E93' },
+  notifyLabel: { flex: 1, fontSize: 15, color: '#6C6C70' },
   notifyLabelActive: { color: '#3eb370' },
   toggle: {
     width: 44, height: 26, borderRadius: 13,

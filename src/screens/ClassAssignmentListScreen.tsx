@@ -157,7 +157,7 @@ export function ClassAssignmentListScreen() {
       <ScrollView contentContainerStyle={s.content} showsVerticalScrollIndicator={false}>
         {assignments.length === 0 ? (
           <View style={s.emptyContainer}>
-            <Ionicons name="document-text-outline" size={36} color="#C7C7CC" />
+            <Ionicons name="document-text-outline" size={36} color="#AEAEB2" />
             <Text style={s.emptyText}>課題がありません</Text>
           </View>
         ) : (
@@ -173,7 +173,7 @@ export function ClassAssignmentListScreen() {
                 {section.items.map((item, idx) => {
                   const isOverdue = !item.is_submitted && !!item.due_date && item.due_date < today;
                   const isToday   = !item.is_submitted && item.due_date === today;
-                  const dueColor  = item.is_submitted ? '#8E8E93' : isOverdue ? '#FF3B30' : isToday ? '#3eb370' : '#8E8E93';
+                  const dueColor  = item.is_submitted ? '#6C6C70' : isOverdue ? '#FF3B30' : isToday ? '#FF9500' : '#6C6C70';
 
                   return (
                     <TouchableOpacity
@@ -200,7 +200,7 @@ export function ClassAssignmentListScreen() {
                           <Text style={s.memo} numberOfLines={1}>{item.memo}</Text>
                         ) : null}
                       </View>
-                      <Ionicons name="chevron-forward" size={16} color="#C7C7CC" />
+                      <Ionicons name="chevron-forward" size={16} color="#AEAEB2" />
                     </TouchableOpacity>
                   );
                 })}
@@ -361,11 +361,12 @@ const s = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     paddingHorizontal: 8,
-    paddingVertical: 8,
+    paddingVertical: 10,
+    backgroundColor: '#FFFFFF',
   },
   backButton: { width: 36, alignItems: 'center' },
   headerTitle: { flex: 1, textAlign: 'center', fontSize: 17, fontWeight: '600', color: '#1C1C1E' },
-  headerDivider: { height: 0.5, backgroundColor: '#E5E5EA' },
+  headerDivider: { height: 0.5, backgroundColor: '#C6C6C8' },
   content: { padding: 16, paddingBottom: 40, gap: 6 },
 
   emptyContainer: {
@@ -374,25 +375,40 @@ const s = StyleSheet.create({
     paddingVertical: 60,
     gap: 8,
   },
-  emptyText: { fontSize: 14, color: '#C7C7CC' },
+  emptyText: { fontSize: 14, color: '#6C6C70' },
 
   sectionHeader: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 6,
-    marginTop: 8,
-    marginBottom: 4,
+    marginTop: 20,
+    marginBottom: 6,
+    marginLeft: 4,
+  },
+  sectionDot: { width: 8, height: 8, borderRadius: 4 },
+  sectionTitle: { fontSize: 12, fontWeight: '700', letterSpacing: 0.6, textTransform: 'uppercase' },
+  sectionCount: {
+    fontSize: 11,
+    color: '#FFFFFF',
+    fontWeight: '700',
+    backgroundColor: '#AEAEB2',
+    borderRadius: 8,
+    paddingHorizontal: 6,
+    paddingVertical: 1,
+    overflow: 'hidden',
     marginLeft: 2,
   },
-  sectionDot: { width: 7, height: 7, borderRadius: 4 },
-  sectionTitle: { fontSize: 13, fontWeight: '700', letterSpacing: 0.3 },
-  sectionCount: { fontSize: 12, color: '#8E8E93', marginLeft: 2 },
 
   card: {
     backgroundColor: '#FFFFFF',
     borderRadius: 12,
     paddingHorizontal: 14,
     overflow: 'hidden',
+    shadowColor: '#000',
+    shadowOpacity: 0.07,
+    shadowRadius: 8,
+    shadowOffset: { width: 0, height: 2 },
+    elevation: 2,
   },
   listRow: {
     flexDirection: 'row',
@@ -400,17 +416,17 @@ const s = StyleSheet.create({
     paddingVertical: 14,
     gap: 12,
   },
-  listRowBorder: { borderBottomWidth: 0.5, borderBottomColor: '#E5E5EA' },
+  listRowBorder: { borderBottomWidth: 0.5, borderBottomColor: '#C6C6C8' },
 
   itemBody: { flex: 1, gap: 4 },
-  itemTitle: { fontSize: 15, fontWeight: '500', color: '#1C1C1E', lineHeight: 20 },
-  itemTitleDone: { color: '#8E8E93' },
-  strikethrough: { textDecorationLine: 'line-through', color: '#C7C7CC' },
+  itemTitle: { fontSize: 15, fontWeight: '600', color: '#1C1C1E', lineHeight: 20 },
+  itemTitleDone: { color: '#AEAEB2' },
+  strikethrough: { textDecorationLine: 'line-through', color: '#AEAEB2' },
 
   dueDateRow: { flexDirection: 'row', alignItems: 'center', gap: 4 },
-  dueDate: { fontSize: 12, fontWeight: '500' },
-  noDue: { fontSize: 12, color: '#C7C7CC' },
-  memo: { fontSize: 12, color: '#8E8E93' },
+  dueDate: { fontSize: 12, fontWeight: '600' },
+  noDue: { fontSize: 12, color: '#AEAEB2' },
+  memo: { fontSize: 12, color: '#6C6C70' },
 
   // 編集シート
   overlay: {
@@ -432,13 +448,15 @@ const s = StyleSheet.create({
     alignSelf: 'center', marginBottom: 4,
   },
   sheetTitle: { fontSize: 18, fontWeight: '700', color: '#1C1C1E' },
-  sheetLabel: { fontSize: 13, color: '#6C6C70', fontWeight: '500', marginTop: 4 },
+  sheetLabel: { fontSize: 13, color: '#3C3C43', fontWeight: '600', marginTop: 4 },
   sheetInput: {
     backgroundColor: '#F2F2F7',
     borderRadius: 10,
     padding: 12,
     fontSize: 15,
     color: '#1C1C1E',
+    borderWidth: 1,
+    borderColor: '#E5E5EA',
   },
   memoInput: { minHeight: 72, paddingTop: 12 },
   datePicker: {
@@ -482,7 +500,7 @@ const s = StyleSheet.create({
     borderRadius: 10,
     padding: 12,
   },
-  notifyLabel: { flex: 1, fontSize: 15, color: '#8E8E93' },
+  notifyLabel: { flex: 1, fontSize: 15, color: '#6C6C70' },
   notifyLabelActive: { color: '#3eb370' },
   toggle: {
     width: 44, height: 26, borderRadius: 13,
