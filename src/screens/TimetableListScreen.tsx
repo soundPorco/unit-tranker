@@ -54,14 +54,14 @@ function CreateTimetableModal({
                 style={modal.yearBtn}
                 onPress={() => setAcademicYear(y => y - 1)}
               >
-                <Ionicons name="remove" size={20} color="#4F46E5" />
+                <Ionicons name="remove" size={20} color="#0095d9" />
               </TouchableOpacity>
               <Text style={modal.yearText}>{academicYear}年度</Text>
               <TouchableOpacity
                 style={modal.yearBtn}
                 onPress={() => setAcademicYear(y => y + 1)}
               >
-                <Ionicons name="add" size={20} color="#4F46E5" />
+                <Ionicons name="add" size={20} color="#0095d9" />
               </TouchableOpacity>
             </View>
           </View>
@@ -115,13 +115,13 @@ export function TimetableListScreen() {
           onPress={() => setShowCreate(true)}
           hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
         >
-          <Ionicons name="add" size={26} color="#4F46E5" />
+          <Ionicons name="add" size={26} color="#FFFFFF" />
         </TouchableOpacity>
       </View>
 
       {timetables.length === 0 ? (
         <View style={styles.emptyContainer}>
-          <Ionicons name="calendar-outline" size={52} color="#C7C7CC" />
+          <Ionicons name="calendar-outline" size={52} color="rgba(255,255,255,0.6)" />
           <Text style={styles.emptyTitle}>時間割がありません</Text>
           <Text style={styles.emptyDesc}>右上の＋ボタンで追加しましょう</Text>
         </View>
@@ -142,7 +142,7 @@ export function TimetableListScreen() {
                 onPress={() => navigation.navigate('TimetableMain', { timetableId: item.id })}
               >
                 <View style={styles.cardIcon}>
-                  <Ionicons name="calendar" size={24} color="#4F46E5" />
+                  <Ionicons name="calendar" size={24} color="#0095d9" />
                 </View>
                 <View style={styles.cardContent}>
                   <Text style={styles.cardTitle}>{label}</Text>
@@ -170,18 +170,25 @@ export function TimetableListScreen() {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#F2F2F7' },
+  container: { flex: 1, backgroundColor: '#0095d9' },
 
   header: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    paddingHorizontal: 16,
+    paddingHorizontal: 20,
     paddingTop: 4,
-    paddingBottom: 10,
+    paddingBottom: 14,
   },
-  title: { fontSize: 28, fontWeight: '700', color: '#1C1C1E', letterSpacing: 0.3 },
-  addBtn: { padding: 4 },
+  title: { fontSize: 28, fontWeight: '700', color: '#FFFFFF', letterSpacing: 0.3 },
+  addBtn: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    backgroundColor: 'rgba(255,255,255,0.25)',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
 
   emptyContainer: {
     flex: 1,
@@ -190,29 +197,29 @@ const styles = StyleSheet.create({
     gap: 8,
     paddingBottom: 60,
   },
-  emptyTitle: { fontSize: 17, fontWeight: '600', color: '#3C3C43', marginTop: 8 },
-  emptyDesc: { fontSize: 14, color: '#8E8E93' },
+  emptyTitle: { fontSize: 17, fontWeight: '600', color: '#FFFFFF', marginTop: 8 },
+  emptyDesc: { fontSize: 14, color: 'rgba(255,255,255,0.7)' },
 
-  list: { paddingHorizontal: 16, paddingBottom: 24, gap: 10 },
+  list: { paddingHorizontal: 16, paddingTop: 4, paddingBottom: 24, gap: 10 },
 
   card: {
     flexDirection: 'row',
     alignItems: 'center',
     backgroundColor: '#FFFFFF',
-    borderRadius: 14,
+    borderRadius: 16,
     padding: 14,
     gap: 12,
-    shadowColor: '#000',
-    shadowOpacity: 0.05,
-    shadowRadius: 4,
-    shadowOffset: { width: 0, height: 1 },
-    elevation: 2,
+    shadowColor: '#004A6E',
+    shadowOpacity: 0.12,
+    shadowRadius: 8,
+    shadowOffset: { width: 0, height: 2 },
+    elevation: 3,
   },
   cardIcon: {
-    width: 40,
-    height: 40,
-    borderRadius: 10,
-    backgroundColor: '#E8F0FE',
+    width: 44,
+    height: 44,
+    borderRadius: 12,
+    backgroundColor: '#E0F4FC',
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -222,7 +229,7 @@ const styles = StyleSheet.create({
 });
 
 const modal = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#F2F2F7' },
+  container: { flex: 1, backgroundColor: '#EBF7FD' },
   header: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -230,19 +237,19 @@ const modal = StyleSheet.create({
     paddingHorizontal: 16,
     paddingVertical: 12,
     borderBottomWidth: 0.5,
-    borderBottomColor: '#C6C6C8',
-    backgroundColor: '#F2F2F7',
+    borderBottomColor: '#B3DCEE',
+    backgroundColor: '#EBF7FD',
   },
   title: { fontSize: 17, fontWeight: '600', color: '#1C1C1E' },
-  cancel: { fontSize: 17, color: '#4F46E5' },
-  save: { fontSize: 17, color: '#4F46E5', fontWeight: '600' },
+  cancel: { fontSize: 17, color: '#0095d9' },
+  save: { fontSize: 17, color: '#0095d9', fontWeight: '600' },
 
   scroll: { padding: 16, gap: 4 },
 
   label: {
     fontSize: 13,
-    color: '#6C6C70',
-    fontWeight: '500',
+    color: '#007AAD',
+    fontWeight: '600',
     marginTop: 16,
     marginBottom: 6,
     marginLeft: 4,
@@ -265,7 +272,7 @@ const modal = StyleSheet.create({
     width: 36,
     height: 36,
     borderRadius: 18,
-    backgroundColor: '#F2F2F7',
+    backgroundColor: '#D6EEF8',
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -283,9 +290,9 @@ const modal = StyleSheet.create({
     paddingVertical: 8,
     alignItems: 'center',
     borderRadius: 8,
-    backgroundColor: '#F2F2F7',
+    backgroundColor: '#D6EEF8',
   },
-  segActive: { backgroundColor: '#4F46E5' },
-  segText: { fontSize: 14, color: '#3C3C43', fontWeight: '500' },
+  segActive: { backgroundColor: '#0095d9' },
+  segText: { fontSize: 14, color: '#007AAD', fontWeight: '500' },
   segTextActive: { color: '#FFFFFF', fontWeight: '600' },
 });

@@ -105,7 +105,7 @@ export function TimetableSettingsScreen() {
           hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
           style={s.backBtn}
         >
-          <Ionicons name="chevron-back" size={26} color="#417ab1" />
+          <Ionicons name="chevron-back" size={26} color="#0095d9" />
         </TouchableOpacity>
         <Text style={s.headerTitle}>時間割の設定</Text>
         <View style={s.backBtn} />
@@ -116,7 +116,7 @@ export function TimetableSettingsScreen() {
           {/* ─── 個別設定セクション ─── */}
           <View style={s.sectionHeader}>
             <View style={s.sectionIconWrap}>
-              <Ionicons name="calendar-outline" size={15} color="#417ab1" />
+              <Ionicons name="calendar-outline" size={15} color="#0095d9" />
             </View>
             <Text style={s.sectionHeaderText}>この時間割の設定</Text>
           </View>
@@ -127,11 +127,11 @@ export function TimetableSettingsScreen() {
           <View style={s.card}>
             <View style={s.yearRow}>
               <TouchableOpacity style={s.yearBtn} onPress={() => setDraftYear(y => y - 1)}>
-                <Ionicons name="remove" size={20} color="#417ab1" />
+                <Ionicons name="remove" size={20} color="#0095d9" />
               </TouchableOpacity>
               <Text style={s.yearText}>{draftYear}年度</Text>
               <TouchableOpacity style={s.yearBtn} onPress={() => setDraftYear(y => y + 1)}>
-                <Ionicons name="add" size={20} color="#417ab1" />
+                <Ionicons name="add" size={20} color="#0095d9" />
               </TouchableOpacity>
             </View>
           </View>
@@ -320,12 +320,12 @@ const s = StyleSheet.create({
   yearText: { fontSize: 20, fontWeight: '600', color: '#1C1C1E', minWidth: 120, textAlign: 'center' },
 
   segBtn: { flex: 1, paddingVertical: 8, alignItems: 'center', borderRadius: 8, backgroundColor: '#F2F2F7' },
-  segActive: { backgroundColor: '#417ab1' },
+  segActive: { backgroundColor: '#0095d9' },
   segText: { fontSize: 14, color: '#3C3C43', fontWeight: '500' },
   segTextActive: { color: '#FFFFFF', fontWeight: '600' },
 
   periodBtn: { paddingHorizontal: 14, paddingVertical: 7, borderRadius: 8, backgroundColor: '#F2F2F7' },
-  periodBtnActive: { backgroundColor: '#417ab1' },
+  periodBtnActive: { backgroundColor: '#0095d9' },
   periodText: { fontSize: 14, color: '#3C3C43', fontWeight: '500' },
   periodTextActive: { color: '#FFFFFF', fontWeight: '600' },
 
@@ -339,10 +339,10 @@ const s = StyleSheet.create({
   timeSep: { fontSize: 14, color: '#8E8E93' },
 
   saveBtn: {
-    backgroundColor: '#FFCC33', borderRadius: 12,
+    backgroundColor: '#0095d9', borderRadius: 12,
     paddingVertical: 15, alignItems: 'center', marginTop: 24,
   },
-  saveBtnText: { color: '#1C1C1E', fontSize: 16, fontWeight: '600' },
+  saveBtnText: { color: '#FFFFFF', fontSize: 16, fontWeight: '600' },
 });
 
 const c = StyleSheet.create({

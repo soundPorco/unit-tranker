@@ -77,8 +77,8 @@ export function AppNavigator() {
               />
             ),
             tabBarLabel: cfg.label,
-            tabBarActiveTintColor: '#417ab1',
-            tabBarInactiveTintColor: 'rgba(25, 25, 112, 0.4)',
+            tabBarActiveTintColor: '#0095d9',
+            tabBarInactiveTintColor: 'rgba(0, 0, 0, 0.35)',
             tabBarStyle: {
               backgroundColor: '#FFFFFF',
               borderTopColor: '#E0E0E0',
