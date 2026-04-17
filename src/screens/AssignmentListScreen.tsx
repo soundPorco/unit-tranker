@@ -63,7 +63,7 @@ const DAY_COLORS = ['#3eb370', '#34C759', '#FF9500', '#e60012', '#AF52DE', '#5AC
 
 export function AssignmentListScreen() {
   const { assignments, loading, refetch, updateAssignment, deleteAssignment } = useAllAssignments();
-  const [filter, setFilter] = useState<Filter>('all');
+  const [filter, setFilter] = useState<Filter>('pending');
 
   const [editing, setEditing] = useState<AssignmentWithClass | null>(null);
   const [editTitle, setEditTitle] = useState('');
