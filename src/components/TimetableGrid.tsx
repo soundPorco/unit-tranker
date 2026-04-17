@@ -18,10 +18,10 @@ const DAY_INDICES: Record<TimetableSettings["daysMode"], number[]> = {
 
 const PERIOD_COL_W = 46;
 const HEADER_ROW_H = 30;
-const CELL_GAP = 3;
+const CELL_GAP = 4;
 const GRID_PAD = 6;
 
-const CLASS_COLOR = { bg: "#e6f5ee", border: "#b8dfc9", text: "#1a4a30", pill: "#3eb370" };
+const CLASS_COLOR = { bg: "#c2e8d0", border: "#c2e8d0", text: "#1a4a30", pill: "#3eb370" };
 
 interface Props {
     classes: Class[];
@@ -237,8 +237,8 @@ const styles = StyleSheet.create({
         flexDirection: "row",
     },
     cellEmpty: {
-        backgroundColor: "#F8F8F8",
-        borderColor: "#EFEFEF",
+        backgroundColor: "#F2F2F7",
+        borderColor: "#F2F2F7",
     },
 
     // 科目カード内容

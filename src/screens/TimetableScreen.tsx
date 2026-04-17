@@ -269,6 +269,7 @@ export function TimetableScreen() {
     }
 
     const headerLabel = timetable ? `${timetable.academicYear}年度 ${timetable.semester}` : '時間割';
+    const totalCredits = classes.reduce((sum, cls) => sum + (cls.credits ?? 0), 0);
 
     return (
         <SafeAreaView style={styles.container} edges={["top"]}>
@@ -312,6 +313,12 @@ export function TimetableScreen() {
                     onCellPress={handleCellPress}
                     todayDayIndex={(() => { const d = new Date().getDay(); return d === 0 ? 6 : d - 1; })()}
                 />
+            </View>
+
+            {/* 合計単位数バー */}
+            <View style={styles.creditsBar}>
+                <Text style={styles.creditsLabel}>合計単位数</Text>
+                <Text style={styles.creditsValue}>{totalCredits} 単位</Text>
             </View>
 
             {/* 時間割切り替えドロップダウン */}
@@ -395,6 +402,28 @@ const styles = StyleSheet.create({
     },
     emptyTitle: { fontSize: 17, fontWeight: '600', color: '#3C3C43', marginTop: 8 },
     emptyDesc: { fontSize: 14, color: '#8E8E93' },
+
+    creditsBar: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        justifyContent: 'space-between',
+        marginHorizontal: 12,
+        marginBottom: 10,
+        paddingHorizontal: 16,
+        paddingVertical: 10,
+        borderRadius: 14,
+        backgroundColor: '#F2F2F7',
+    },
+    creditsLabel: {
+        fontSize: 13,
+        color: '#3C3C43',
+        fontWeight: '500',
+    },
+    creditsValue: {
+        fontSize: 15,
+        fontWeight: '700',
+        color: '#3eb370',
+    },
 });
 
 // ボトムシートスタイル
