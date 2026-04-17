@@ -29,7 +29,7 @@ function TimetableNavigator() {
         component={TimetableSettingsScreen}
         options={{ headerShown: false }}
       />
-      <TimetableStack.Screen name="ClassForm" component={ClassFormScreen} options={{ title: '講義登録', presentation: 'modal', headerTintColor: '#4F46E5' }} />
+      <TimetableStack.Screen name="ClassForm" component={ClassFormScreen} options={{ title: '講義登録', presentation: 'modal', headerTintColor: '#3eb370' }} />
       <TimetableStack.Screen name="ClassDetail" component={ClassDetailScreen} options={{ headerShown: false }} />
       <TimetableStack.Screen name="AttendanceList" component={AttendanceListScreen} options={{ headerShown: false }} />
       <TimetableStack.Screen name="AssignmentList" component={ClassAssignmentListScreen} options={{ headerShown: false }} />
@@ -77,7 +77,7 @@ export function AppNavigator() {
               />
             ),
             tabBarLabel: cfg.label,
-            tabBarActiveTintColor: '#0095d9',
+            tabBarActiveTintColor: '#3eb370',
             tabBarInactiveTintColor: 'rgba(0, 0, 0, 0.35)',
             tabBarStyle: {
               backgroundColor: '#FFFFFF',

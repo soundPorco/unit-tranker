@@ -21,7 +21,7 @@ const HEADER_ROW_H = 30;
 const CELL_GAP = 3;
 const GRID_PAD = 6;
 
-const CLASS_COLOR = { bg: "#EEF2FF", border: "#C7D2FE", text: "#3C3C43", pill: "#4F46E5" };
+const CLASS_COLOR = { bg: "#e6f5ee", border: "#b8dfc9", text: "#1a4a30", pill: "#3eb370" };
 
 interface Props {
     classes: Class[];

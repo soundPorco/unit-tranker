@@ -25,8 +25,8 @@ export function AttendanceButton({ selected, onSelect }: Props) {
     <View style={s.row}>
       {BUTTONS.map(({ status, label, icon, filled }) => {
         const isSelected = selected === status;
-        const activeBg    = filled ? '#F59E0B' : 'transparent';
-        const activeBorder = filled ? '#F59E0B' : '#6C6C70';
+        const activeBg    = filled ? '#3eb370' : 'transparent';
+        const activeBorder = filled ? '#3eb370' : '#6C6C70';
         const activeText  = filled ? '#FFFFFF'  : '#6C6C70';
         return (
           <TouchableOpacity

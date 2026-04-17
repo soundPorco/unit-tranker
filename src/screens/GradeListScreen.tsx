@@ -16,7 +16,7 @@ import { ActivityGraphCard } from './LogScreen';
 type Nav = NativeStackNavigationProp<GradeStackParamList, 'GradeList'>;
 
 const DAYS = ['月', '火', '水', '木', '金', '土', '日'];
-const CLASS_COLOR = '#0095d9';
+const CLASS_COLOR = '#3eb370';
 const CLASS_TYPE_SHORT: Record<string, string> = {
   required: '必修',
   elective_required: '選択必修',
@@ -125,7 +125,7 @@ export function GradeListScreen() {
       <SafeAreaView style={s.container} edges={['left', 'right']}>
         {renderHeader(false)}
         <View style={s.divider} />
-        <ActivityIndicator color="#0095d9" style={{ flex: 1 }} />
+        <ActivityIndicator color="#3eb370" style={{ flex: 1 }} />
       </SafeAreaView>
     );
   }
@@ -187,7 +187,7 @@ export function GradeListScreen() {
             onPress={() => setActivityExpanded(prev => !prev)}
           >
             <View style={s.activityHeaderLeft}>
-              <Ionicons name="pulse-outline" size={16} color="#F59E0B" />
+              <Ionicons name="pulse-outline" size={16} color="#FFCC33" />
               <Text style={s.activityHeaderLabel}>アクティビティ</Text>
             </View>
             <Ionicons
@@ -357,7 +357,7 @@ function SummaryCard({
 }) {
   return (
     <View style={s.summaryCard}>
-      <Ionicons name={icon} size={16} color="#0095d9" />
+      <Ionicons name={icon} size={16} color="#3eb370" />
       <Text style={s.summaryLabel}>{label}</Text>
       <View style={s.summaryValueRow}>
         <Text style={s.summaryValue}>{value}</Text>
@@ -527,7 +527,7 @@ const s = StyleSheet.create({
     width: 32,
     height: 32,
     borderRadius: 16,
-    backgroundColor: '#0095d9',
+    backgroundColor: '#3eb370',
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -605,9 +605,9 @@ const sw = StyleSheet.create({
     borderWidth: 2, borderColor: '#C7C7CC',
     alignItems: 'center', justifyContent: 'center',
   },
-  radioActive: { borderColor: '#0095d9' },
-  radioDot: { width: 11, height: 11, borderRadius: 6, backgroundColor: '#0095d9' },
+  radioActive: { borderColor: '#3eb370' },
+  radioDot: { width: 11, height: 11, borderRadius: 6, backgroundColor: '#3eb370' },
   sep: { height: 0.5, backgroundColor: '#E5E5EA', marginHorizontal: 20 },
   label: { fontSize: 15, color: '#1C1C1E', fontWeight: '500' },
-  labelActive: { color: '#0095d9', fontWeight: '600' },
+  labelActive: { color: '#3eb370', fontWeight: '600' },
 });

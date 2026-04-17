@@ -54,12 +54,12 @@ function groupAssignments(list: AssignmentWithClass[]): Section[] {
 }
 
 const URGENCY_COLOR: Record<string, string> = {
-  pending: '#0095d9',
+  pending: '#3eb370',
   overdue: '#e60012',
   done:    '#8E8E93',
 };
 
-const DAY_COLORS = ['#0095d9', '#34C759', '#FF9500', '#e60012', '#AF52DE', '#5AC8FA', '#FF6B6B'];
+const DAY_COLORS = ['#3eb370', '#34C759', '#FF9500', '#e60012', '#AF52DE', '#5AC8FA', '#FF6B6B'];
 
 export function AssignmentListScreen() {
   const { assignments, loading, refetch, updateAssignment, deleteAssignment } = useAllAssignments();
@@ -147,7 +147,7 @@ export function AssignmentListScreen() {
     return (
       <SafeAreaView style={s.safeArea} edges={['top']}>
         <View style={s.container}>
-          <ActivityIndicator color="#0095d9" style={{ flex: 1 }} />
+          <ActivityIndicator color="#3eb370" style={{ flex: 1 }} />
         </View>
       </SafeAreaView>
     );
@@ -170,7 +170,7 @@ export function AssignmentListScreen() {
         {([['all', '全て'], ['pending', '未提出'], ['overdue', '期限切れ'], ['submitted', '提出済み']] as [Filter, string][]).map(
           ([key, label]) => {
             const active = filter === key;
-            const tabColor = key === 'overdue' ? '#e60012' : '#0095d9';
+            const tabColor = key === 'overdue' ? '#e60012' : '#3eb370';
             return (
               <TouchableOpacity
                 key={key}
@@ -307,7 +307,7 @@ export function AssignmentListScreen() {
                   }
                 }}
               >
-                <Ionicons name="calendar-outline" size={16} color="#0095d9" />
+                <Ionicons name="calendar-outline" size={16} color="#3eb370" />
                 <Text style={s.datePickerText}>
                   {editDueEnabled ? formatDate(editDue) : '設定しない'}
                 </Text>
@@ -332,8 +332,8 @@ export function AssignmentListScreen() {
                     setEditDue(day.dateString);
                     setShowCalendar(false);
                   }}
-                  markedDates={{ [editDue]: { selected: true, selectedColor: '#0095d9' } }}
-                  theme={{ todayTextColor: '#0095d9', arrowColor: '#0095d9', selectedDayBackgroundColor: '#0095d9' }}
+                  markedDates={{ [editDue]: { selected: true, selectedColor: '#3eb370' } }}
+                  theme={{ todayTextColor: '#3eb370', arrowColor: '#3eb370', selectedDayBackgroundColor: '#3eb370' }}
                   style={s.calendar}
                 />
               )}
@@ -343,7 +343,7 @@ export function AssignmentListScreen() {
                 const isOverdue = !editSubmitted && editDueEnabled && editDue < today;
                 const currentStatus = editSubmitted ? 'submitted' : isOverdue ? 'overdue' : 'pending';
                 const statusOptions: { key: 'pending' | 'overdue' | 'submitted'; label: string; icon: string; color: string }[] = [
-                  { key: 'pending',   label: '未提出',   icon: 'ellipse-outline',  color: '#0095d9' },
+                  { key: 'pending',   label: '未提出',   icon: 'ellipse-outline',  color: '#3eb370' },
                   { key: 'overdue',   label: '期限切れ', icon: 'alert-circle',     color: '#e60012' },
                   { key: 'submitted', label: '提出済み', icon: 'checkmark-circle', color: '#34C759' },
                 ];
@@ -393,7 +393,7 @@ export function AssignmentListScreen() {
                   onPress={() => setEditNotify(v => !v)}
                   activeOpacity={0.7}
                 >
-                  <Ionicons name="notifications-outline" size={18} color={editNotify ? '#0095d9' : '#8E8E93'} />
+                  <Ionicons name="notifications-outline" size={18} color={editNotify ? '#3eb370' : '#8E8E93'} />
                   <Text style={[s.notifyLabel, editNotify && s.notifyLabelActive]}>締切日に通知する</Text>
                   <View style={[s.toggle, editNotify && s.toggleActive]}>
                     <View style={[s.toggleThumb, editNotify && s.toggleThumbActive]} />
@@ -457,14 +457,14 @@ const s = StyleSheet.create({
     paddingVertical: 10,
   },
   filterTabText: { fontSize: 13, fontWeight: '500', color: '#8E8E93' },
-  filterTabTextActive: { color: '#0095d9', fontWeight: '600' },
+  filterTabTextActive: { color: '#3eb370', fontWeight: '600' },
   filterTabIndicator: {
     position: 'absolute',
     bottom: 0,
     left: 0,
     right: 0,
     height: 2,
-    backgroundColor: '#0095d9',
+    backgroundColor: '#3eb370',
     borderRadius: 1,
   },
 
@@ -562,7 +562,7 @@ const s = StyleSheet.create({
   datePickerText: { flex: 1, fontSize: 15, color: '#1C1C1E' },
   calendar: { borderRadius: 12, overflow: 'hidden' },
   saveBtn: {
-    backgroundColor: '#0095d9',
+    backgroundColor: '#3eb370',
     borderRadius: 12,
     paddingVertical: 14,
     alignItems: 'center',
@@ -580,7 +580,7 @@ const s = StyleSheet.create({
     borderRadius: 10,
     backgroundColor: '#F2F2F7',
   },
-  statusBtnActive: { backgroundColor: '#0095d9' },
+  statusBtnActive: { backgroundColor: '#3eb370' },
   statusBtnText: { fontSize: 14, color: '#8E8E93', fontWeight: '500' },
   statusBtnTextActive: { color: '#FFFFFF', fontWeight: '600' },
 
@@ -593,14 +593,14 @@ const s = StyleSheet.create({
     padding: 12,
   },
   notifyLabel: { flex: 1, fontSize: 15, color: '#8E8E93' },
-  notifyLabelActive: { color: '#0095d9' },
+  notifyLabelActive: { color: '#3eb370' },
   toggle: {
     width: 44, height: 26, borderRadius: 13,
     backgroundColor: '#E5E5EA',
     justifyContent: 'center',
     paddingHorizontal: 2,
   },
-  toggleActive: { backgroundColor: '#0095d9' },
+  toggleActive: { backgroundColor: '#3eb370' },
   toggleThumb: {
     width: 22, height: 22, borderRadius: 11,
     backgroundColor: '#FFFFFF',

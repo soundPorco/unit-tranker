@@ -19,11 +19,11 @@ const DAY_LABELS = ['日', '月', '火', '水', '木', '金', '土'];
 const MONTH_LABEL_WIDTH = 30;
 
 const LEVEL_COLORS = [
-  '#EBEBEB',
-  '#90DBA6',
-  '#4DBD70',
-  '#25A84E',
-  '#167535',
+  '#E8E8E8',
+  '#a8dbbf',
+  '#5fc490',
+  '#3eb370',
+  '#2a7a52',
 ] as const;
 
 // --- ヘルパー ---
@@ -71,7 +71,7 @@ export function ActivityGraphCard() {
   if (loading) {
     return (
       <View style={[styles.card, { alignItems: 'center', paddingVertical: 24 }]}>
-        <ActivityIndicator color="#0095d9" />
+        <ActivityIndicator color="#3eb370" />
       </View>
     );
   }
@@ -192,7 +192,7 @@ export function LogContent() {
   if (loading) {
     return (
       <View style={styles.center}>
-        <ActivityIndicator color="#0095d9" />
+        <ActivityIndicator color="#3eb370" />
       </View>
     );
   }
@@ -251,7 +251,7 @@ export function LogContent() {
               </Text>
               <Text style={styles.sinceDays}>{elapsedDays}日目</Text>
             </View>
-            <Ionicons name="calendar-outline" size={32} color="rgba(255,255,255,0.7)" />
+            <Ionicons name="calendar-outline" size={32} color="rgba(255,204,51,0.85)" />
           </View>
         )}
 
@@ -364,14 +364,14 @@ const styles = StyleSheet.create({
 
   // 記録開始カード
   sinceCard: {
-    backgroundColor: '#0095d9',
+    backgroundColor: '#3eb370',
     borderRadius: 14,
     paddingVertical: 18,
     paddingHorizontal: 20,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    shadowColor: '#0095d9',
+    shadowColor: '#2d8a58',
     shadowOpacity: 0.3,
     shadowRadius: 10,
     shadowOffset: { width: 0, height: 4 },
@@ -492,7 +492,7 @@ const styles = StyleSheet.create({
   },
   cellToday: {
     borderWidth: 2,
-    borderColor: '#0095d9',
+    borderColor: '#3eb370',
   },
   cellEmpty: {
     width: CELL_SIZE,
@@ -550,7 +550,7 @@ const styles = StyleSheet.create({
   modalSectionTitle: {
     fontSize: 13,
     fontWeight: '600',
-    color: '#0095d9',
+    color: '#3eb370',
   },
   modalBody: {
     fontSize: 13,
@@ -571,6 +571,6 @@ const styles = StyleSheet.create({
   modalCloseText: {
     fontSize: 15,
     fontWeight: '600',
-    color: '#0095d9',
+    color: '#3eb370',
   },
 });

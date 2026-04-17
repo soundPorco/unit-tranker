@@ -47,7 +47,7 @@ function buildSections(assignments: Assignment[]): Section[] {
   }
 
   return ([
-    { title: '未提出',   color: '#4F46E5', dotColor: '#4F46E5', items: pending   },
+    { title: '未提出',   color: '#3eb370', dotColor: '#3eb370', items: pending   },
     { title: '期限切れ', color: '#FF3B30', dotColor: '#FF3B30', items: overdue   },
     { title: '提出済み', color: '#8E8E93', dotColor: '#8E8E93', items: submitted },
   ]).filter(s => s.items.length > 0);
@@ -131,13 +131,13 @@ export function ClassAssignmentListScreen() {
       <SafeAreaView style={s.container} edges={['top', 'bottom']}>
         <View style={s.customHeader}>
           <TouchableOpacity onPress={() => navigation.goBack()} hitSlop={8} style={s.backButton}>
-            <Ionicons name="chevron-back" size={26} color="#4F46E5" />
+            <Ionicons name="chevron-back" size={26} color="#3eb370" />
           </TouchableOpacity>
           <Text style={s.headerTitle}>課題一覧</Text>
           <View style={s.backButton} />
         </View>
         <View style={s.headerDivider} />
-        <ActivityIndicator color="#4F46E5" style={{ flex: 1 }} />
+        <ActivityIndicator color="#3eb370" style={{ flex: 1 }} />
       </SafeAreaView>
     );
   }
@@ -148,7 +148,7 @@ export function ClassAssignmentListScreen() {
     <SafeAreaView style={s.container} edges={['top', 'bottom']}>
       <View style={s.customHeader}>
         <TouchableOpacity onPress={() => navigation.goBack()} hitSlop={8} style={s.backButton}>
-          <Ionicons name="chevron-back" size={26} color="#4F46E5" />
+          <Ionicons name="chevron-back" size={26} color="#3eb370" />
         </TouchableOpacity>
         <Text style={s.headerTitle}>課題一覧</Text>
         <View style={s.backButton} />
@@ -173,7 +173,7 @@ export function ClassAssignmentListScreen() {
                 {section.items.map((item, idx) => {
                   const isOverdue = !item.is_submitted && !!item.due_date && item.due_date < today;
                   const isToday   = !item.is_submitted && item.due_date === today;
-                  const dueColor  = item.is_submitted ? '#8E8E93' : isOverdue ? '#FF3B30' : isToday ? '#4F46E5' : '#8E8E93';
+                  const dueColor  = item.is_submitted ? '#8E8E93' : isOverdue ? '#FF3B30' : isToday ? '#3eb370' : '#8E8E93';
 
                   return (
                     <TouchableOpacity
@@ -244,7 +244,7 @@ export function ClassAssignmentListScreen() {
                   }
                 }}
               >
-                <Ionicons name="calendar-outline" size={16} color="#4F46E5" />
+                <Ionicons name="calendar-outline" size={16} color="#3eb370" />
                 <Text style={s.datePickerText}>
                   {editDueEnabled ? formatDate(editDue) : '設定しない'}
                 </Text>
@@ -269,8 +269,8 @@ export function ClassAssignmentListScreen() {
                     setEditDue(day.dateString);
                     setShowCalendar(false);
                   }}
-                  markedDates={{ [editDue]: { selected: true, selectedColor: '#4F46E5' } }}
-                  theme={{ todayTextColor: '#4F46E5', arrowColor: '#4F46E5', selectedDayBackgroundColor: '#4F46E5' }}
+                  markedDates={{ [editDue]: { selected: true, selectedColor: '#3eb370' } }}
+                  theme={{ todayTextColor: '#3eb370', arrowColor: '#3eb370', selectedDayBackgroundColor: '#3eb370' }}
                   style={s.calendar}
                 />
               )}
@@ -280,7 +280,7 @@ export function ClassAssignmentListScreen() {
                 const isOverdue = !editSubmitted && editDueEnabled && editDue < today;
                 const currentStatus = editSubmitted ? 'submitted' : isOverdue ? 'overdue' : 'pending';
                 const statusOptions: { key: 'pending' | 'overdue' | 'submitted'; label: string; icon: string; color: string }[] = [
-                  { key: 'pending',   label: '未提出',   icon: 'ellipse-outline',  color: '#4F46E5' },
+                  { key: 'pending',   label: '未提出',   icon: 'ellipse-outline',  color: '#3eb370' },
                   { key: 'overdue',   label: '期限切れ', icon: 'alert-circle',     color: '#FF3B30' },
                   { key: 'submitted', label: '提出済み', icon: 'checkmark-circle', color: '#34C759' },
                 ];
@@ -329,7 +329,7 @@ export function ClassAssignmentListScreen() {
                   onPress={() => setEditNotify(v => !v)}
                   activeOpacity={0.7}
                 >
-                  <Ionicons name="notifications-outline" size={18} color={editNotify ? '#4F46E5' : '#8E8E93'} />
+                  <Ionicons name="notifications-outline" size={18} color={editNotify ? '#3eb370' : '#8E8E93'} />
                   <Text style={[s.notifyLabel, editNotify && s.notifyLabelActive]}>締切日に通知する</Text>
                   <View style={[s.toggle, editNotify && s.toggleActive]}>
                     <View style={[s.toggleThumb, editNotify && s.toggleThumbActive]} />
@@ -452,7 +452,7 @@ const s = StyleSheet.create({
   datePickerText: { flex: 1, fontSize: 15, color: '#1C1C1E' },
   calendar: { borderRadius: 12, overflow: 'hidden' },
   saveBtn: {
-    backgroundColor: '#4F46E5',
+    backgroundColor: '#3eb370',
     borderRadius: 12,
     paddingVertical: 14,
     alignItems: 'center',
@@ -470,7 +470,7 @@ const s = StyleSheet.create({
     borderRadius: 10,
     backgroundColor: '#F2F2F7',
   },
-  statusBtnActive: { backgroundColor: '#4F46E5' },
+  statusBtnActive: { backgroundColor: '#3eb370' },
   statusBtnText: { fontSize: 14, color: '#8E8E93', fontWeight: '500' },
   statusBtnTextActive: { color: '#FFFFFF', fontWeight: '600' },
 
@@ -483,14 +483,14 @@ const s = StyleSheet.create({
     padding: 12,
   },
   notifyLabel: { flex: 1, fontSize: 15, color: '#8E8E93' },
-  notifyLabelActive: { color: '#4F46E5' },
+  notifyLabelActive: { color: '#3eb370' },
   toggle: {
     width: 44, height: 26, borderRadius: 13,
     backgroundColor: '#E5E5EA',
     justifyContent: 'center',
     paddingHorizontal: 2,
   },
-  toggleActive: { backgroundColor: '#4F46E5' },
+  toggleActive: { backgroundColor: '#3eb370' },
   toggleThumb: {
     width: 22, height: 22, borderRadius: 11,
     backgroundColor: '#FFFFFF',

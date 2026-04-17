@@ -54,14 +54,14 @@ function CreateTimetableModal({
                 style={modal.yearBtn}
                 onPress={() => setAcademicYear(y => y - 1)}
               >
-                <Ionicons name="remove" size={20} color="#0095d9" />
+                <Ionicons name="remove" size={20} color="#3eb370" />
               </TouchableOpacity>
               <Text style={modal.yearText}>{academicYear}年度</Text>
               <TouchableOpacity
                 style={modal.yearBtn}
                 onPress={() => setAcademicYear(y => y + 1)}
               >
-                <Ionicons name="add" size={20} color="#0095d9" />
+                <Ionicons name="add" size={20} color="#3eb370" />
               </TouchableOpacity>
             </View>
           </View>
@@ -142,7 +142,7 @@ export function TimetableListScreen() {
                 onPress={() => navigation.navigate('TimetableMain', { timetableId: item.id })}
               >
                 <View style={styles.cardIcon}>
-                  <Ionicons name="calendar" size={24} color="#0095d9" />
+                  <Ionicons name="calendar" size={24} color="#3eb370" />
                 </View>
                 <View style={styles.cardContent}>
                   <Text style={styles.cardTitle}>{label}</Text>
@@ -170,7 +170,7 @@ export function TimetableListScreen() {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#0095d9' },
+  container: { flex: 1, backgroundColor: '#3eb370' },
 
   header: {
     flexDirection: 'row',
@@ -209,7 +209,7 @@ const styles = StyleSheet.create({
     borderRadius: 16,
     padding: 14,
     gap: 12,
-    shadowColor: '#004A6E',
+    shadowColor: '#1a5c38',
     shadowOpacity: 0.12,
     shadowRadius: 8,
     shadowOffset: { width: 0, height: 2 },
@@ -219,7 +219,7 @@ const styles = StyleSheet.create({
     width: 44,
     height: 44,
     borderRadius: 12,
-    backgroundColor: '#E0F4FC',
+    backgroundColor: '#e6f5ee',
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -229,7 +229,7 @@ const styles = StyleSheet.create({
 });
 
 const modal = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#EBF7FD' },
+  container: { flex: 1, backgroundColor: '#f0faf5' },
   header: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -237,18 +237,18 @@ const modal = StyleSheet.create({
     paddingHorizontal: 16,
     paddingVertical: 12,
     borderBottomWidth: 0.5,
-    borderBottomColor: '#B3DCEE',
-    backgroundColor: '#EBF7FD',
+    borderBottomColor: '#b8dfc9',
+    backgroundColor: '#f0faf5',
   },
   title: { fontSize: 17, fontWeight: '600', color: '#1C1C1E' },
-  cancel: { fontSize: 17, color: '#0095d9' },
-  save: { fontSize: 17, color: '#0095d9', fontWeight: '600' },
+  cancel: { fontSize: 17, color: '#3eb370' },
+  save: { fontSize: 17, color: '#3eb370', fontWeight: '600' },
 
   scroll: { padding: 16, gap: 4 },
 
   label: {
     fontSize: 13,
-    color: '#007AAD',
+    color: '#2d8a58',
     fontWeight: '600',
     marginTop: 16,
     marginBottom: 6,
@@ -272,7 +272,7 @@ const modal = StyleSheet.create({
     width: 36,
     height: 36,
     borderRadius: 18,
-    backgroundColor: '#D6EEF8',
+    backgroundColor: '#d4edda',
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -290,9 +290,9 @@ const modal = StyleSheet.create({
     paddingVertical: 8,
     alignItems: 'center',
     borderRadius: 8,
-    backgroundColor: '#D6EEF8',
+    backgroundColor: '#d4edda',
   },
-  segActive: { backgroundColor: '#0095d9' },
-  segText: { fontSize: 14, color: '#007AAD', fontWeight: '500' },
+  segActive: { backgroundColor: '#3eb370' },
+  segText: { fontSize: 14, color: '#2d8a58', fontWeight: '500' },
   segTextActive: { color: '#FFFFFF', fontWeight: '600' },
 });
