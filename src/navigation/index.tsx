@@ -77,12 +77,12 @@ export function AppNavigator() {
               />
             ),
             tabBarLabel: cfg.label,
-            tabBarActiveTintColor: '#FFFFFF',
-            tabBarInactiveTintColor: 'rgba(255, 255, 255, 0.5)',
+            tabBarActiveTintColor: '#417ab1',
+            tabBarInactiveTintColor: 'rgba(25, 25, 112, 0.4)',
             tabBarStyle: {
-              backgroundColor: '#191970',
-              borderTopColor: '#191970',
-              borderTopWidth: 0,
+              backgroundColor: '#FFFFFF',
+              borderTopColor: '#E0E0E0',
+              borderTopWidth: 0.5,
             },
             tabBarLabelStyle: { fontSize: 10, fontWeight: '500' },
           };

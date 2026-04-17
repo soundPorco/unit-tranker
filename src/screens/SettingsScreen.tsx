@@ -51,7 +51,7 @@ export function SettingsScreen() {
   if (loading) {
     return (
       <SafeAreaView style={s.container} edges={['top']}>
-        <ActivityIndicator color="#4F46E5" style={{ flex: 1 }} />
+        <ActivityIndicator color="#417ab1" style={{ flex: 1 }} />
       </SafeAreaView>
     );
   }
@@ -88,7 +88,7 @@ export function SettingsScreen() {
           <>
             {/* 未ログイン状態の説明 */}
             <View style={s.infoCard}>
-              <Ionicons name="cloud-outline" size={32} color="#4F46E5" />
+              <Ionicons name="cloud-outline" size={32} color="#417ab1" />
               <Text style={s.infoTitle}>クラウドにデータを保存</Text>
               <Text style={s.infoDesc}>
                 ログインすると複数端末でデータを同期できます。{'\n'}未ログインでもアプリを利用できます。
@@ -184,7 +184,7 @@ const s = StyleSheet.create({
   },
   avatarCircle: {
     width: 44, height: 44, borderRadius: 22,
-    backgroundColor: '#4F46E5',
+    backgroundColor: '#417ab1',
     alignItems: 'center', justifyContent: 'center',
   },
   accountInfo: { flex: 1 },
@@ -224,7 +224,7 @@ const s = StyleSheet.create({
   },
 
   authBtn: {
-    backgroundColor: '#4F46E5',
+    backgroundColor: '#417ab1',
     borderRadius: 12,
     paddingVertical: 15,
     alignItems: 'center',
@@ -234,5 +234,5 @@ const s = StyleSheet.create({
   authBtnText: { color: '#FFFFFF', fontSize: 16, fontWeight: '600' },
 
   toggleBtn: { alignItems: 'center', paddingVertical: 12 },
-  toggleText: { fontSize: 14, color: '#4F46E5' },
+  toggleText: { fontSize: 14, color: '#417ab1' },
 });

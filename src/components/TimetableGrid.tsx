@@ -179,7 +179,7 @@ const styles = StyleSheet.create({
         borderRadius: 8,
     },
     dayBadgeToday: {
-        backgroundColor: "#4F46E5",
+        backgroundColor: "#FFCC33",
     },
     dayText: {
         fontSize: 14,
@@ -188,7 +188,7 @@ const styles = StyleSheet.create({
         letterSpacing: 0.2,
     },
     dayTextToday: {
-        color: "#FFFFFF",
+        color: "#1C1C1E",
     },
 
     // 時限コンテナ
