@@ -98,7 +98,7 @@ export function TimetableSettingsScreen() {
   };
 
   return (
-    <SafeAreaView style={s.container} edges={['top', 'bottom']}>
+    <SafeAreaView style={s.container} edges={['top']}>
       <View style={s.header}>
         <TouchableOpacity
           onPress={navigation.goBack}
@@ -265,8 +265,11 @@ const s = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'space-between',
     paddingHorizontal: 8,
-    paddingVertical: 10,
+    paddingTop: 4,
+    paddingBottom: 10,
     backgroundColor: '#FFFFFF',
+    borderBottomWidth: 0.5,
+    borderBottomColor: '#E5E5EA',
   },
   backBtn: { width: 40, alignItems: 'center' },
   headerTitle: { fontSize: 17, fontWeight: '600', color: '#1C1C1E' },
