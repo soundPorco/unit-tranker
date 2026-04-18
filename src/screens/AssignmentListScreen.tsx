@@ -119,18 +119,26 @@ export function AssignmentListScreen() {
   const handleSave = async () => {
     if (!editing) return;
     if (!editTitle.trim()) { Alert.alert('エラー', 'タイトルを入力してください'); return; }
-    await updateAssignment(editing.id, {
-      title: editTitle.trim(),
-      due_date: editDueEnabled ? editDue : null,
-      memo: editMemo.trim() || null,
-      is_submitted: editSubmitted,
-    });
-    if (editNotify && editDueEnabled) {
-      await scheduleAssignmentNotification(editing.id, editTitle.trim(), editDue);
-    } else {
-      await cancelAssignmentNotification(editing.id);
-    }
+    const id = editing.id;
+    const title = editTitle.trim();
+    const dueDate = editDueEnabled ? editDue : null;
+    const memo = editMemo.trim() || null;
+    const isSubmitted = editSubmitted;
+    const notify = editNotify;
+    const dueEnabled = editDueEnabled;
+    const due = editDue;
     closeEdit();
+    await updateAssignment(id, {
+      title,
+      due_date: dueDate,
+      memo,
+      is_submitted: isSubmitted,
+    });
+    if (notify && dueEnabled) {
+      await scheduleAssignmentNotification(id, title, due);
+    } else {
+      await cancelAssignmentNotification(id);
+    }
   };
 
   const handleDelete = (item: AssignmentWithClass) => {
@@ -143,7 +151,7 @@ export function AssignmentListScreen() {
     ]);
   };
 
-  if (loading) {
+  if (loading && assignments.length === 0) {
     return (
       <SafeAreaView style={s.safeArea} edges={['top']}>
         <View style={s.container}>
