@@ -1,4 +1,5 @@
 import React, { useCallback, useEffect, useRef, useState } from "react";
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import {
     View,
     Text,
@@ -296,6 +297,17 @@ export function TimetableScreen() {
     const [showHelp, setShowHelp] = useState(false);
 
     useEffect(() => {
+        AsyncStorage.getItem('help_seen').then(val => {
+            if (val === null) setShowHelp(true);
+        });
+    }, []);
+
+    const handleHelpClose = useCallback(() => {
+        setShowHelp(false);
+        AsyncStorage.setItem('help_seen', '1');
+    }, []);
+
+    useEffect(() => {
         if (loaded && currentTimetableId === null && timetables.length > 0) {
             setCurrentTimetableId(timetables[0].id);
         }
@@ -354,7 +366,7 @@ export function TimetableScreen() {
                             style={styles.gearBtn}
                             hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
                         >
-                            <Ionicons name="help-circle-outline" size={22} color="#C7C7CC" />
+                            <Ionicons name="help-circle-outline" size={22} color="#8E8E93" />
                         </TouchableOpacity>
                     </View>
                     <Text style={styles.semesterTitle}>時間割</Text>
@@ -378,7 +390,7 @@ export function TimetableScreen() {
                     onClose={() => setShowCreate(false)}
                     onCreate={handleCreate}
                 />
-                <HelpModal visible={showHelp} onClose={() => setShowHelp(false)} />
+                <HelpModal visible={showHelp} onClose={handleHelpClose} />
             </SafeAreaView>
         );
     }
@@ -397,7 +409,7 @@ export function TimetableScreen() {
                         style={styles.gearBtn}
                         hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
                     >
-                        <Ionicons name="help-circle-outline" size={22} color="#C7C7CC" />
+                        <Ionicons name="help-circle-outline" size={22} color="#8E8E93" />
                     </TouchableOpacity>
                 </View>
 
@@ -464,7 +476,7 @@ export function TimetableScreen() {
             />
 
             {/* ヘルプモーダル */}
-            <HelpModal visible={showHelp} onClose={() => setShowHelp(false)} />
+            <HelpModal visible={showHelp} onClose={handleHelpClose} />
 
         </SafeAreaView>
     );
