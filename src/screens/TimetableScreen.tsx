@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useState } from "react";
+import React, { useCallback, useEffect, useRef, useState } from "react";
 import {
     View,
     Text,
@@ -10,6 +10,9 @@ import {
     FlatList,
     ScrollView,
     Alert,
+    Dimensions,
+    NativeSyntheticEvent,
+    NativeScrollEvent,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useNavigation, useFocusEffect } from "@react-navigation/native";
@@ -22,6 +25,107 @@ import { TimetableStackParamList, DayOfWeek, Period, Class, TimetableSettings, T
 
 
 type Nav = NativeStackNavigationProp<TimetableStackParamList, "TimetableMain">;
+
+const SCREEN_WIDTH = Dimensions.get('window').width;
+const CARD_WIDTH = SCREEN_WIDTH - 48; // オーバーレイの paddingHorizontal 24 × 2
+
+const HELP_SLIDES = [
+    {
+        icon: 'calendar-outline' as const,
+        title: '時間割を管理',
+        desc: '学期ごとに時間割を作成して、\n講義をコマ単位で整理できます。',
+    },
+    {
+        icon: 'checkmark-circle-outline' as const,
+        title: '出席を記録',
+        desc: '講義ごとに出席・欠席・遅刻を\nワンタップで記録できます。',
+    },
+    {
+        icon: 'document-text-outline' as const,
+        title: '課題を追跡',
+        desc: '課題の締め切りと提出状況を管理して、\n提出漏れを防ぎましょう。',
+    },
+    {
+        icon: 'bar-chart-outline' as const,
+        title: '成績を把握',
+        desc: '科目別の出席率・課題提出率を\nまとめて確認できます。',
+    },
+];
+
+function HelpModal({ visible, onClose }: { visible: boolean; onClose: () => void }) {
+    const [page, setPage] = useState(0);
+    const scrollRef = useRef<ScrollView>(null);
+
+    const handleScroll = (e: NativeSyntheticEvent<NativeScrollEvent>) => {
+        const idx = Math.round(e.nativeEvent.contentOffset.x / CARD_WIDTH);
+        setPage(idx);
+    };
+
+    const goNext = () => {
+        if (page < HELP_SLIDES.length - 1) {
+            scrollRef.current?.scrollTo({ x: CARD_WIDTH * (page + 1), animated: true });
+            setPage(page + 1);
+        } else {
+            onClose();
+        }
+    };
+
+    const isLast = page === HELP_SLIDES.length - 1;
+
+    return (
+        <Modal visible={visible} transparent animationType="fade" onRequestClose={onClose}>
+            <TouchableWithoutFeedback onPress={onClose}>
+                <View style={hm.overlay}>
+                    <TouchableWithoutFeedback>
+                        <View style={hm.card}>
+                            {/* 閉じるボタン */}
+                            <TouchableOpacity
+                                style={hm.closeBtn}
+                                hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+                                onPress={onClose}
+                            >
+                                <Ionicons name="close" size={20} color="#8E8E93" />
+                            </TouchableOpacity>
+
+                            {/* スライド */}
+                            <ScrollView
+                                ref={scrollRef}
+                                horizontal
+                                pagingEnabled
+                                showsHorizontalScrollIndicator={false}
+                                onMomentumScrollEnd={handleScroll}
+                                scrollEventThrottle={16}
+                                style={hm.slideScroll}
+                            >
+                                {HELP_SLIDES.map((slide, i) => (
+                                    <View key={i} style={hm.slide}>
+                                        <View style={hm.iconCircle}>
+                                            <Ionicons name={slide.icon} size={40} color="#3eb370" />
+                                        </View>
+                                        <Text style={hm.slideTitle}>{slide.title}</Text>
+                                        <Text style={hm.slideDesc}>{slide.desc}</Text>
+                                    </View>
+                                ))}
+                            </ScrollView>
+
+                            {/* ページドット */}
+                            <View style={hm.dots}>
+                                {HELP_SLIDES.map((_, i) => (
+                                    <View key={i} style={[hm.dot, i === page && hm.dotActive]} />
+                                ))}
+                            </View>
+
+                            {/* ボタン */}
+                            <TouchableOpacity style={hm.nextBtn} onPress={goNext} activeOpacity={0.8}>
+                                <Text style={hm.nextBtnText}>{isLast ? 'はじめる' : '次へ'}</Text>
+                            </TouchableOpacity>
+                        </View>
+                    </TouchableWithoutFeedback>
+                </View>
+            </TouchableWithoutFeedback>
+        </Modal>
+    );
+}
 
 const SEMESTER_OPTIONS: Semester[] = ['前期', '後期'];
 
@@ -189,6 +293,7 @@ export function TimetableScreen() {
     const [currentTimetableId, setCurrentTimetableId] = useState<string | null>(null);
     const [showSwitcher, setShowSwitcher] = useState(false);
     const [showCreate, setShowCreate] = useState(false);
+    const [showHelp, setShowHelp] = useState(false);
 
     useEffect(() => {
         if (loaded && currentTimetableId === null && timetables.length > 0) {
@@ -243,6 +348,15 @@ export function TimetableScreen() {
         return (
             <SafeAreaView style={styles.container} edges={["top"]}>
                 <View style={styles.header}>
+                    <View style={styles.headerSide}>
+                        <TouchableOpacity
+                            onPress={() => setShowHelp(true)}
+                            style={styles.gearBtn}
+                            hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+                        >
+                            <Ionicons name="help-circle-outline" size={22} color="#C7C7CC" />
+                        </TouchableOpacity>
+                    </View>
                     <Text style={styles.semesterTitle}>時間割</Text>
                     <View style={styles.headerSide}>
                         <TouchableOpacity
@@ -264,6 +378,7 @@ export function TimetableScreen() {
                     onClose={() => setShowCreate(false)}
                     onCreate={handleCreate}
                 />
+                <HelpModal visible={showHelp} onClose={() => setShowHelp(false)} />
             </SafeAreaView>
         );
     }
@@ -275,8 +390,16 @@ export function TimetableScreen() {
         <SafeAreaView style={styles.container} edges={["top"]}>
             {/* ヘッダー */}
             <View style={styles.header}>
-                {/* 左: スペーサー */}
-                <View style={styles.headerSide} />
+                {/* 左: ヘルプボタン */}
+                <View style={styles.headerSide}>
+                    <TouchableOpacity
+                        onPress={() => setShowHelp(true)}
+                        style={styles.gearBtn}
+                        hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+                    >
+                        <Ionicons name="help-circle-outline" size={22} color="#C7C7CC" />
+                    </TouchableOpacity>
+                </View>
 
                 {/* 中央: 時間割切り替えボタン */}
                 <TouchableOpacity
@@ -339,6 +462,9 @@ export function TimetableScreen() {
                 onClose={() => setShowCreate(false)}
                 onCreate={handleCreate}
             />
+
+            {/* ヘルプモーダル */}
+            <HelpModal visible={showHelp} onClose={() => setShowHelp(false)} />
 
         </SafeAreaView>
     );
@@ -530,6 +656,100 @@ const sw = StyleSheet.create({
     },
     deleteBtn: {
         padding: 6,
+    },
+});
+
+// ヘルプモーダルスタイル
+const hm = StyleSheet.create({
+    overlay: {
+        flex: 1,
+        backgroundColor: 'rgba(0,0,0,0.45)',
+        justifyContent: 'center',
+        alignItems: 'center',
+        paddingHorizontal: 24,
+    },
+    card: {
+        width: '100%',
+        backgroundColor: '#FFFFFF',
+        borderRadius: 24,
+        paddingTop: 20,
+        paddingBottom: 24,
+        alignItems: 'center',
+        shadowColor: '#000',
+        shadowOpacity: 0.15,
+        shadowRadius: 20,
+        shadowOffset: { width: 0, height: 8 },
+        elevation: 12,
+        overflow: 'hidden',
+    },
+    closeBtn: {
+        position: 'absolute',
+        top: 16,
+        right: 16,
+        zIndex: 10,
+        padding: 4,
+    },
+    slideScroll: {
+        width: CARD_WIDTH,
+    },
+    slide: {
+        width: CARD_WIDTH,
+        alignItems: 'center',
+        paddingHorizontal: 24,
+        paddingTop: 12,
+        paddingBottom: 8,
+    },
+    iconCircle: {
+        width: 88,
+        height: 88,
+        borderRadius: 44,
+        backgroundColor: '#F0FBF4',
+        alignItems: 'center',
+        justifyContent: 'center',
+        marginBottom: 20,
+    },
+    slideTitle: {
+        fontSize: 20,
+        fontWeight: '700',
+        color: '#1C1C1E',
+        marginBottom: 10,
+        textAlign: 'center',
+    },
+    slideDesc: {
+        fontSize: 15,
+        color: '#6C6C70',
+        textAlign: 'center',
+        lineHeight: 22,
+    },
+    dots: {
+        flexDirection: 'row',
+        gap: 6,
+        marginTop: 20,
+        marginBottom: 20,
+    },
+    dot: {
+        width: 6,
+        height: 6,
+        borderRadius: 3,
+        backgroundColor: '#D1D1D6',
+    },
+    dotActive: {
+        backgroundColor: '#3eb370',
+        width: 18,
+    },
+    nextBtn: {
+        backgroundColor: '#3eb370',
+        borderRadius: 14,
+        paddingVertical: 13,
+        paddingHorizontal: 40,
+        alignSelf: 'stretch',
+        marginHorizontal: 24,
+        alignItems: 'center',
+    },
+    nextBtnText: {
+        fontSize: 16,
+        fontWeight: '700',
+        color: '#FFFFFF',
     },
 });
 
