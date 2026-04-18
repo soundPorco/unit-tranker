@@ -57,6 +57,13 @@ function HelpModal({ visible, onClose }: { visible: boolean; onClose: () => void
     const [page, setPage] = useState(0);
     const scrollRef = useRef<ScrollView>(null);
 
+    useEffect(() => {
+        if (!visible) {
+            setPage(0);
+            scrollRef.current?.scrollTo({ x: 0, animated: false });
+        }
+    }, [visible]);
+
     const handleScroll = (e: NativeSyntheticEvent<NativeScrollEvent>) => {
         const idx = Math.round(e.nativeEvent.contentOffset.x / CARD_WIDTH);
         setPage(idx);
