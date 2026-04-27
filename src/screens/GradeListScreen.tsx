@@ -31,7 +31,7 @@ export function GradeListScreen() {
   const { timetables, loaded, reload } = useTimetables();
   const { classes, loading: classesLoading, refetch } = useClasses(currentTimetableId ?? '');
   const classIds = useMemo(() => classes.map(c => c.id), [classes]);
-  const { stats, loading: statsLoading } = useAllClassStats(classIds);
+  const { stats, loading: statsLoading, refetch: refetchStats } = useAllClassStats(classIds);
 
   useEffect(() => {
     if (loaded && currentTimetableId === null && timetables.length > 0) {
@@ -42,7 +42,8 @@ export function GradeListScreen() {
   useFocusEffect(useCallback(() => {
     reload();
     refetch();
-  }, [reload, refetch]));
+    refetchStats();
+  }, [reload, refetch, refetchStats]));
 
   const currentTimetable = timetables.find(t => t.id === currentTimetableId);
   const currentLabel = currentTimetable
