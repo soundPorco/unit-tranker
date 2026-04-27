@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import {
   View, Text, TextInput, TouchableOpacity, StyleSheet,
   Alert, ScrollView, KeyboardAvoidingView, Platform,
@@ -67,9 +67,9 @@ export function ClassFormScreen() {
   const { classData, day, period, timetableId } = route.params ?? {};
   const { addClass, updateClass, deleteClass } = useClasses(timetableId);
 
-  const [name,       setName]       = useState(classData?.name ?? '');
-  const [teacher,    setTeacher]    = useState(classData?.teacher ?? '');
-  const [room,       setRoom]       = useState(classData?.room ?? '');
+  const nameRef    = useRef(classData?.name ?? '');
+  const teacherRef = useRef(classData?.teacher ?? '');
+  const roomRef    = useRef(classData?.room ?? '');
   const [credits,    setCredits]    = useState(classData?.credits?.toString() ?? '2');
   const [classType,  setClassType]  = useState<ClassType | null>(classData?.class_type ?? null);
   const [examDate,        setExamDate]        = useState(classData?.exam_date ?? '');
@@ -82,16 +82,16 @@ export function ClassFormScreen() {
   const currentPeriod = classData?.period ?? period ?? 1;
 
   const handleSave = async () => {
-    if (!name.trim()) { Alert.alert('エラー', '講義名を入力してください'); return; }
+    if (!nameRef.current.trim()) { Alert.alert('エラー', '講義名を入力してください'); return; }
     const creditsNum = credits.trim() ? parseInt(credits.trim(), 10) : null;
     if (credits.trim() && (isNaN(creditsNum!) || creditsNum! < 1 || creditsNum! > 10)) {
       Alert.alert('エラー', '単位数は1〜10の数値を入力してください'); return;
     }
     setSaving(true);
     const payload = {
-      name:             name.trim(),
-      teacher:          teacher.trim() || null,
-      room:             room.trim() || null,
+      name:             nameRef.current.trim(),
+      teacher:          teacherRef.current.trim() || null,
+      room:             roomRef.current.trim() || null,
       credits:          creditsNum,
       class_type:       classType,
       day_of_week:      currentDay,
@@ -137,8 +137,8 @@ export function ClassFormScreen() {
             <FormRow label="講義名 *">
               <TextInput
                 style={s.textInput}
-                defaultValue={name}
-                onChangeText={setName}
+                defaultValue={nameRef.current}
+                onChangeText={t => { nameRef.current = t; }}
                 placeholder="例：微分積分学"
                 placeholderTextColor="#C7C7CC"
                 autoCorrect={false}
@@ -148,8 +148,8 @@ export function ClassFormScreen() {
             <FormRow label="教員名">
               <TextInput
                 style={s.textInput}
-                defaultValue={teacher}
-                onChangeText={setTeacher}
+                defaultValue={teacherRef.current}
+                onChangeText={t => { teacherRef.current = t; }}
                 placeholder="例：山田 太郎"
                 placeholderTextColor="#C7C7CC"
                 autoCorrect={false}
@@ -159,8 +159,8 @@ export function ClassFormScreen() {
             <FormRow label="教室">
               <TextInput
                 style={s.textInput}
-                defaultValue={room}
-                onChangeText={setRoom}
+                defaultValue={roomRef.current}
+                onChangeText={t => { roomRef.current = t; }}
                 placeholder="例：A棟 201号室"
                 placeholderTextColor="#C7C7CC"
                 autoCorrect={false}

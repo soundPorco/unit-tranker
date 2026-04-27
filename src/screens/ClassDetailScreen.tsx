@@ -174,9 +174,9 @@ export function ClassDetailScreen() {
 
   const [showEditClass, setShowEditClass] = useState(false);
   const [editModalKey, setEditModalKey] = useState(0);
-  const [editName, setEditName] = useState('');
-  const [editTeacher, setEditTeacher] = useState('');
-  const [editRoom, setEditRoom] = useState('');
+  const editNameRef    = useRef('');
+  const editTeacherRef = useRef('');
+  const editRoomRef    = useRef('');
   const [editCredits, setEditCredits] = useState('');
   const [editClassType, setEditClassType] = useState<ClassType | null>(null);
   const [editExamDate, setEditExamDate] = useState('');
@@ -237,9 +237,9 @@ export function ClassDetailScreen() {
 
   const openEditClass = () => {
     if (!classInfo) return;
-    setEditName(classInfo.name);
-    setEditTeacher(classInfo.teacher ?? '');
-    setEditRoom(classInfo.room ?? '');
+    editNameRef.current    = classInfo.name;
+    editTeacherRef.current = classInfo.teacher ?? '';
+    editRoomRef.current    = classInfo.room ?? '';
     setEditCredits(classInfo.credits?.toString() ?? '');
     setEditClassType(classInfo.class_type);
     setEditExamDate(classInfo.exam_date ?? '');
@@ -250,16 +250,16 @@ export function ClassDetailScreen() {
   };
 
   const handleSaveClass = async () => {
-    if (!editName.trim()) { Alert.alert('エラー', '講義名を入力してください'); return; }
+    if (!editNameRef.current.trim()) { Alert.alert('エラー', '講義名を入力してください'); return; }
     const creditsNum = editCredits.trim() ? parseInt(editCredits.trim(), 10) : null;
     if (editCredits.trim() && (isNaN(creditsNum!) || creditsNum! < 1 || creditsNum! > 10)) {
       Alert.alert('エラー', '単位数は1〜10の数値を入力してください'); return;
     }
     setEditSaving(true);
     const { error } = await supabase.from('classes').update({
-      name:       editName.trim(),
-      teacher:    editTeacher.trim() || null,
-      room:       editRoom.trim() || null,
+      name:       editNameRef.current.trim(),
+      teacher:    editTeacherRef.current.trim() || null,
+      room:       editRoomRef.current.trim() || null,
       credits:    creditsNum,
       class_type: editClassType,
       exam_date:  editExamDate.trim() || null,
@@ -269,9 +269,9 @@ export function ClassDetailScreen() {
     if (error) { Alert.alert('エラー', error.message); return; }
     setClassInfo(prev => prev ? {
       ...prev,
-      name:       editName.trim(),
-      teacher:    editTeacher.trim() || null,
-      room:       editRoom.trim() || null,
+      name:       editNameRef.current.trim(),
+      teacher:    editTeacherRef.current.trim() || null,
+      room:       editRoomRef.current.trim() || null,
       credits:    creditsNum,
       class_type: editClassType,
       exam_date:  editExamDate.trim() || null,
@@ -782,17 +782,17 @@ export function ClassDetailScreen() {
               <View style={s.editCard}>
                 <View style={s.editRow}>
                   <Text style={s.editRowLabel}>講義名 *</Text>
-                  <TextInput style={s.editTextInput} defaultValue={editName} onChangeText={setEditName} placeholder="例：微分積分学" placeholderTextColor="#C7C7CC" autoCorrect={false} />
+                  <TextInput style={s.editTextInput} defaultValue={editNameRef.current} onChangeText={t => { editNameRef.current = t; }} placeholder="例：微分積分学" placeholderTextColor="#C7C7CC" autoCorrect={false} />
                 </View>
                 <View style={s.editDivider} />
                 <View style={s.editRow}>
                   <Text style={s.editRowLabel}>教員名</Text>
-                  <TextInput style={s.editTextInput} defaultValue={editTeacher} onChangeText={setEditTeacher} placeholder="例：山田 太郎" placeholderTextColor="#C7C7CC" autoCorrect={false} />
+                  <TextInput style={s.editTextInput} defaultValue={editTeacherRef.current} onChangeText={t => { editTeacherRef.current = t; }} placeholder="例：山田 太郎" placeholderTextColor="#C7C7CC" autoCorrect={false} />
                 </View>
                 <View style={s.editDivider} />
                 <View style={s.editRow}>
                   <Text style={s.editRowLabel}>教室</Text>
-                  <TextInput style={s.editTextInput} defaultValue={editRoom} onChangeText={setEditRoom} placeholder="例：A棟 201号室" placeholderTextColor="#C7C7CC" autoCorrect={false} />
+                  <TextInput style={s.editTextInput} defaultValue={editRoomRef.current} onChangeText={t => { editRoomRef.current = t; }} placeholder="例：A棟 201号室" placeholderTextColor="#C7C7CC" autoCorrect={false} />
                 </View>
               </View>
 
