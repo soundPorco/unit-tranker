@@ -137,8 +137,8 @@ export function ClassFormScreen() {
             <FormRow label="講義名 *">
               <TextInput
                 style={s.textInput}
-                defaultValue={name}
-                onChangeText={setName}
+                value={name.replace(/ /g, ' ')}
+                onChangeText={t => setName(t.replace(/ /g, ' '))}
                 placeholder="例：微分積分学"
                 placeholderTextColor="#C7C7CC"
                 autoCorrect={false}
@@ -148,8 +148,8 @@ export function ClassFormScreen() {
             <FormRow label="教員名">
               <TextInput
                 style={s.textInput}
-                defaultValue={teacher}
-                onChangeText={setTeacher}
+                value={teacher.replace(/ /g, ' ')}
+                onChangeText={t => setTeacher(t.replace(/ /g, ' '))}
                 placeholder="例：山田 太郎"
                 placeholderTextColor="#C7C7CC"
                 autoCorrect={false}
@@ -159,8 +159,8 @@ export function ClassFormScreen() {
             <FormRow label="教室">
               <TextInput
                 style={s.textInput}
-                defaultValue={room}
-                onChangeText={setRoom}
+                value={room.replace(/ /g, ' ')}
+                onChangeText={t => setRoom(t.replace(/ /g, ' '))}
                 placeholder="例：A棟 201号室"
                 placeholderTextColor="#C7C7CC"
                 autoCorrect={false}
