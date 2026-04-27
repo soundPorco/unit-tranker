@@ -780,17 +780,17 @@ export function ClassDetailScreen() {
               <View style={s.editCard}>
                 <View style={s.editRow}>
                   <Text style={s.editRowLabel}>講義名 *</Text>
-                  <TextInput style={s.editTextInput} value={editName} onChangeText={setEditName} placeholder="例：微分積分学" placeholderTextColor="#C7C7CC" />
+                  <TextInput style={s.editTextInput} value={editName} onChangeText={setEditName} placeholder="例：微分積分学" placeholderTextColor="#C7C7CC" autoCorrect={false} />
                 </View>
                 <View style={s.editDivider} />
                 <View style={s.editRow}>
                   <Text style={s.editRowLabel}>教員名</Text>
-                  <TextInput style={s.editTextInput} value={editTeacher} onChangeText={setEditTeacher} placeholder="例：山田 太郎" placeholderTextColor="#C7C7CC" />
+                  <TextInput style={s.editTextInput} value={editTeacher} onChangeText={setEditTeacher} placeholder="例：山田 太郎" placeholderTextColor="#C7C7CC" autoCorrect={false} />
                 </View>
                 <View style={s.editDivider} />
                 <View style={s.editRow}>
                   <Text style={s.editRowLabel}>教室</Text>
-                  <TextInput style={s.editTextInput} value={editRoom} onChangeText={setEditRoom} placeholder="例：A棟 201号室" placeholderTextColor="#C7C7CC" />
+                  <TextInput style={s.editTextInput} value={editRoom} onChangeText={setEditRoom} placeholder="例：A棟 201号室" placeholderTextColor="#C7C7CC" autoCorrect={false} />
                 </View>
               </View>
 

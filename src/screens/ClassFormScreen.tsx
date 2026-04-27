@@ -141,6 +141,7 @@ export function ClassFormScreen() {
                 onChangeText={setName}
                 placeholder="例：微分積分学"
                 placeholderTextColor="#C7C7CC"
+                autoCorrect={false}
               />
             </FormRow>
             <View style={s.divider} />
@@ -151,6 +152,7 @@ export function ClassFormScreen() {
                 onChangeText={setTeacher}
                 placeholder="例：山田 太郎"
                 placeholderTextColor="#C7C7CC"
+                autoCorrect={false}
               />
             </FormRow>
             <View style={s.divider} />
@@ -161,6 +163,7 @@ export function ClassFormScreen() {
                 onChangeText={setRoom}
                 placeholder="例：A棟 201号室"
                 placeholderTextColor="#C7C7CC"
+                autoCorrect={false}
               />
             </FormRow>
           </View>
