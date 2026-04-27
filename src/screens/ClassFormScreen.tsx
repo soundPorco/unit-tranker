@@ -137,7 +137,7 @@ export function ClassFormScreen() {
             <FormRow label="講義名 *">
               <TextInput
                 style={s.textInput}
-                value={name}
+                defaultValue={name}
                 onChangeText={setName}
                 placeholder="例：微分積分学"
                 placeholderTextColor="#C7C7CC"
@@ -148,7 +148,7 @@ export function ClassFormScreen() {
             <FormRow label="教員名">
               <TextInput
                 style={s.textInput}
-                value={teacher}
+                defaultValue={teacher}
                 onChangeText={setTeacher}
                 placeholder="例：山田 太郎"
                 placeholderTextColor="#C7C7CC"
@@ -159,7 +159,7 @@ export function ClassFormScreen() {
             <FormRow label="教室">
               <TextInput
                 style={s.textInput}
-                value={room}
+                defaultValue={room}
                 onChangeText={setRoom}
                 placeholder="例：A棟 201号室"
                 placeholderTextColor="#C7C7CC"

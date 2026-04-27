@@ -173,6 +173,7 @@ export function ClassDetailScreen() {
   const [attMemo, setAttMemo] = useState('');
 
   const [showEditClass, setShowEditClass] = useState(false);
+  const [editModalKey, setEditModalKey] = useState(0);
   const [editName, setEditName] = useState('');
   const [editTeacher, setEditTeacher] = useState('');
   const [editRoom, setEditRoom] = useState('');
@@ -244,6 +245,7 @@ export function ClassDetailScreen() {
     setEditExamDate(classInfo.exam_date ?? '');
     setEditShowExamCalendar(false);
     setEditMemo(classInfo.memo ?? '');
+    setEditModalKey(k => k + 1);
     setShowEditClass(true);
   };
 
@@ -749,7 +751,7 @@ export function ClassDetailScreen() {
       </Modal>
 
       {/* 講義編集モーダル */}
-      <Modal visible={showEditClass} animationType="slide">
+      <Modal key={editModalKey} visible={showEditClass} animationType="slide">
         <View style={[s.editContainer, { paddingBottom: insets.bottom }]}>
           <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : undefined} style={{ flex: 1 }}>
             {/* 編集ヘッダー */}
@@ -780,17 +782,17 @@ export function ClassDetailScreen() {
               <View style={s.editCard}>
                 <View style={s.editRow}>
                   <Text style={s.editRowLabel}>講義名 *</Text>
-                  <TextInput style={s.editTextInput} value={editName} onChangeText={setEditName} placeholder="例：微分積分学" placeholderTextColor="#C7C7CC" autoCorrect={false} />
+                  <TextInput style={s.editTextInput} defaultValue={editName} onChangeText={setEditName} placeholder="例：微分積分学" placeholderTextColor="#C7C7CC" autoCorrect={false} />
                 </View>
                 <View style={s.editDivider} />
                 <View style={s.editRow}>
                   <Text style={s.editRowLabel}>教員名</Text>
-                  <TextInput style={s.editTextInput} value={editTeacher} onChangeText={setEditTeacher} placeholder="例：山田 太郎" placeholderTextColor="#C7C7CC" autoCorrect={false} />
+                  <TextInput style={s.editTextInput} defaultValue={editTeacher} onChangeText={setEditTeacher} placeholder="例：山田 太郎" placeholderTextColor="#C7C7CC" autoCorrect={false} />
                 </View>
                 <View style={s.editDivider} />
                 <View style={s.editRow}>
                   <Text style={s.editRowLabel}>教室</Text>
-                  <TextInput style={s.editTextInput} value={editRoom} onChangeText={setEditRoom} placeholder="例：A棟 201号室" placeholderTextColor="#C7C7CC" autoCorrect={false} />
+                  <TextInput style={s.editTextInput} defaultValue={editRoom} onChangeText={setEditRoom} placeholder="例：A棟 201号室" placeholderTextColor="#C7C7CC" autoCorrect={false} />
                 </View>
               </View>
 
