@@ -183,6 +183,7 @@ export function ClassDetailScreen() {
   const [editShowExamCalendar, setEditShowExamCalendar] = useState(false);
   const [editMemo, setEditMemo] = useState('');
   const [editSaving, setEditSaving] = useState(false);
+  const [editShowDetails, setEditShowDetails] = useState(false);
 
   const kbOffset = useRef(new Animated.Value(0)).current;
   useEffect(() => {
@@ -786,79 +787,89 @@ export function ClassDetailScreen() {
                 </View>
                 <View style={s.editDivider} />
                 <View style={s.editRow}>
-                  <Text style={s.editRowLabel}>教員名</Text>
-                  <TextInput style={s.editTextInput} defaultValue={editTeacherRef.current} onChangeText={t => { editTeacherRef.current = t; }} placeholder="例：山田 太郎" placeholderTextColor="#C7C7CC" autoCorrect={false} />
-                </View>
-                <View style={s.editDivider} />
-                <View style={s.editRow}>
                   <Text style={s.editRowLabel}>教室</Text>
                   <TextInput style={s.editTextInput} defaultValue={editRoomRef.current} onChangeText={t => { editRoomRef.current = t; }} placeholder="例：A棟 201号室" placeholderTextColor="#C7C7CC" autoCorrect={false} />
                 </View>
               </View>
 
-              {/* 単位・区分 */}
-              <Text style={s.editSectionLabel}>単位・区分</Text>
-              <View style={s.editCard}>
-                <View style={s.editRow}>
-                  <Text style={s.editRowLabel}>単位数</Text>
-                  <TextInput style={[s.editTextInput, { width: 60, flex: 0 }]} value={editCredits} onChangeText={setEditCredits} placeholder="2" placeholderTextColor="#C7C7CC" keyboardType="number-pad" maxLength={2} />
-                </View>
-                <View style={s.editDivider} />
-                <View style={s.editVertRow}>
-                  <Text style={s.editRowLabel}>区分</Text>
-                  <View style={s.editSegment}>
-                    {([
-                      { value: 'required', label: '必修' },
-                      { value: 'elective_required', label: '選択必修' },
-                      { value: 'elective', label: '選択' },
-                    ] as { value: ClassType; label: string }[]).map(opt => (
-                      <TouchableOpacity
-                        key={opt.value}
-                        style={[s.editSegItem, editClassType === opt.value && s.editSegItemActive]}
-                        onPress={() => setEditClassType(opt.value)}
-                      >
-                        <Text style={[s.editSegText, editClassType === opt.value && s.editSegTextActive]}>{opt.label}</Text>
-                      </TouchableOpacity>
-                    ))}
-                  </View>
-                </View>
-              </View>
+              {/* 詳細設定（アコーディオン） */}
+              <TouchableOpacity
+                style={[s.editAccordionTrigger, editShowDetails && s.editAccordionTriggerOpen]}
+                onPress={() => setEditShowDetails(v => !v)}
+                activeOpacity={0.7}
+              >
+                <Text style={s.editAccordionTriggerText}>詳細設定</Text>
+                <Ionicons
+                  name={editShowDetails ? 'chevron-up' : 'chevron-down'}
+                  size={14}
+                  color="#3C3C43"
+                />
+              </TouchableOpacity>
 
-              {/* 評価 */}
-              <Text style={s.editSectionLabel}>評価</Text>
-              <View style={s.editCard}>
-                <View style={s.editRow}>
-                  <Text style={s.editRowLabel}>試験日</Text>
-                  <View style={{ flex: 1, alignItems: 'flex-end' }}>
-                    <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
-                      <TouchableOpacity
-                        style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}
-                        onPress={() => setEditShowExamCalendar(v => !v)}
-                      >
-                        <Ionicons name="calendar-outline" size={16} color="#3eb370" />
-                        <Text style={[s.editTextInput, { flex: 0, textAlign: 'right' }, !editExamDate && { color: '#C7C7CC' }]}>
-                          {editExamDate ? formatDate(editExamDate) : '日付を選択'}
-                        </Text>
-                        <Ionicons name={editShowExamCalendar ? 'chevron-up' : 'chevron-down'} size={14} color="#8E8E93" />
-                      </TouchableOpacity>
-                      {editExamDate ? (
-                        <TouchableOpacity onPress={() => { setEditExamDate(''); setEditShowExamCalendar(false); }} hitSlop={8}>
-                          <Ionicons name="close-circle" size={24} color="#C7C7CC" />
+              {editShowDetails && (
+                <View style={s.editCard}>
+                  <View style={s.editRow}>
+                    <Text style={s.editRowLabel}>教員名</Text>
+                    <TextInput style={s.editTextInput} defaultValue={editTeacherRef.current} onChangeText={t => { editTeacherRef.current = t; }} placeholder="例：山田 太郎" placeholderTextColor="#C7C7CC" autoCorrect={false} />
+                  </View>
+                  <View style={s.editDivider} />
+                  <View style={s.editRow}>
+                    <Text style={s.editRowLabel}>単位数</Text>
+                    <TextInput style={[s.editTextInput, { width: 60, flex: 0 }]} value={editCredits} onChangeText={setEditCredits} placeholder="2" placeholderTextColor="#C7C7CC" keyboardType="number-pad" maxLength={2} />
+                  </View>
+                  <View style={s.editDivider} />
+                  <View style={s.editVertRow}>
+                    <Text style={s.editRowLabel}>区分</Text>
+                    <View style={s.editSegment}>
+                      {([
+                        { value: 'required', label: '必修' },
+                        { value: 'elective_required', label: '選択必修' },
+                        { value: 'elective', label: '選択' },
+                      ] as { value: ClassType; label: string }[]).map(opt => (
+                        <TouchableOpacity
+                          key={opt.value}
+                          style={[s.editSegItem, editClassType === opt.value && s.editSegItemActive]}
+                          onPress={() => setEditClassType(editClassType === opt.value ? null : opt.value)}
+                        >
+                          <Text style={[s.editSegText, editClassType === opt.value && s.editSegTextActive]}>{opt.label}</Text>
                         </TouchableOpacity>
-                      ) : null}
+                      ))}
                     </View>
                   </View>
+                  <View style={s.editDivider} />
+                  <View style={s.editRow}>
+                    <Text style={s.editRowLabel}>試験日</Text>
+                    <View style={{ flex: 1, alignItems: 'flex-end' }}>
+                      <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+                        <TouchableOpacity
+                          style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}
+                          onPress={() => setEditShowExamCalendar(v => !v)}
+                        >
+                          <Ionicons name="calendar-outline" size={16} color="#3eb370" />
+                          <Text style={[s.editTextInput, { flex: 0, textAlign: 'right' }, !editExamDate && { color: '#C7C7CC' }]}>
+                            {editExamDate ? formatDate(editExamDate) : '日付を選択'}
+                          </Text>
+                          <Ionicons name={editShowExamCalendar ? 'chevron-up' : 'chevron-down'} size={14} color="#8E8E93" />
+                        </TouchableOpacity>
+                        {editExamDate ? (
+                          <TouchableOpacity onPress={() => { setEditExamDate(''); setEditShowExamCalendar(false); }} hitSlop={8}>
+                            <Ionicons name="close-circle" size={24} color="#C7C7CC" />
+                          </TouchableOpacity>
+                        ) : null}
+                      </View>
+                    </View>
+                  </View>
+                  {editShowExamCalendar && (
+                    <Calendar
+                      current={editExamDate || undefined}
+                      onDayPress={(d: { dateString: string }) => { setEditExamDate(d.dateString); setEditShowExamCalendar(false); }}
+                      markedDates={editExamDate ? { [editExamDate]: { selected: true, selectedColor: '#3eb370' } } : {}}
+                      theme={{ arrowColor: '#3eb370', selectedDayBackgroundColor: '#3eb370' }}
+                      style={{ borderRadius: 12, overflow: 'hidden', marginBottom: 8 }}
+                    />
+                  )}
                 </View>
-                {editShowExamCalendar && (
-                  <Calendar
-                    current={editExamDate || undefined}
-                    onDayPress={(d: { dateString: string }) => { setEditExamDate(d.dateString); setEditShowExamCalendar(false); }}
-                    markedDates={editExamDate ? { [editExamDate]: { selected: true, selectedColor: '#3eb370' } } : {}}
-                    theme={{ arrowColor: '#3eb370', selectedDayBackgroundColor: '#3eb370' }}
-                    style={{ borderRadius: 12, overflow: 'hidden', marginBottom: 8 }}
-                  />
-                )}
-              </View>
+              )}
 
               {/* メモ */}
               <Text style={s.editSectionLabel}>メモ</Text>
@@ -1419,4 +1430,17 @@ const s = StyleSheet.create({
   },
   editDeleteBtn: { alignItems: 'center', paddingVertical: 12 },
   editDeleteText: { color: '#FF3B30', fontSize: 15 },
+
+  editAccordionTrigger: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 6,
+    backgroundColor: '#FFFFFF',
+    borderRadius: 12,
+    paddingVertical: 12,
+    marginBottom: 24,
+  },
+  editAccordionTriggerOpen: { marginBottom: 8 },
+  editAccordionTriggerText: { fontSize: 14, color: '#3C3C43', fontWeight: '500' },
 });

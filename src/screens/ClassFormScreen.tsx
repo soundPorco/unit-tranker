@@ -76,6 +76,7 @@ export function ClassFormScreen() {
   const [showExamCalendar, setShowExamCalendar] = useState(false);
   const [memo,            setMemo]            = useState(classData?.memo ?? '');
   const [saving,          setSaving]          = useState(false);
+  const [showDetails,     setShowDetails]     = useState(false);
 
   const isEdit = !!classData;
   const currentDay    = classData?.day_of_week ?? day ?? 0;
@@ -145,17 +146,6 @@ export function ClassFormScreen() {
               />
             </FormRow>
             <View style={s.divider} />
-            <FormRow label="教員名">
-              <TextInput
-                style={s.textInput}
-                defaultValue={teacherRef.current}
-                onChangeText={t => { teacherRef.current = t; }}
-                placeholder="例：山田 太郎"
-                placeholderTextColor="#C7C7CC"
-                autoCorrect={false}
-              />
-            </FormRow>
-            <View style={s.divider} />
             <FormRow label="教室">
               <TextInput
                 style={s.textInput}
@@ -168,79 +158,100 @@ export function ClassFormScreen() {
             </FormRow>
           </View>
 
-          {/* ─── 単位・区分 ─── */}
-          <Text style={s.sectionLabel}>単位・区分</Text>
-          <View style={s.card}>
-            <FormRow label="単位数">
-              <TextInput
-                style={[s.textInput, s.shortInput]}
-                value={credits}
-                onChangeText={setCredits}
-                placeholder="例：2"
-                placeholderTextColor="#C7C7CC"
-                keyboardType="number-pad"
-                maxLength={2}
-              />
-            </FormRow>
-            <View style={s.divider} />
-            <View style={s.vertRow}>
-              <Text style={s.rowLabel}>区分</Text>
-              <SegmentPicker
-                options={CLASS_TYPE_OPTIONS}
-                value={classType}
-                onChange={setClassType}
-              />
-            </View>
-          </View>
+          {/* ─── 詳細設定（アコーディオン） ─── */}
+          <TouchableOpacity
+            style={[s.accordionTrigger, showDetails && s.accordionTriggerOpen]}
+            onPress={() => setShowDetails(v => !v)}
+            activeOpacity={0.7}
+          >
+            <Text style={s.accordionTriggerText}>詳細設定</Text>
+            <Ionicons
+              name={showDetails ? 'chevron-up' : 'chevron-down'}
+              size={14}
+              color="#3C3C43"
+            />
+          </TouchableOpacity>
 
-          {/* ─── 評価 ─── */}
-          <Text style={s.sectionLabel}>評価</Text>
-          <View style={s.card}>
-            <View style={s.row}>
-              <Text style={s.rowLabel}>試験日</Text>
-              <View style={s.rowRight}>
-                <View style={s.datePickerRow}>
-                  <TouchableOpacity
-                    style={s.datePicker}
-                    onPress={() => setShowExamCalendar(v => !v)}
-                  >
-                    <Ionicons name="calendar-outline" size={16} color="#3eb370" />
-                    <Text style={[s.datePickerText, !examDate && s.datePickerPlaceholder]}>
-                      {examDate ? formatDate(examDate) : '日付を選択'}
-                    </Text>
-                    <Ionicons
-                      name={showExamCalendar ? 'chevron-up' : 'chevron-down'}
-                      size={14}
-                      color="#8E8E93"
-                    />
-                  </TouchableOpacity>
-                  {examDate ? (
+          {showDetails && (
+            <View style={s.card}>
+              <FormRow label="教員名">
+                <TextInput
+                  style={s.textInput}
+                  defaultValue={teacherRef.current}
+                  onChangeText={t => { teacherRef.current = t; }}
+                  placeholder="例：山田 太郎"
+                  placeholderTextColor="#C7C7CC"
+                  autoCorrect={false}
+                />
+              </FormRow>
+              <View style={s.divider} />
+              <FormRow label="単位数">
+                <TextInput
+                  style={[s.textInput, s.shortInput]}
+                  value={credits}
+                  onChangeText={setCredits}
+                  placeholder="例：2"
+                  placeholderTextColor="#C7C7CC"
+                  keyboardType="number-pad"
+                  maxLength={2}
+                />
+              </FormRow>
+              <View style={s.divider} />
+              <View style={s.vertRow}>
+                <Text style={s.rowLabel}>区分</Text>
+                <SegmentPicker
+                  options={CLASS_TYPE_OPTIONS}
+                  value={classType}
+                  onChange={setClassType}
+                />
+              </View>
+              <View style={s.divider} />
+              <View style={s.row}>
+                <Text style={s.rowLabel}>試験日</Text>
+                <View style={s.rowRight}>
+                  <View style={s.datePickerRow}>
                     <TouchableOpacity
-                      onPress={() => { setExamDate(''); setShowExamCalendar(false); }}
-                      hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+                      style={s.datePicker}
+                      onPress={() => setShowExamCalendar(v => !v)}
                     >
-                      <Ionicons name="close-circle" size={24} color="#C7C7CC" />
+                      <Ionicons name="calendar-outline" size={16} color="#3eb370" />
+                      <Text style={[s.datePickerText, !examDate && s.datePickerPlaceholder]}>
+                        {examDate ? formatDate(examDate) : '日付を選択'}
+                      </Text>
+                      <Ionicons
+                        name={showExamCalendar ? 'chevron-up' : 'chevron-down'}
+                        size={14}
+                        color="#8E8E93"
+                      />
                     </TouchableOpacity>
-                  ) : null}
+                    {examDate ? (
+                      <TouchableOpacity
+                        onPress={() => { setExamDate(''); setShowExamCalendar(false); }}
+                        hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+                      >
+                        <Ionicons name="close-circle" size={24} color="#C7C7CC" />
+                      </TouchableOpacity>
+                    ) : null}
+                  </View>
                 </View>
               </View>
+              {showExamCalendar && (
+                <Calendar
+                  current={examDate || undefined}
+                  onDayPress={(day: { dateString: string }) => {
+                    setExamDate(day.dateString);
+                    setShowExamCalendar(false);
+                  }}
+                  markedDates={examDate ? { [examDate]: { selected: true, selectedColor: '#3eb370' } } : {}}
+                  theme={{
+                    arrowColor: '#3eb370',
+                    selectedDayBackgroundColor: '#3eb370',
+                  }}
+                  style={s.calendar}
+                />
+              )}
             </View>
-            {showExamCalendar && (
-              <Calendar
-                current={examDate || undefined}
-                onDayPress={(day: { dateString: string }) => {
-                  setExamDate(day.dateString);
-                  setShowExamCalendar(false);
-                }}
-                markedDates={examDate ? { [examDate]: { selected: true, selectedColor: '#3eb370' } } : {}}
-                theme={{
-                  arrowColor: '#3eb370',
-                  selectedDayBackgroundColor: '#3eb370',
-                }}
-                style={s.calendar}
-              />
-            )}
-          </View>
+          )}
 
           {/* ─── メモ ─── */}
           <Text style={s.sectionLabel}>メモ</Text>
@@ -382,5 +393,21 @@ const s = StyleSheet.create({
   datePickerPlaceholder: { color: '#C7C7CC' },
 
   calendar: { borderRadius: 12, overflow: 'hidden', marginBottom: 8 },
+
+  accordionTrigger: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 6,
+    backgroundColor: '#FFFFFF',
+    borderRadius: 12,
+
+    paddingVertical: 12,
+    marginBottom: 24,
+  },
+  accordionTriggerOpen: { marginBottom: 8 },
+  accordionLine: { flex: 1, height: 1, backgroundColor: '#D1D1D6' },
+  accordionTriggerInner: { flexDirection: 'row', alignItems: 'center', gap: 4 },
+  accordionTriggerText: { fontSize: 14, color: '#3C3C43', fontWeight: '500' },
 
 });
