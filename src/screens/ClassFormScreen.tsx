@@ -42,7 +42,7 @@ function SegmentPicker<T extends string>({
 }: {
   options: { value: T; label: string }[];
   value: T | null;
-  onChange: (v: T) => void;
+  onChange: (v: T | null) => void;
 }) {
   return (
     <View style={s.segment}>
@@ -50,7 +50,7 @@ function SegmentPicker<T extends string>({
         <TouchableOpacity
           key={opt.value}
           style={[s.segBtn, value === opt.value && s.segBtnActive]}
-          onPress={() => onChange(opt.value)}
+          onPress={() => onChange(value === opt.value ? null : opt.value)}
         >
           <Text style={[s.segText, value === opt.value && s.segTextActive]}>
             {opt.label}
