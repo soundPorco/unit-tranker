@@ -6,13 +6,13 @@ const STORAGE_KEY = '@timetable_settings';
 
 const DEFAULT_TIMES: PeriodTime[] = [
   { start: '09:00', end: '10:30' },
-  { start: '10:45', end: '12:15' },
+  { start: '10:40', end: '12:10' },
   { start: '13:00', end: '14:30' },
-  { start: '14:45', end: '16:15' },
-  { start: '16:30', end: '18:00' },
-  { start: '18:15', end: '19:45' },
-  { start: '20:00', end: '21:30' },
-  { start: '21:45', end: '23:15' },
+  { start: '14:40', end: '16:10' },
+  { start: '16:20', end: '17:50' },
+  { start: '18:00', end: '19:30' },
+  { start: '19:40', end: '21:10' },
+  { start: '21:20', end: '22:50' },
 ];
 
 export const DEFAULT_TIMETABLE_SETTINGS: TimetableSettings = {
