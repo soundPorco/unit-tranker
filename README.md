@@ -1,7 +1,158 @@
-## アプリの画面
+# Unit Tracker
 
-<img width="585" width="300" alt="IMG_0015" src="https://github.com/user-attachments/assets/0b5011bb-1a6b-406d-8bba-f96a7c25fb76" />
-<img width="585" width="300" alt="IMG_0013" src="https://github.com/user-attachments/assets/ad096458-805c-4dc4-a961-06f996652102" />
-<img width="585" width="300" alt="IMG_0012" src="https://github.com/user-attachments/assets/86411c95-42e8-4196-b4a7-0dc57c5a5f2e" />
-<img width="585" width="300" alt="IMG_0011" src="https://github.com/user-attachments/assets/260a531d-b0fd-427f-9b46-938cbf52f29c" />
-<img width="585" width="300" alt="IMG_0010" src="https://github.com/user-attachments/assets/e091debf-0534-4d5b-9501-75b4c11072c9" />
+大学生向けの履修・単位管理Webアプリです。  
+履修登録、時間割管理、単位計算を簡単に行えるようにすることを目的として開発しました。
+
+---
+
+## URL
+
+https://xxxxx.vercel.app/
+
+※ テストアカウント
+
+```txt
+Email: test@example.com
+Password: test1234
+```
+
+---
+
+## 開発背景
+
+大学の履修登録では、
+
+- シラバスを見ながらの手入力
+- 単位計算
+- 時間割の管理
+
+などが煩雑で、毎学期手間がかかっていました。
+
+特に「講義情報を毎回入力する必要がある」点に不便を感じ、
+講義データを共有化できる履修管理アプリを開発しました。
+
+---
+
+## 主な機能
+
+- 履修登録
+- 時間割表示
+- 単位計算
+- 講義検索
+- 講義データ共有
+- レビュー機能
+- モバイル対応UI
+
+---
+
+## 使用技術
+
+### Frontend
+
+- React
+- React Router
+- Tailwind CSS
+- Vite
+
+### Backend / BaaS
+
+- Firebase Authentication
+- Cloud Firestore
+
+### Infrastructure
+
+- Vercel
+
+---
+
+## アプリ画面
+
+### ホーム画面
+
+<img width="800" src="画像URL">
+
+### 時間割画面
+
+<img width="800" src="画像URL">
+
+### モバイル画面
+
+<img width="300" src="画像URL">
+
+---
+
+## 工夫した点
+
+### 講義データ共有機能
+
+講義情報をユーザーごとに毎回入力するのではなく、
+一度登録された講義を他ユーザーも利用できるよう設計しました。
+
+これにより、入力負担を減らしながら、
+講義データベースが徐々に充実していく構成にしています。
+
+---
+
+### 離脱防止機能
+
+React Router の `useBlocker` を使用し、
+入力途中でページ遷移しようとした場合に確認モーダルを表示するよう実装しました。
+
+---
+
+### モバイルUI最適化
+
+大学生がスマートフォンで利用することを想定し、
+
+- 片手操作
+- タップしやすい導線
+- 画面幅に応じたレイアウト変更
+
+を意識して設計しました。
+
+---
+
+## 苦労した点
+
+Firestoreでは同じ講義データの重複登録が発生しやすく、
+講義の一意性をどのように管理するかに苦労しました。
+
+また、共有講義データの品質維持のために、
+申請フローや管理方法についても検討しました。
+
+---
+
+## 今後の改善
+
+- 講義レビュー機能強化
+- おすすめ講義機能
+- iOS / Android アプリ化
+- 通知機能
+- ダークモード対応
+
+---
+
+## セットアップ
+
+```bash
+git clone https://github.com/xxxxx/xxxxx.git
+
+cd xxxxx
+
+npm install
+
+npm run dev
+```
+
+---
+
+## 制作期間
+
+約○週間 / ○ヶ月
+
+---
+
+## 作者
+
+GitHub:
+https://github.com/xxxxx
