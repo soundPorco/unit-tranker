@@ -1,6 +1,6 @@
 # ユニトラ（Unit Tracker）
 
-![](/assets/unitra-readme1.png)
+![](/assets/readme1.png)
 
 大学生向けの履修・単位管理iOSアプリです。  
 時間割管理、出席記録、課題管理、成績確認を一つのアプリで完結できるよう開発しました。
