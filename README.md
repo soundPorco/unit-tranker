@@ -61,17 +61,21 @@ https://apps.apple.com/jp/app/unittracker-%E5%A4%A7%E5%AD%A6%E7%94%9F%E5%90%91%E
 
 ---
 
-## アプリ画面
+## 主な機能、アプリ画面
 
-### 時間割画面
+### 時間割を設定
 
-<img width="300" src="画像URL">
-
-### 成績・単位画面
+### 時間割に講義を登録
 
 <img width="300" src="画像URL">
 
-### 課題管理画面
+### 成績一覧・ログ機能
+
+<img width="300" src="画像URL">
+
+### 出席機能
+
+### 課題一覧画面
 
 <img width="300" src="画像URL">
 
