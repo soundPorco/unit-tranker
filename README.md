@@ -63,11 +63,15 @@ https://apps.apple.com/jp/app/unittracker-%E5%A4%A7%E5%AD%A6%E7%94%9F%E5%90%91%E
 
 ## 主な機能、アプリ画面
 
+|                              試合結果を記録                               |                              打撃成績を記録                               |
+| :-----------------------------------------------------------------------: | :-----------------------------------------------------------------------: |
+| <img src="/assets/ScreenRecording_05-28-2026 14-30-53_1.gif" width="320"> | <img src="/assets/ScreenRecording_05-28-2026 14-30-24_1.gif" width="320"> |
+
 ### 時間割を設定
 
-<img src="/assets/ScreenRecording_05-28-2026 14-30-53_1.gif" width="320">
-
 ### 時間割に講義を登録
+
+<img src="/assets/ScreenRecording_05-28-2026 14-30-53_1.gif" width="320">
 
 <img src="/assets/ScreenRecording_05-28-2026 14-30-24_1.gif" width="320">
 
