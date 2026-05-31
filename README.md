@@ -116,35 +116,6 @@ ClaudeCodeでのバイブコーディングのため、機能面での細かな�
 
 ---
 
-## セットアップ
-
-```bash
-git clone https://github.com/soundPorco/unit-tranker.git
-
-cd unit-tranker
-
-npm install
-```
-
-`.env` ファイルを作成し、Supabase の接続情報を設定します。
-
-```
-EXPO_PUBLIC_SUPABASE_URL=your_supabase_url
-EXPO_PUBLIC_SUPABASE_ANON_KEY=your_supabase_anon_key
-```
-
-Supabase のテーブルを作成します（SQL Editor で実行）。
-
-```bash
-# supabase_setup.sql を Supabase SQL Editor で実行
-```
-
-アプリを起動します。
-
-```bash
-npx expo start
-```
-
 ---
 
 ## 制作期間
